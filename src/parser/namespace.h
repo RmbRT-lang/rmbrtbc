@@ -1,3 +1,5 @@
+/** @file namespace.h
+	Defines the namespace structure. */
 #ifndef __rlc_parser_namespace_h_defined
 #define __rlc_parser_namespace_h_defined
 
