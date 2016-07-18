@@ -13,7 +13,7 @@ extern "C" {
 
 /** A numerical expression.
 	Numerical expressions can either be numbers or single characters.
-@implements enum RlcExpression */
+@implements RlcExpression */
 struct RlcNumberExpression
 {
 	/** Must be initialized to kRlcNumberExpression. */

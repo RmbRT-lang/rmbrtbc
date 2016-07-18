@@ -11,7 +11,7 @@ extern "C" {
 
 /** Symbol expression type.
 	A symbol expression is an exression that contains the name of a code entity.
-@implements enum RlcExpression */
+@implements RlcExpression */
 struct RlcSymbolExpression
 {
 	/** Must be initialized to kRlcSymbolExpression. */
