@@ -11,6 +11,6 @@ struct RlcUnion;
 struct RlcVariable;
 
 typedef enum RlcExpression {
-} RlcExpression;
+} enum RlcExpression;
 
 #endif

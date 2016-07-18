@@ -3,7 +3,7 @@
 #ifndef __rlc_parser_typename_hpp_defined
 #define __rlc_parser_typename_hpp_defined
 
-#include "symbol.hpp"
+#include "symbol.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -23,8 +23,8 @@ typedef enum RlcTypeIndirection
 /** CV qualifier flag enum. */
 typedef enum RlcCVQualifier
 {
-	/** Modifiable, non-volatile. */
-	kRlcCVQualifierNone
+	/** No qualifier. */
+	kRlcCVQualifierNone,
 	/** Const qualifier. */
 	kRlcCVQualifierConst,
 	/** Volatile qualifier. */
@@ -40,7 +40,7 @@ struct RlcTypeModifier
 	RlcCVQualifier fCVQualifier;
 };
 
-/** A (possibly) namespace-qualified identifier, or void, and type qualifiers. */
+/** A (possibly) scope-qualified identifier, or void, and type qualifiers. */
 struct RlcTypeName
 {
 	/** The name of the type. */
@@ -54,6 +54,20 @@ struct RlcTypeName
 	/** The type modifier count. */
 	size_t fTypeModifierCount;
 };
+/** Destroys a type name.
+	Releases memory allocated by the given type name, but not the type name itself.
+@param[in] this:
+	The type name to destroy. */
+void rlc_type_name_destroy(
+	struct RlcTypeName * this);
+/** Adds a type modifier to the type name.
+@param[in] this:
+	The type name to add a modifier to.
+@param[in] modifier:
+	The modifier to add to the type name. Must not be a modifier owned by the type name, because this would result in a segmentation fault in case memory had to be moved to expand the type modifier array. */
+void rlc_type_name_add_modifier(
+	struct RlcTypeName * this,
+	struct RlcTypeModifier const * modifier);
 
 #ifdef __cplusplus
 }

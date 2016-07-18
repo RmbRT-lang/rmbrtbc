@@ -6,6 +6,9 @@
 
 #include <stddef.h>
 
+#include "expression/expression.h"
+#include "typename.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -18,9 +21,11 @@ struct RlcVariable
 	/** The variable name. */
 	size_t fNameToken;
 	/** The initialising expression, or null. */
-	struct RlcExpression * fInitExp;
+	enum RlcExpression * fInitExp;
 };
 
+void rlc_variable_destroy(
+	struct RlcVariable * this);
 
 #ifdef __cplusplus
 }

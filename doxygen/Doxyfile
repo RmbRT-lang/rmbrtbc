@@ -221,6 +221,8 @@ TAB_SIZE               = 4
 # newlines.
 
 ALIASES                = "assert=@par (Debug) Assertions:\n"
+ALIASES               += "pass_pointer_ownership=<b>Pointer ownership is passed.</b> The memory must be allocated on the heap and will be freed by the recipient."
+ALIASES               += "pass_ownership=<b>Instance's content's ownership is moved.</b> The resources held by the instance will be moved to the recipient. The instance looses ownership of its contents."
 
 # This tag can be used to specify a number of word-keyword mappings (TCL only).
 # A mapping has the form "name=value". For example adding "class=itcl::class"

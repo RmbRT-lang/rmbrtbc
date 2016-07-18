@@ -3,7 +3,6 @@
 #ifndef __rlc_parser_namespace_h_defined
 #define __rlc_parser_namespace_h_defined
 
-#include <rlc/tokens.h>
 #include <stddef.h>
 
 #ifdef __cplusplus

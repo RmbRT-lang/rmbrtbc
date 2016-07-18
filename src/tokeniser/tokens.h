@@ -1,11 +1,12 @@
 /** @file tokens.h
-	Contains the declarations of the token data type as well as
-	constants related to tokenizing / lexical analysis of source files. */
+	Contains the declarations of the token data type as well as constants related to tokenising / lexical analysis of source files. */
 
 #ifndef __rlc_tokens_h_defined
 #define __rlc_tokens_h_defined
 
 #include "../unicode.h"
+#include "../macros.h"
+
 #include <stddef.h>
 
 #ifdef __cplusplus
@@ -120,7 +121,9 @@ typedef enum RlcTokenType
 	kRlcTokConst,
 	kRlcTokVolatile,
 	kRlcTokIsolated,
-	kRlcTokThis
+	kRlcTokThis,
+
+	RLC_ENUM_END(RlcTokenType)
 
 } RlcTokenType;
 

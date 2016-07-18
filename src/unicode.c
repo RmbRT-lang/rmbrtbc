@@ -3,12 +3,12 @@
 #include <assert.h>
 #include <stdio.h>
 
-int rlc_is_ascii(rlc_utf8_t character);
-int rlc_is_utf8_group_2_start(rlc_utf8_t character);
-int rlc_is_utf8_group_3_start(rlc_utf8_t character);
-int rlc_is_utf8_group_4_start(rlc_utf8_t character);
-int rlc_is_utf8_group_start(rlc_utf8_t character);
-int rlc_is_utf8_follow(rlc_utf8_t character);
+inline int rlc_is_ascii(rlc_utf8_t character);
+inline int rlc_is_utf8_group_2_start(rlc_utf8_t character);
+inline int rlc_is_utf8_group_3_start(rlc_utf8_t character);
+inline int rlc_is_utf8_group_4_start(rlc_utf8_t character);
+inline int rlc_is_utf8_group_start(rlc_utf8_t character);
+inline int rlc_is_utf8_follow(rlc_utf8_t character);
 int rlc_is_utf8_valid(rlc_utf8_t character);
 int rlc_is_utf8_valid_seq(rlc_utf8_t const * character);
 unsigned rlc_character_length(rlc_utf8_t character);
@@ -59,6 +59,7 @@ int rlc_is_utf8_valid(rlc_utf8_t character)
 int rlc_is_utf8_valid_seq(rlc_utf8_t const * character)
 {
 	assert(character != NULL);
+
 	if(!rlc_is_utf8_valid(*character))
 		return 0;
 
@@ -87,8 +88,13 @@ unsigned rlc_character_length(rlc_utf8_t character)
 	else assert(!"invalid utf-8 character!");
 }
 
-int rlc_utf8_char_to_utf32_char(rlc_utf8_t const * str, rlc_char_t * out)
+int rlc_utf8_char_to_utf32_char(
+	rlc_utf8_t const * str,
+	rlc_char_t * out)
 {
+	assert(str != NULL);
+	assert(out != NULL);
+
 	if(!rlc_is_utf8_valid_seq(str))
 		return 0;
 
@@ -98,7 +104,7 @@ int rlc_utf8_char_to_utf32_char(rlc_utf8_t const * str, rlc_char_t * out)
 	// now the first bytes are follow bytes, and the last nonzero byte is the group start byte.
 	for(unsigned i = 0; i<len; i++)
 		temp[i] = str[len-1-i];
-	// mapping rlcUtf8CharType => used bits.
+	// mapping byte index => used bits.
 	static rlc_utf8_t const bitmasks[5] = { 0x3f, 0x7f, 0x1f, 0x0f, 0x07 };
 	static uint8_t const bitmask_count[5] = { 6, 7, 5, 4, 3 };
 	uint8_t bits = 0;
@@ -118,6 +124,8 @@ int rlc_utf8_char_to_utf32_char(rlc_utf8_t const * str, rlc_char_t * out)
 
 size_t rlc_utf8_is_valid_string(rlc_utf8_t const * str)
 {
+	assert(str != NULL);
+
 	size_t len = 0;
 	while(*str)
 	{
@@ -135,6 +143,8 @@ size_t rlc_utf8_is_valid_string(rlc_utf8_t const * str)
 
 size_t rlc_strlen(rlc_char_t const * str)
 {
+	assert(str != NULL);
+
 	size_t len = 0;
 	while(*str++)
 		++len;
@@ -150,16 +160,25 @@ signed sign(signed n)
 			: +1);
 }
 
-int rlc_strcmp(rlc_char_t const * a, rlc_char_t const * b)
+int rlc_strcmp(
+	rlc_char_t const * a,
+	rlc_char_t const * b)
 {
+	assert(a != NULL);
+	assert(b != NULL);
+
 	size_t i = 0;
 	while(a[i] && (a[i] == b[i]))
 		++i;
-	return sign((signed)a[i] - (signed)b[i]);
+	return sign((signed)a[i] - (signed)b[i]) *  (i + 1);
 }
 
-int rlc_strcmp_utf8(rlc_char_t const * a, rlc_utf8_t const * b)
+int rlc_strcmp_utf8(
+	rlc_char_t const * a,
+	rlc_utf8_t const * b)
 {
+	assert(a != NULL);
+	assert(b != NULL);
 	assert(rlc_utf8_is_valid_string(b));
 
 	size_t i = 0;
@@ -177,9 +196,14 @@ int rlc_strcmp_utf8(rlc_char_t const * a, rlc_utf8_t const * b)
 	}
 }
 
-int rlc_strncmp(rlc_char_t const * a, rlc_char_t const * b, size_t n)
+int rlc_strncmp(
+	rlc_char_t const * a,
+	rlc_char_t const * b,
+	size_t n)
 {
-	assert(a && b);
+	assert(a != NULL);
+	assert(b != NULL);
+
 	size_t i = 0;
 	while(i<n)
 	{
@@ -198,8 +222,13 @@ int rlc_strncmp(rlc_char_t const * a, rlc_char_t const * b, size_t n)
 	return 0;
 }
 
-int rlc_strncmp_utf8(rlc_char_t const * a, rlc_utf8_t const * b, size_t n)
+int rlc_strncmp_utf8(
+	rlc_char_t const * a,
+	rlc_utf8_t const * b,
+	size_t n)
 {
+	assert(a != NULL);
+	assert(b != NULL);
 	assert(rlc_utf8_is_valid_string(b));
 
 	size_t i = 0;
@@ -221,8 +250,11 @@ int rlc_strncmp_utf8(rlc_char_t const * a, rlc_utf8_t const * b, size_t n)
 	return 0;
 }
 
-rlc_char_t * rlc_utf8_to_utf32(rlc_utf8_t const * str)
+rlc_char_t * rlc_utf8_to_utf32(
+	rlc_utf8_t const * str)
 {
+	assert(str != NULL);
+	
 	size_t len;
 	if(!(len = rlc_utf8_is_valid_string(str)))
 		return 0;

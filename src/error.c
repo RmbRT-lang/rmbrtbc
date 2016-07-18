@@ -1,8 +1,8 @@
 #include "error.h"
 #include <stdlib.h>
 
-rlc_internal_error_fn_t rlc_internal_error_fn = NULL;
-rlc_lexical_error_fn_t rlc_lexical_error_fn = NULL;
+static rlc_internal_error_fn_t rlc_internal_error_fn = NULL;
+static rlc_lexical_error_fn_t rlc_lexical_error_fn = NULL;
 
 void rlc_report_internal_error(
 	char const * message)

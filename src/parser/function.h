@@ -6,12 +6,13 @@
 
 #include <stddef.h>
 #include "typename.h"
+#include "variable.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/** A function */
+/** A function. */
 struct RlcFunction
 {
 	/** The token index of the first appearance. */
@@ -21,6 +22,10 @@ struct RlcFunction
 
 	/** The return type of the function. */
 	struct RlcTypeName fReturnType;
+
+	/** The arguments the function takes. */
+	struct RlcVariable * fArguments;
+
 	/** Whether the function is inline. */
 	int fIsInline;
 };
