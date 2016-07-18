@@ -20,7 +20,7 @@ You need to have doxygen installed on your machine. Navigate into the ```rlc/dox
 
 ```doxygen Doxyfile```
 
-This generates a HTML documentation based on the comments in the code, and places it in ```rlc/doxygen/html/".
+This generates a HTML documentation based on the comments in the code, and places it in ```rlc/doxygen/html/```.
 
 ## License
 
