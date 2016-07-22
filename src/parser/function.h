@@ -1,6 +1,5 @@
 /** @file function.h
-	Defines the function structure. */
-
+	Defines the function structure used by the parser. */
 #ifndef __rlc_parser_function_h_defined
 #define __rlc_parser_function_h_defined
 
@@ -12,8 +11,8 @@
 extern "C" {
 #endif
 
-/** A function. */
-struct RlcFunction
+/** A function as used in the parser. */
+struct RlcParsedFunction
 {
 	/** The token index of the first appearance. */
 	size_t fDeclarationIndex;
@@ -21,10 +20,10 @@ struct RlcFunction
 	size_t fNameToken;
 
 	/** The return type of the function. */
-	struct RlcTypeName fReturnType;
+	struct RlcParsedTypeName fReturnType;
 
 	/** The arguments the function takes. */
-	struct RlcVariable * fArguments;
+	struct RlcParsedVariable * fArguments;
 
 	/** Whether the function is inline. */
 	int fIsInline;

@@ -11,35 +11,35 @@ extern "C" {
 #endif
 
 /** A single identifier, possibly templated.
-@relates RlcSymbol */
-struct RlcSymbolChild
+@relates RlcParsedSymbol */
+struct RlcParsedSymbolChild
 {
 	/** The name token's index. */
 	size_t fNameToken;
 	/** The template arguments. */
-	enum RlcExpression ** fTemplates;
+	enum RlcParsedExpression ** fTemplates;
 	/** The template arguments' count. */
 	size_t fTemplateCount;
 };
 
 /** Adds a template argument to a symbol child.
-@memberof RlcSymbolChild
+@memberof RlcParsedSymbolChild
 
 @param[in] this:
 	The symbol child to add a template argument to.
 	@pass_pointer_ownership
 @param[in] template_argument:
 	The template argument. */
-void rlc_symbol_child_add_template(
-	struct RlcSymbolChild * this,
-	enum RlcExpression * template_argument);
+void rlc_parsed_symbol_child_add_template(
+	struct RlcParsedSymbolChild * this,
+	enum RlcParsedExpression * template_argument);
 
 
 /** A (possibly) namespace-qualified symbol. */
-struct RlcSymbol
+struct RlcParsedSymbol
 {
 	/** The symbol children. */
-	struct RlcSymbolChild * fChildren;
+	struct RlcParsedSymbolChild * fChildren;
 	/** The count of symbol children. */
 	size_t fChildCount;
 	/** Whether the symbol was prefixed with ```::``` to access the root namespace. */
@@ -47,23 +47,23 @@ struct RlcSymbol
 };
 /** Destroys a symbol.
 	Releases memory allocated by the given symbol, but not the symbol itself.
-@memberof RlcSymbol
+@memberof RlcParsedSymbol
 
 @param[in] this:
 	The symbol to destroy. */
-void rlc_symbol_destroy(
-	struct RlcSymbol * this);
+void rlc_parsed_symbol_destroy(
+	struct RlcParsedSymbol * this);
 
 /** Adds a child to a symbol.
-@memberof RlcSymbol
+@memberof RlcParsedSymbol
 
 @param[in] this:
 	The symbol to add a child to.
 @param[in] child:
 	The symbol child to add. */
-void rlc_symbol_add_child(
-	struct RlcSymbol * this,
-	struct RlcSymbolChild const * child);
+void rlc_parsed_symbol_add_child(
+	struct RlcParsedSymbol * this,
+	struct RlcParsedSymbolChild const * child);
 
 #ifdef __cplusplus
 }

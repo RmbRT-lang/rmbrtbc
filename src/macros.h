@@ -11,5 +11,6 @@
 
 #define RLC_COUNT(Enum) ((unsigned)k##Enum##Count)
 #define RLC_IN_ENUM(x,Enum) (((unsigned) x) < RLC_COUNT(Enum))
+#define RLC_COVERS_ENUM(Array, Enum) (_countof((Array)) == RLC_COUNT(Enum))
 
 #endif

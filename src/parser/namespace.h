@@ -5,33 +5,38 @@
 
 #include <stddef.h>
 
+#include "scopeentry.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct RlcNamespace
+/** Namespace structure used by the parser.
+@implements RlcParsedScopeEntry */
+struct RlcParsedNamespace
 {
-	/** This is the index of the first token of the first appearance. */
-	size_t fDeclarationIndex;
-	/** The index of the name token. */
-	size_t fNameToken;
+	/** The scope entry base class. */
+	struct RlcParsedScopeEntry fScopeEntry;
 
-	struct RlcFunction ** fFunctions;
+	struct RlcParsedFunction ** fFunctions;
 	size_t fFunctionCount;
 
-	struct RlcClass ** fClasses;
+	struct RlcParsedClass ** fClasses;
 	size_t fClassCount;
 
-	struct RlcStruct ** fStructs;
+	struct RlcParsedStruct ** fStructs;
 	size_t fStructCount;
 
-	struct RlcRawType ** fRawTypes;
+	struct RlcParsedRawType ** fRawTypes;
 	size_t fRawTypeCount;
 
-	struct RlcVariable ** fVariables;
+	struct RlcParsedUnion ** fUnions;
+	size_t fUnionCount;
+
+	struct RlcParsedVariable ** fVariables;
 	size_t fVariableCount;
 
-	struct RlcEnum ** fEnums;
+	struct RlcParsedEnum ** fEnums;
 	size_t fEnumCount;
 };
 

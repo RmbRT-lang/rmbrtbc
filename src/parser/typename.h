@@ -41,10 +41,10 @@ struct RlcTypeModifier
 };
 
 /** A (possibly) scope-qualified identifier, or void, and type qualifiers. */
-struct RlcTypeName
+struct RlcParsedTypeName
 {
 	/** The name of the type. */
-	struct RlcSymbol fName;
+	struct RlcParsedSymbol fName;
 	/** Whether the type name is void.
 		If true, the name field is unused. */
 	int fIsVoid;
@@ -58,15 +58,15 @@ struct RlcTypeName
 	Releases memory allocated by the given type name, but not the type name itself.
 @param[in] this:
 	The type name to destroy. */
-void rlc_type_name_destroy(
-	struct RlcTypeName * this);
+void rlc_parsed_type_name_destroy(
+	struct RlcParsedTypeName * this);
 /** Adds a type modifier to the type name.
 @param[in] this:
 	The type name to add a modifier to.
 @param[in] modifier:
 	The modifier to add to the type name. Must not be a modifier owned by the type name, because this would result in a segmentation fault in case memory had to be moved to expand the type modifier array. */
-void rlc_type_name_add_modifier(
-	struct RlcTypeName * this,
+void rlc_parsed_type_name_add_modifier(
+	struct RlcParsedTypeName * this,
 	struct RlcTypeModifier const * modifier);
 
 #ifdef __cplusplus
