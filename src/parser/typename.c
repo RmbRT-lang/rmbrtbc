@@ -1,11 +1,11 @@
 #include "typename.h"
 #include "../malloc.h"
-#include <assert.h>
+#include "../assert.h"
 
-void rlc_type_name_destroy(
-	struct RlcTypeName * this)
+void rlc_parsed_type_name_destroy(
+	struct RlcParsedTypeName * this)
 {
-	assert(this != NULL);
+	RLC_DASSERT(this != NULL);
 
 	if(this->fTypeModifiers)
 	{
@@ -14,16 +14,16 @@ void rlc_type_name_destroy(
 	}
 
 	if(!this->fIsVoid)
-		rlc_symbol_destroy(&this->fName);
+		rlc_parsed_symbol_destroy(&this->fName);
 }
 
 
-void rlc_type_name_add_modifier(
-	struct RlcTypeName * this,
+void rlc_parsed_type_name_add_modifier(
+	struct RlcParsedTypeName * this,
 	struct RlcTypeModifier const * modifier)
 {
-	assert(this != NULL);
-	assert(modifier != NULL);
+	RLC_DASSERT(this != NULL);
+	RLC_DASSERT(modifier != NULL);
 
 	rlc_realloc(
 		(void**)&this->fTypeModifiers,

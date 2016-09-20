@@ -68,8 +68,10 @@ int rlc_strncmp(
 	The first string.
 @param[in] b:
 	The second string. This string has to be a valid UTF-8 string.
+@param[in] len:
+	The maximum character count in `a` to compare.
 @return
-	0, if the strings are equal, otherwise ```sign(a[i] - b[i]) * (i + 1)``` where ```ì``` is the index of the first character in the first string that did not match. */
+	0, if the strings are equal, otherwise `sign(a[i] - b[i]) * (i + 1)` where `i` is the index of the first character in the first string that did not match. */
 int rlc_strncmp_utf8(
 	rlc_char_t const * a,
 	rlc_utf8_t const * b,

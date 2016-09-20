@@ -3,6 +3,8 @@
 #ifndef __rlc_parser_templatedecl_h_defined
 #define __rlc_parser_templatedecl_h_defined
 
+#include <stddef.h>
+
 
 #ifdef __cplusplus
 extern "C" {

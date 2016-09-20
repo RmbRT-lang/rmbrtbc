@@ -1,4 +1,7 @@
 #include "templatedecl.h"
+
+#include "../malloc.h"
+
 #include <assert.h>
 
 void rlc_template_decl_init(

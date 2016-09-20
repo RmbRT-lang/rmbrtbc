@@ -5,15 +5,15 @@
 #include <assert.h>
 
 void rlc_variable_destroy(
-	struct RlcVariable * this)
+	struct RlcParsedVariable * this)
 {
 	assert(this != NULL);
 
-	rlc_type_name_destroy(&this->fType);
+	rlc_parsed_type_name_destroy(&this->fType);
 
 	if(this->fInitExp)
 	{
-		rlc_expression_destroy(this->fInitExp);
+		rlc_parsed_expression_destroy(this->fInitExp);
 		rlc_free((void**)&this->fInitExp);
 	}
 }

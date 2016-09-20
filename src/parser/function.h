@@ -3,21 +3,23 @@
 #ifndef __rlc_parser_function_h_defined
 #define __rlc_parser_function_h_defined
 
-#include <stddef.h>
+#include "scopeentry.h"
 #include "typename.h"
 #include "variable.h"
+#include "member.h"
+
+#include <stddef.h>
+
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/** A function as used in the parser. */
+/** A function as used in the parser.
+@extends RlcParsedScopeEntry */
 struct RlcParsedFunction
 {
-	/** The token index of the first appearance. */
-	size_t fDeclarationIndex;
-	/** The name of the function.*/
-	size_t fNameToken;
+	RLC_DERIVE(struct,RlcParsedScopeEntry);
 
 	/** The return type of the function. */
 	struct RlcParsedTypeName fReturnType;
@@ -28,6 +30,40 @@ struct RlcParsedFunction
 	/** Whether the function is inline. */
 	int fIsInline;
 };
+
+/** Creates an empty function.
+@memberof RlcParsedFunction
+@param[in] this:
+	The the function to initialise.
+	@dassert @nonnull */
+void rlc_parsed_function_create(
+	struct RlcParsedFunction * this);
+
+/** Destroys a parsed function.
+@memberof RlcParsedFunction
+@param[in] this:
+	The function to destroy. @dassert @nonnull */
+void rlc_parsed_function_destroy(
+	struct RlcParsedFunction * this);
+
+/** Member function type used by the parser.
+@extends RlcParsedMember
+@implements RlcParsedFunction */
+struct RlcParsedMemberFunction
+{
+	RLC_DERIVE(struct,RlcParsedMember);
+
+	/** The function. */
+	struct RlcParsedFunction fFunction;
+};
+
+/** Destroys a parsed member function.
+@memberof RlcParsedMemberFunction
+@param[in] this:
+	The parsed member function to destroy.
+	@dassert @nonnull */
+void rlc_parsed_member_function_destroy(
+	struct RlcParsedMemberFunction * this);
 
 #ifdef __cplusplus
 }

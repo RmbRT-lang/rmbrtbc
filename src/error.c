@@ -22,7 +22,7 @@ void rlc_raise_lexical_error(
 	size_t line,
 	size_t column,
 	rlc_char_t const * line_string,
-	RlcTokResult cause)
+	enum RlcTokResult cause)
 {
 	if(rlc_lexical_error_fn)
 		rlc_lexical_error_fn(

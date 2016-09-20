@@ -3,15 +3,18 @@
 
 #include "expression.h"
 #include "../typename.h"
+#include "../macros.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-
-struct RlcParserTypeExpression
+/** A type name expression. */
+struct RlcParsedTypeExpression
 {
-
+	RLC_DERIVE(struct, RlcParsedExpression);
+	/** The type name. */
+	struct RlcParsedTypeName fType;
 };
 
 

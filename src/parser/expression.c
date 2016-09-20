@@ -2,26 +2,23 @@
 #include "symbolexpression.h"
 #include "numberexpression.h"
 #include "../macros.h"
-
-
-#include <assert.h>
-
+#include "../assert.h"
 
 
 void rlc_parsed_expression_destroy(
-	enum RlcParsedExpression * this)
+	struct RlcParsedExpression * this)
 {
-	assert(this != NULL);
-	assert(RLC_IN_ENUM(*this, RlcParsedExpression));
+	RLC_DASSERT(this != NULL);
+	RLC_DASSERT(RLC_IN_ENUM(this->fType, RlcParsedExpression));
 
-	typedef void (*destructor_t) (enum RlcParsedExpression *);
+	typedef void (*destructor_t) (struct RlcParsedExpression *);
 
-	static destructor_t const vtable[] = {
+	static destructor_t const k_vtable[] = {
 		(destructor_t)&rlc_parsed_symbol_expression_destroy,
 		(destructor_t)&rlc_parsed_number_expression_destroy
 	};
 
-	assert(RLC_COVERS_ENUM(vtable, RlcParsedExpression));
+	static_assert(RLC_COVERS_ENUM(k_vtable, RlcParsedExpression), "ill sized vtable.");
 
-	vtable[*this](this);
+	k_vtable[this->fType](this);
 }

@@ -4,6 +4,7 @@
 #define __rlc_parser_typename_hpp_defined
 
 #include "symbol.h"
+#include "parser.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -68,6 +69,17 @@ void rlc_parsed_type_name_destroy(
 void rlc_parsed_type_name_add_modifier(
 	struct RlcParsedTypeName * this,
 	struct RlcTypeModifier const * modifier);
+
+/** Parses a type name.
+@param[in,out] parser:
+	The parser data.
+@param[out] out:
+	The type name to parse into.
+@return
+	Nonzero on success, 0 on error. */
+int rlc_parsed_type_name_parse(
+	struct RlcParserData * parser,
+	struct RlcParsedTypeName * out);
 
 #ifdef __cplusplus
 }

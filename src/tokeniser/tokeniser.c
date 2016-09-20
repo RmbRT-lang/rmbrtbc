@@ -10,7 +10,7 @@
 
 struct {
 	rlc_utf8_t const * str;
-	RlcTokenType kw;
+	enum RlcTokenType kw;
 } const s_keywords [] = {
 	// keywords.
 	{"if", kRlcTokIf },
@@ -30,6 +30,7 @@ struct {
 	{"struct", kRlcTokStruct },
 	{"rawtype", kRlcTokRawtype },
 	{"union", kRlcTokUnion },
+	{"typedef", kRlcTokTypedef},
 	{"public", kRlcTokPublic },
 	{"protected", kRlcTokProtected },
 	{"private", kRlcTokPrivate },
@@ -108,17 +109,19 @@ struct {
 	{ ">", kRlcTokGreater },
 };
 
-int rlc_match_string(rlc_char_t const * src, rlc_char_t const * to_match)
+int rlc_match_string(
+	rlc_char_t const * src,
+	rlc_char_t const * to_match)
 {
 	size_t len = rlc_strlen(to_match);
 	return rlc_strncmp(src, to_match, len);
 }
 
-RlcTokResult rlc_finish_token(
+enum RlcTokResult rlc_finish_token(
 	struct RlcToken * tok,
 	size_t begin,
 	size_t end,
-	RlcTokenType type)
+	enum RlcTokenType type)
 {
 	tok->fBegin = begin;
 	tok->fLength = end - begin;
@@ -127,7 +130,9 @@ RlcTokResult rlc_finish_token(
 	return kRlcTokResultOk;
 }
 
-int rlc_floating_type(rlc_char_t suffix, RlcTokenType * out)
+int rlc_floating_type(
+	rlc_char_t suffix,
+	enum RlcTokenType * out)
 {
 	switch(suffix)
 	{
@@ -148,7 +153,7 @@ int rlc_floating_type(rlc_char_t suffix, RlcTokenType * out)
 	}
 }
 
-RlcTokResult rlc_parse_character(
+enum RlcTokResult rlc_parse_character(
 	rlc_char_t const * src,
 	size_t index,
 	size_t * length)
@@ -229,7 +234,7 @@ RlcTokResult rlc_parse_character(
 	}
 }
 
-RlcTokResult rlc_next_token(
+enum RlcTokResult rlc_next_token(
 	rlc_char_t const * src,
 	size_t offset,
 	struct RlcToken * out,
@@ -241,13 +246,13 @@ RlcTokResult rlc_next_token(
 		return kRlcTokResultEos;
 
 
-	RlcTokenType unicode_modifier;
+	enum RlcTokenType unicode_modifier;
 	int unicode_modifier_found = 0;
 
 
 	static struct {
 		rlc_char_t const match[5];
-		RlcTokenType tokentype;
+		enum RlcTokenType tokentype;
 		int skip;
 	} const utf_literals[] = {
 		// string literals.
@@ -289,7 +294,7 @@ RlcTokResult rlc_next_token(
 			while(src[index] != '"')
 			{
 				size_t length;
-				RlcTokResult result = rlc_parse_character(
+				enum RlcTokResult result = rlc_parse_character(
 					src,
 					index,
 					&length);
@@ -313,7 +318,7 @@ RlcTokResult rlc_next_token(
 			while(src[index] != '\'')
 			{
 				size_t length;
-				RlcTokResult result = rlc_parse_character(
+				enum RlcTokResult result = rlc_parse_character(
 					src,
 					index,
 					&length);
@@ -386,7 +391,7 @@ RlcTokResult rlc_next_token(
 					else if(src[index] == '.')
 					{
 						while(rlc_is_decimal(src[++index]));
-						RlcTokenType type;
+						enum RlcTokenType type;
 						if(rlc_floating_type(src[index], &type))
 							return rlc_finish_token(out, offset, ++index, type);
 						else
@@ -412,7 +417,7 @@ RlcTokResult rlc_next_token(
 }
 
 
-RlcTokResult rlc_tokenise(
+enum RlcTokResult rlc_tokenise(
 	rlc_char_t const * src,
 	struct RlcToken ** out,
 	int skip_whitespaces,
@@ -430,7 +435,7 @@ RlcTokResult rlc_tokenise(
 
 	size_t index = 0;
 	struct RlcToken tok;
-	RlcTokResult result;
+	enum RlcTokResult result;
 	while(index < len)
 	{
 		if((result=rlc_next_token(src, index, &tok, error_index)) == kRlcTokResultOk)

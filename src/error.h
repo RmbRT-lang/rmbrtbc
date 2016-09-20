@@ -42,7 +42,7 @@ typedef void (*rlc_lexical_error_fn_t)(
 	size_t line,
 	size_t column,
 	rlc_char_t const * line_string,
-	RlcTokResult cause);
+	enum RlcTokResult cause);
 
 /** Reports a lexical error.
 	Invokes the registered lexical error callback.
@@ -61,7 +61,7 @@ void rlc_report_lexical_error(
 	size_t line,
 	size_t column,
 	rlc_char_t const * line_string,
-	RlcTokResult cause);
+	enum RlcTokResult cause);
 
 /** Registers a lexical error handler.
 @param[in] callback:

@@ -1,27 +1,24 @@
 #include "symbolexpression.h"
-
-#include <assert.h>
-#include "../../malloc.h"
+#include "../assert.h"
+#include "../malloc.h"
 
 struct RlcParsedSymbolExpression * rlc_symbol_expression_create(
-	struct RlcParsedSymbol * symbol)
+	struct RlcParsedSymbolExpression * this,
+	struct RlcParsedSymbol const * symbol)
 {
-	assert(symbol != NULL);
+	RLC_DASSERT(this != NULL);
+	RLC_DASSERT(symbol != NULL);
 
-	struct RlcParsedSymbolExpression * this = NULL;
-	rlc_malloc(
-		(void**) &this,
-		sizeof(struct RlcParsedSymbolExpression));
+	*(enum RlcParsedExpressionType*) RLC_BASE_CAST(this, RlcParsedExpression)->fType = kRlcParsedSymbolExpression;
 
-	*(enum RlcParsedExpression*)&this->fRlcParsedExpression = kRlcParsedSymbolExpression;
 	this->fSymbol = *symbol;
 }
 
 void rlc_symbol_expression_destroy(
 	struct RlcParsedSymbolExpression * this)
 {
-	assert(this != NULL);
-	assert(this->fRlcParsedExpression == kRlcParsedSymbolExpression);
+	RLC_DASSERT(this != NULL);
+	RLC_DASSERT(this->fRlcParsedExpression == kRlcParsedSymbolExpression);
 
-	rlc_symbol_destroy(&this->fSymbol);
+	rlc_parsed_symbol_destroy(&this->fSymbol);
 }

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.6)
 project(RmbRT_Language_Compiler)
 
 # Set the C standard used by the RmbRT Language Compiler.
-set(CMAKE_C_FLAGS "-std=c99 -Wfatal-errors -Werror")
+set(CMAKE_C_FLAGS "-std=c99 -DRLC_DEBUG -Wfatal-errors -Werror")
 
 # Select all source files.
 file(GLOB_RECURSE rlc_sources ./src/*.c)

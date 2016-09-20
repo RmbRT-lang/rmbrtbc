@@ -17,7 +17,7 @@ struct RlcParsedSymbolChild
 	/** The name token's index. */
 	size_t fNameToken;
 	/** The template arguments. */
-	enum RlcParsedExpression ** fTemplates;
+	struct RlcParsedExpression ** fTemplates;
 	/** The template arguments' count. */
 	size_t fTemplateCount;
 };
@@ -32,7 +32,7 @@ struct RlcParsedSymbolChild
 	The template argument. */
 void rlc_parsed_symbol_child_add_template(
 	struct RlcParsedSymbolChild * this,
-	enum RlcParsedExpression * template_argument);
+	struct RlcParsedExpression * template_argument);
 
 
 /** A (possibly) namespace-qualified symbol. */

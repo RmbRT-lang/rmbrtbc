@@ -14,20 +14,21 @@ extern "C" {
 @implements RlcParsedExpression */
 struct RlcParsedSymbolExpression
 {
-	/** Must be initialized to kRlcParsedSymbolExpression. */
-	enum RlcParsedExpression const fRlcParsedExpression;
+	RLC_DERIVE(struct, RlcParsedExpression);
+
 	/** The expression's symbol. */
 	struct RlcParsedSymbol fSymbol;
 };
 
-/** Allocates and initialises a symbol expression.
+/** Initialises a symbol expression.
 @memberof RlcParsedSymbolExpression
-
+@param[in, out] this:
+	The symbol expression to create.
 @param[in] symbol:
-	The expression's symbol.
-	@pass_ownership*/
+	The expression's symbol. */
 struct RlcParsedSymbolExpression * rlc_symbol_expression_create(
-	struct RlcParsedSymbol * symbol);
+	struct RlcParsedSymbolExpression * this,
+	struct RlcParsedSymbol const * symbol);
 
 /** Destroys a symbol expression.
 @memberof RlcParsedSymbolExpression

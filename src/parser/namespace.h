@@ -18,27 +18,23 @@ struct RlcParsedNamespace
 	/** The scope entry base class. */
 	struct RlcParsedScopeEntry fScopeEntry;
 
-	struct RlcParsedFunction ** fFunctions;
-	size_t fFunctionCount;
-
-	struct RlcParsedClass ** fClasses;
-	size_t fClassCount;
-
-	struct RlcParsedStruct ** fStructs;
-	size_t fStructCount;
-
-	struct RlcParsedRawType ** fRawTypes;
-	size_t fRawTypeCount;
-
-	struct RlcParsedUnion ** fUnions;
-	size_t fUnionCount;
-
-	struct RlcParsedVariable ** fVariables;
-	size_t fVariableCount;
-
-	struct RlcParsedEnum ** fEnums;
-	size_t fEnumCount;
+	/** The scope entries of the namespace. */
+	struct RlcParsedScopeEntry ** fEntries;
+	/** The scope entry count. */
+	size_t fEntryCount;
 };
+
+/** Destroys a namespace
+@memberof RlcParsedNamespace
+
+@param[in] this:
+	The namespace to destroy. */
+void rlc_parsed_namespace_destroy(
+	struct RlcParsedNamespace * this);
+
+/** Finds an entry with the */
+struct RlcParsedScopeEntry * rlc_parsed_namespace_find_entry(
+	size_t entryNameToken);
 
 #ifdef __cplusplus
 }

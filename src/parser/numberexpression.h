@@ -16,8 +16,8 @@ extern "C" {
 @implements RlcParsedExpression */
 struct RlcParsedNumberExpression
 {
-	/** Must be initialized to kRlcParsedNumberExpression. */
-	enum RlcParsedExpression const fRlcParsedExpression;
+	RLC_DERIVE(struct,RlcParsedExpression);
+
 	/** The number token's index. */
 	size_t fNumberToken;
 };

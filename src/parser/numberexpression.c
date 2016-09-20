@@ -9,7 +9,7 @@ void rlc_parsed_number_expression_create(
 {
 	assert(this != NULL);
 
-	*(enum RlcParsedExpression*)&this->fRlcParsedExpression = kRlcParsedNumberExpression;
+	*(enum RlcParsedExpressionType*)&RLC_BASE_CAST(this,RlcParsedExpression)->fType = kRlcParsedNumberExpression;
 	this->fNumberToken = token_index;
 }
 
@@ -17,7 +17,7 @@ void rlc_parsed_number_expression_destroy(
 	struct RlcParsedNumberExpression * this)
 {
 	assert(this != NULL);
-	assert(this->fRlcParsedExpression == kRlcParsedNumberExpression);
+	assert(RLC_BASE_CAST(this,RlcParsedExpression)->fType == kRlcParsedNumberExpression);
 
 	// do nothing, nothing to release.
 }

@@ -1,6 +1,6 @@
 #include "unicode.h"
 #include "malloc.h"
-#include <assert.h>
+#include "assert.h"
 #include <stdio.h>
 
 inline int rlc_is_ascii(rlc_utf8_t character);
@@ -58,7 +58,7 @@ int rlc_is_utf8_valid(rlc_utf8_t character)
 
 int rlc_is_utf8_valid_seq(rlc_utf8_t const * character)
 {
-	assert(character != NULL);
+	RLC_DASSERT(character != NULL);
 
 	if(!rlc_is_utf8_valid(*character))
 		return 0;
@@ -85,15 +85,15 @@ unsigned rlc_character_length(rlc_utf8_t character)
 		return 3;
 	else if(rlc_is_utf8_group_4_start(character))
 		return 4;
-	else assert(!"invalid utf-8 character!");
+	else RLC_DASSERT(!"invalid utf-8 character!");
 }
 
 int rlc_utf8_char_to_utf32_char(
 	rlc_utf8_t const * str,
 	rlc_char_t * out)
 {
-	assert(str != NULL);
-	assert(out != NULL);
+	RLC_DASSERT(str != NULL);
+	RLC_DASSERT(out != NULL);
 
 	if(!rlc_is_utf8_valid_seq(str))
 		return 0;
@@ -124,7 +124,7 @@ int rlc_utf8_char_to_utf32_char(
 
 size_t rlc_utf8_is_valid_string(rlc_utf8_t const * str)
 {
-	assert(str != NULL);
+	RLC_DASSERT(str != NULL);
 
 	size_t len = 0;
 	while(*str)
@@ -143,7 +143,7 @@ size_t rlc_utf8_is_valid_string(rlc_utf8_t const * str)
 
 size_t rlc_strlen(rlc_char_t const * str)
 {
-	assert(str != NULL);
+	RLC_DASSERT(str != NULL);
 
 	size_t len = 0;
 	while(*str++)
@@ -164,8 +164,8 @@ int rlc_strcmp(
 	rlc_char_t const * a,
 	rlc_char_t const * b)
 {
-	assert(a != NULL);
-	assert(b != NULL);
+	RLC_DASSERT(a != NULL);
+	RLC_DASSERT(b != NULL);
 
 	size_t i = 0;
 	while(a[i] && (a[i] == b[i]))
@@ -177,9 +177,9 @@ int rlc_strcmp_utf8(
 	rlc_char_t const * a,
 	rlc_utf8_t const * b)
 {
-	assert(a != NULL);
-	assert(b != NULL);
-	assert(rlc_utf8_is_valid_string(b));
+	RLC_DASSERT(a != NULL);
+	RLC_DASSERT(b != NULL);
+	RLC_DASSERT(rlc_utf8_is_valid_string(b));
 
 	size_t i = 0;
 	while(a[i])
@@ -201,8 +201,8 @@ int rlc_strncmp(
 	rlc_char_t const * b,
 	size_t n)
 {
-	assert(a != NULL);
-	assert(b != NULL);
+	RLC_DASSERT(a != NULL);
+	RLC_DASSERT(b != NULL);
 
 	size_t i = 0;
 	while(i<n)
@@ -225,14 +225,14 @@ int rlc_strncmp(
 int rlc_strncmp_utf8(
 	rlc_char_t const * a,
 	rlc_utf8_t const * b,
-	size_t n)
+	size_t len)
 {
-	assert(a != NULL);
-	assert(b != NULL);
-	assert(rlc_utf8_is_valid_string(b));
+	RLC_DASSERT(a != NULL);
+	RLC_DASSERT(b != NULL);
+	RLC_DASSERT(rlc_utf8_is_valid_string(b));
 
 	size_t i = 0;
-	while(i<n)
+	while(i<len)
 	{
 		rlc_char_t conv_b;
 		int len = rlc_utf8_char_to_utf32_char(b, &conv_b);
@@ -253,7 +253,7 @@ int rlc_strncmp_utf8(
 rlc_char_t * rlc_utf8_to_utf32(
 	rlc_utf8_t const * str)
 {
-	assert(str != NULL);
+	RLC_DASSERT(str != NULL);
 	
 	size_t len;
 	if(!(len = rlc_utf8_is_valid_string(str)))

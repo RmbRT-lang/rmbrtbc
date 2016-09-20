@@ -13,7 +13,8 @@
 extern "C" {
 #endif
 
-typedef enum RlcTokenType
+/** The token type. */
+enum RlcTokenType
 {
 	kRlcTokWhitespace,
 	kRlcTokIdentifier,
@@ -111,6 +112,7 @@ typedef enum RlcTokenType
 	kRlcTokStruct,
 	kRlcTokRawtype,
 	kRlcTokUnion,
+	kRlcTokTypedef,
 	kRlcTokPublic,
 	kRlcTokProtected,
 	kRlcTokPrivate,
@@ -125,11 +127,18 @@ typedef enum RlcTokenType
 
 	RLC_ENUM_END(RlcTokenType)
 
-} RlcTokenType;
+};
 
-char const * rlc_token_type_name(RlcTokenType type);
+/** Looks up the name belonging to the given token type.
+@param[in] type:
+	The token type whose name to retrieve.
+@return
+	The token type's name. */
+char const * rlc_token_type_name(
+	enum RlcTokenType type);
 
-typedef enum RlcTokResult
+/** The result code of a tokenising function. */
+enum RlcTokResult
 {
 	kRlcTokResultOk,
 	kRlcTokResultEos,
@@ -145,19 +154,24 @@ typedef enum RlcTokResult
 	kRlcTokResultInvalidUtf8,
 	kRlcTokResultEmptyCharLiteral,
 
-	kRlcTokResultUnexpected
-} RlcTokResult;
+	kRlcTokResultUnexpected,
+
+	RLC_ENUM_END(RlcTokResult)
+};
 
 /** Retrieves a description of an error code.
 	The description is a short english string that names the cause of the error. */
 char const * rlc_tok_result_message(
-	RlcTokResult result);
+	enum RlcTokResult result);
 
 /** Stores the contents of a tokenised file. */
 struct RlcFile
 {
+	/** The file name. */
 	rlc_char_t const * fName;
+	/** The file's tokens. */
 	struct RlcToken * fTokens;
+	/** The token count. */
 	size_t fTokenCount;
 };
 

@@ -44,17 +44,36 @@ struct RlcParsedScopeEntry
 	enum RlcParsedScopeEntryType const fRlcParsedScopeEntry;
 	/** Where the scope entry was first declared in the source file. */
 	size_t fDeclarationIndex;
-	/** The name token index. */
-	size_t fNameToken;
+	/** The name tokens indices. */
+	size_t * fNames;
+	/** The name count. */
+	size_t fNameCount;
 };
 
 /** Destroys a parsed scope entry.
-@pure @memberof RlcParsedScopeEntry
+@memberof RlcParsedScopeEntry
 
-@param[in] this:
-	The parsed scope entry to destroy. */
+@param[in,out] this:
+	The parsed scope entry to destroy.
+	@dassert @nonnull */
 void rlc_parsed_scope_entry_destroy(
 	struct RlcParsedScopeEntry * this);
+
+/** Creates an empty scope entry.
+@param[in,out] this:
+	The parsed scope entry to create.
+	@dassert @nonnull */
+void rlc_parsed_scope_entry_create(
+	struct RlcParsedScopeEntry * this);
+
+/** Adds a name to a scope entry.
+@param[in,out] this:
+	The scope entry to add a name to.
+@param[in] name:
+	The name to add. */
+void rlc_parsed_scope_entry_add_name(
+	struct RlcParsedScopeEntry * this,
+	size_t name);
 
 
 #ifdef __cplusplus

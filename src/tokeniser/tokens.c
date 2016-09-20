@@ -1,7 +1,9 @@
 #include "tokens.h"
+#include "../assert.h"
 
 
-char const * rlc_tok_result_message(RlcTokResult result)
+char const * rlc_tok_result_message(
+	enum RlcTokResult result)
 {
 	static char const * messages[] = {
 		"tokenising successful",
@@ -20,10 +22,15 @@ char const * rlc_tok_result_message(RlcTokResult result)
 		"unexpected symbol."
 	};
 
+	static_assert(RLC_COVERS_ENUM(messages, RlcTokResult), "mal-sized table.");
+	
+	RLC_DASSERT(RLC_IN_ENUM(result, RlcTokResult));
+
 	return messages[result];
 }
 
-char const * rlc_token_type_name(RlcTokenType type)
+char const * rlc_token_type_name(
+	enum RlcTokenType type)
 {
 	static char const * const names[] = {
 		"Whitespace",
@@ -122,6 +129,7 @@ char const * rlc_token_type_name(RlcTokenType type)
 		"Struct",
 		"Rawtype",
 		"Union",
+		"Typedef",
 		"Public",
 		"Protected",
 		"Private",
@@ -134,6 +142,10 @@ char const * rlc_token_type_name(RlcTokenType type)
 		"Isolated",
 		"This"
 	};
+
+	static_assert(RLC_COVERS_ENUM(names, RlcTokenType), "mal-sized table.");
+
+	RLC_DASSERT(RLC_IN_ENUM(type, RlcTokenType));
 
 	return names[type];
 };

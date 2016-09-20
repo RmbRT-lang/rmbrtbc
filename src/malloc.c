@@ -1,14 +1,16 @@
 #include "malloc.h"
 #include <stdlib.h>
 #include <stdio.h>
-#include <assert.h>
+#include "assert.h"
 
 static size_t s_rlc_allocations = 0;
 
-void rlc_malloc(void ** ptr, size_t size)
+void rlc_malloc(
+	void ** ptr,
+	size_t size)
 {
-	assert(ptr);
-	assert(!*ptr);
+	RLC_DASSERT(ptr);
+	RLC_DASSERT(!*ptr);
 
 	*ptr = malloc(size);
 	if(!*ptr)
@@ -20,9 +22,11 @@ void rlc_malloc(void ** ptr, size_t size)
 	s_rlc_allocations++;
 }
 
-void rlc_realloc(void ** ptr, size_t newsz)
+void rlc_realloc(
+	void ** ptr,
+	size_t newsz)
 {
-	assert(ptr);
+	RLC_DASSERT(ptr);
 
 	if(!*ptr)
 		rlc_malloc(ptr, newsz);
@@ -37,12 +41,13 @@ void rlc_realloc(void ** ptr, size_t newsz)
 	}
 }
 
-void rlc_free(void ** ptr)
+void rlc_free(
+	void ** ptr)
 {
-	assert(ptr);
-	assert(*ptr);
+	RLC_DASSERT(ptr);
+	RLC_DASSERT(*ptr);
 
-	assert(s_rlc_allocations && "Memory was redundantly freed.");
+	RLC_DASSERT(s_rlc_allocations && "Memory was redundantly freed.");
 
 	free(*ptr);
 	*ptr = NULL;
