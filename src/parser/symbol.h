@@ -6,6 +6,9 @@
 
 #include <stddef.h>
 
+#include "parser.h"
+#include "expression.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -22,14 +25,23 @@ struct RlcParsedSymbolChild
 	size_t fTemplateCount;
 };
 
+/** Creates a symbol child.
+@param[out] this:
+	The symbol child to create.
+	@dassert @nonnull */
+void rlc_parsed_symbol_child_create(
+	struct RlcParsedSymbolChild * this);
+
 /** Adds a template argument to a symbol child.
 @memberof RlcParsedSymbolChild
 
 @param[in] this:
 	The symbol child to add a template argument to.
 	@pass_pointer_ownership
+	@dassert @nonnull
 @param[in] template_argument:
-	The template argument. */
+	The template argument.
+	@dassert @nonnull */
 void rlc_parsed_symbol_child_add_template(
 	struct RlcParsedSymbolChild * this,
 	struct RlcParsedExpression * template_argument);
@@ -57,13 +69,35 @@ void rlc_parsed_symbol_destroy(
 /** Adds a child to a symbol.
 @memberof RlcParsedSymbol
 
-@param[in] this:
+@param[in,out] this:
 	The symbol to add a child to.
-@param[in] child:
-	The symbol child to add. */
+	@dassert @nonnull
+@param[in,out] child:
+	The symbol child to add.
+	@pass_ownership
+	@dassert @nonnull */
 void rlc_parsed_symbol_add_child(
 	struct RlcParsedSymbol * this,
-	struct RlcParsedSymbolChild const * child);
+	struct RlcParsedSymbolChild * child);
+
+/** Creates a symbol.
+@param[out] this:
+	The symbol to create.
+	@dassert @nonnull. */
+void rlc_parsed_symbol_create(
+	struct RlcParsedSymbol * this);
+
+/** Parses a symbol.
+@memberof RlcParserData
+@param[in,out] parser:
+	The parser data.
+	@dassert @nonnull
+@param[out] out:
+	The symbol to parse.
+	@dassert @nonnull */
+int rlc_parsed_symbol_parse(
+	struct RlcParserData * parser,
+	struct RlcParsedSymbol * out);
 
 #ifdef __cplusplus
 }

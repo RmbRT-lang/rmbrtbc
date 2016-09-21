@@ -13,7 +13,7 @@ int rlc_parsed_typedef_parse(
 
 	RLC_BASE_CAST(out, RlcParsedScopeEntry)->fDeclarationIndex = parser_data->fIndex;
 
-	if(!rlc_parser_match(
+	if(!rlc_parser_data_match(
 		parser_data,
 		kRlcTokTypedef))
 		return 0;
@@ -21,7 +21,7 @@ int rlc_parsed_typedef_parse(
 	rlc_parsed_scope_entry_create(
 		RLC_BASE_CAST(out, RlcParsedScopeEntry));
 
-	rlc_parser_next(
+	rlc_parser_data_next(
 		parser_data);
 
 	if(!rlc_parsed_type_name_parse(
@@ -35,7 +35,7 @@ int rlc_parsed_typedef_parse(
 
 	do {
 		struct RlcToken const * cur;
-		if(cur = rlc_parser_match(
+		if(cur = rlc_parser_data_match(
 			parser_data,
 			kRlcTokIdentifier))
 		{
@@ -49,11 +49,11 @@ int rlc_parsed_typedef_parse(
 				parser_data,
 				kRlcParseErrorExpectedIdentifier), 0;
 		}
-	} while(rlc_parser_consume(
+	} while(rlc_parser_data_consume(
 		parser_data,
 		kRlcTokComma));
 
-	if(rlc_parser_consume(
+	if(rlc_parser_data_consume(
 		parser_data,
 		kRlcTokSemicolon))
 	{

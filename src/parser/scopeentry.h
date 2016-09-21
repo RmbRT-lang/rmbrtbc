@@ -36,8 +36,7 @@ enum RlcParsedScopeEntryType
 };
 
 /** The base type of scope entries used in the parser.
-	Contains a name and a declaration position in the source file.
-@interface RlcParsedScopeEntry */
+	Contains a name and a declaration position in the source file. */
 struct RlcParsedScopeEntry
 {
 	/** Determines the deriving type. */
@@ -52,7 +51,6 @@ struct RlcParsedScopeEntry
 
 /** Destroys a parsed scope entry.
 @memberof RlcParsedScopeEntry
-
 @param[in,out] this:
 	The parsed scope entry to destroy.
 	@dassert @nonnull */

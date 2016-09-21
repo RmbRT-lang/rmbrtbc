@@ -1,7 +1,7 @@
 /** @file parser.h
 	Contains consants used by the parser. */
-#ifndef __rlc_parser_parser_h_defined
-#define __rlc_parser_parser_h_defined
+#ifndef __rlc_parser_data_parser_h_defined
+#define __rlc_parser_data_parser_h_defined
 
 #include <stddef.h>
 #include "../preprocessor/preprocessor.h"
@@ -20,7 +20,9 @@ enum RlcParseError
 	kRlcParseErrorExpectedTypeName,
 	/** Expected a semicolon. */
 	kRlcParseErrorExpectedSemicolon,
-
+	/** Expected a symbol. */
+	kRlcParseErrorExpectedSymbol,
+	
 	RLC_ENUM_END(RlcParseError)
 };
 
@@ -53,8 +55,15 @@ struct RlcParserData
 	The parser data.
 @return
 	Whether there is a next token. */
-int rlc_parser_next(
+int rlc_parser_data_next(
 	struct RlcParserData * this);
+
+/** Returns the address of the current token, if not at the end of the token stream.
+@param[in] this:
+	The parser data.
+	@dassert @nonnull */
+struct RlcToken const * rlc_parser_data_current(
+	struct RlcParserData const * this);
 
 /** Matches a token.
 @param[in] this:
@@ -63,7 +72,7 @@ int rlc_parser_next(
 	The token type to match.
 @return
 	If matched, the address of the matched token, otherwise `null`. */
-struct RlcToken const * rlc_parser_match(
+struct RlcToken const * rlc_parser_data_match(
 	struct RlcParserData const * this,
 	enum RlcTokenType type);
 
@@ -74,7 +83,7 @@ struct RlcToken const * rlc_parser_match(
 	The token type to match.
 @return
 	The matched token, or `null`. */
-struct RlcToken const * rlc_parser_consume(
+struct RlcToken const * rlc_parser_data_consume(
 	struct RlcParserData * this,
 	enum RlcTokenType type);
 

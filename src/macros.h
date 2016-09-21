@@ -18,19 +18,19 @@
 #define RLC_IN_ENUM(x,Enum) (((unsigned) x) < RLC_COUNT(Enum))
 #define RLC_COVERS_ENUM(Array, Enum) (_countof((Array)) == RLC_COUNT(Enum))
 
-#ifndef _offsetof
-#define _offsetof(t,m) ((unsigned)(&(t *)NULL)->m)
-#endif
+#define RLC_OFFSETOF_PTR(p,m) ((unsigned)((char *)&(p)->m - (char *)(p)))
+#define RLC_OFFSETOF(t,m) RLC_OFFSETOF((t *)NULL, m)
 
-/** @def RLC_DERIVE_CAST(a,b,tag,d)
+
+/** @def RLC_DERIVE_CAST(a,b,d)
 	Casts the base type `b` address `a` to deriving type `d`. Caution: does not work with typedefs, as the type name passed to the macro must be the same as used with `RLC_DERIVE`.
 @param a:
 	The address to cast from.
 @param b:
-	The base type (tag qualified).
+	The base type (no tag).
 @param d:
 	The type name to cast to. */
-#define RLC_DERIVE_CAST(a,b,tag,d) ((d*)(rlc_derive_cast((a), _offsetof(d, fDerived##b))))
+#define RLC_DERIVE_CAST(a,b,d) ((d*)(rlc_derive_cast((a), RLC_OFFSETOF(d, fDerived##b))))
 
 /** Retrieves the base instance of `a`. */
 #define RLC_BASE_CAST(a,b) ((a) ? &(a)->fDerived##b : 0)
@@ -38,6 +38,27 @@
 /** @def RLC_DERIVE(tag, b)
 	Derives the current type from the type `b` (if any tags, put them in `tag`). */
 #define RLC_DERIVE(tag, b) tag b fDerived##b
+
+/** @def RLC_ABSTRACT(type)
+	Enables dynamic casting.
+	Creates an enum  */
+#define RLC_ABSTRACT(type) enum type##Type fDerivingType
+
+/** @def RLC_DERIVING_TYPE(a)
+	Returns the deriving type of an abstract type. */
+#define RLC_DERIVING_TYPE(a) ((a)->fDerivingType)
+
+/** @def RLC_DYNAMIC_CAST(a,b,d)
+	Performs a dynamic cast to a deriving type. */
+#define RLC_DYNAMIC_CAST(a,b,tag,d) ((struct d*) \
+	((a) && ((a)->fDerivingType == k##d) \
+		? (void*)((char*)(a) - RLC_OFFSETOF(struct d, fDerived##b)) \
+		: NULL))
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /** Converts a base address into its deriving type.
 	This is a helper function for `RLC_DERIVE`.
@@ -50,10 +71,9 @@ inline void * rlc_derive_cast(void * a, unsigned offset)
 	return a ? (char*)a - offset : NULL;
 }
 
-inline void * rlc_base_cast(void * a, unsigned offset)
-{
-	return a ? (char *)a + offset : NULL;
+#ifdef __cplusplus
 }
+#endif
 
 #ifdef _MSC_VER
 #define __func__ __FUNCTION__

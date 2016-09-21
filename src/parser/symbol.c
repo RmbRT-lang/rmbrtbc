@@ -33,7 +33,7 @@ void rlc_symbol_destroy(
 
 void rlc_symbol_add_child(
 	struct RlcParsedSymbol * this,
-	struct RlcParsedSymbolChild const * child)
+	struct RlcParsedSymbolChild * child)
 {
 	RLC_DASSERT(this != NULL);
 	RLC_DASSERT(child != NULL);
@@ -43,4 +43,18 @@ void rlc_symbol_add_child(
 		sizeof (struct RlcParsedSymbolChild) * ++ this->fChildCount);
 
 	this->fChildren[this->fChildCount-1] = *child;
+#ifdef RLC_DEBUG
+	// invalidate the old data.
+	rlc_parsed_symbol_child_create(child);
+#endif
+}
+
+void rlc_parsed_symbol_create(
+	struct RlcParsedSymbol * this)
+{
+	RLC_DASSERT(this != NULL);
+
+	this->fChildren = NULL;
+	this->fChildCount = 0;
+	this->fIsRoot = 0;
 }

@@ -1,3 +1,5 @@
+/** @file preprocessor.h
+	Contains the preprocessor declarations. */
 #ifndef __rlc_preprocessor_preprocessor_h_defined
 #define __rlc_preprocessor_preprocessor_h_defined
 

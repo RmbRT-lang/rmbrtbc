@@ -23,7 +23,7 @@ struct RlcParsedTypedef
 };
 
 /** Destroys a typedef.
-@param[in] this:
+@param[out] this:
 	The typedef to destroy. */
 void rlc_parsed_typedef_destroy(
 	struct RlcParsedTypedef * this);
