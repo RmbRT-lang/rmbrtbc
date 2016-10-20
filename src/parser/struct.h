@@ -31,11 +31,13 @@ struct RlcParsedStruct
 	/** The member variable count. */
 	size_t fVariableCount;
 };
+
 /** Destroys a parsed struct.
 @param[in] this:
 	The struct to destroy. */
 void rlc_parsed_struct_destroy(
 	struct RlcParsedStruct * this);
+
 
 #ifdef __cplusplus
 }

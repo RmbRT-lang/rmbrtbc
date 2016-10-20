@@ -22,6 +22,15 @@ enum RlcParseError
 	kRlcParseErrorExpectedSemicolon,
 	/** Expected a symbol. */
 	kRlcParseErrorExpectedSymbol,
+	/** Expected a '{'. */
+	kRlcParseErrorExpectedBraceOpen,
+	/** Expected an enum constant. */
+	kRlcParseErrorExpectedEnumConstant,
+	/** Expected a '}'. */
+	kRlcParseErrorExpectedBraceClose,
+
+	/** Expected an expression. */
+	kRlcParseErrorExpectedExpression,
 	
 	RLC_ENUM_END(RlcParseError)
 };
@@ -102,6 +111,9 @@ void rlc_parser_data_destroy(
 void rlc_parser_data_add_error(
 	struct RlcParserData * this,
 	enum RlcParseError error_message);
+
+size_t rlc_parser_matched_index(
+	struct RlcParserData * parser);
 
 #ifdef __cplusplus
 }

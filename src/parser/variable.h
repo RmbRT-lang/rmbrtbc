@@ -44,6 +44,13 @@ struct RlcParsedMemberVariable
 	RLC_DERIVE(struct,RlcParsedVariable);
 };
 
+/** Creates a parsed member variable.
+@param[out] this:
+	The parsed member variable to create.
+	@dassert @nonnull */
+void rlc_parsed_member_variable_create(
+	struct RlcParsedMemberVariable * this);
+
 /** Destroys a parsed member variable.
 @memberof RlcParsedMemberVariable
 @param[in] this:

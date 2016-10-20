@@ -3,6 +3,8 @@
 #ifndef __rlc_parser_expression_h_defined
 #define __rlc_parser_expression_h_defined
 
+#include "parser.h"
+
 #include "../macros.h"
 
 #include <stddef.h>
@@ -50,8 +52,26 @@ void rlc_parsed_expression_create(
 @memberof RlcParsedExpression
 @param[in] this:
 	The expression to destroy.*/
-void rlc_parsed_expression_destroy(
+void rlc_parsed_expression_destroy_virtual(
 	struct RlcParsedExpression * this);
+
+/** Destroys the expression base instance.
+@memberof RlcParsedExpression
+@param[in,out] this:
+	The expression base instance to destroy.
+	@dassert @nonnull */
+inline void rlc_parsed_expression_destroy_base(
+	struct RlcParsedExpression * this) {}
+
+/** Parses an expression.
+@memberof RlcParsedExpression
+@param[out] out:
+	A pointer to store the address of the parsed expression.
+@param[in,out] parser:
+	The parser data. */
+int rlc_parsed_expression_parse(
+	struct RlcParsedExpression ** out,
+	struct RlcParserData * parser);
 
 #ifdef __cplusplus
 }

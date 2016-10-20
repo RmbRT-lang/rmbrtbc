@@ -38,6 +38,17 @@ struct RlcParsedSymbolExpression * rlc_symbol_expression_create(
 void rlc_parsed_symbol_expression_destroy(
 	struct RlcParsedSymbolExpression * this);
 
+/** Parses a symbol expression.
+@memberof RlcParsedSymbolExpression
+@param[out] out:
+	The symbol expression to parse.
+	@dassert @nonnull
+@param[in,out] parser:
+	The parser data.
+	@dassert @nonnul */
+int rlc_parsed_symbol_expression_parse(
+	struct RlcParsedSymbolExpression * out,
+	struct RlcParserData * parser);
 
 #ifdef __cplusplus
 }

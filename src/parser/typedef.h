@@ -28,6 +28,17 @@ struct RlcParsedTypedef
 void rlc_parsed_typedef_destroy(
 	struct RlcParsedTypedef * this);
 
+/** Parses a typedef.
+@param[in,out] parser:
+	The parser data.
+	@dassert @nonnull
+@param[out] out:
+	The typedef to parse into.
+	@dassert @nonnull */
+int rlc_parsed_typedef_parse(
+	struct RlcParserData * parser,
+	struct RlcParsedTypedef * out);
+
 #ifdef __cplusplus
 }
 #endif

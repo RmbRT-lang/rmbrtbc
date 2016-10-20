@@ -60,7 +60,7 @@ void rlc_assertion_failure(
 #if __STDC_VERSION__ < 201112L
 /** @def static_assert(x, msg)
 	Statically asserts expression x. */
-#define static_assert(x, msg) static char const RLC_STATIC_ASSERT[(x) ? 1: -1];
+#define static_assert(x, msg) static char const RLC_STATIC_ASSERT[(x) ? 1: -1] = {'\0'};
 #elif !defined(static_assert)
 #define static_assert _Static_assert
 #endif

@@ -42,7 +42,7 @@ struct RlcTemplateDecl
 
 @param[in] this:
 	The template argument declaration to initialise. */
-void rlc_template_decl_init(
+void rlc_template_decl_create(
 	struct RlcTemplateDecl * this);
 
 /** Adds an argument to a template argument declaration.

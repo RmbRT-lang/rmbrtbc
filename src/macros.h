@@ -19,7 +19,7 @@
 #define RLC_COVERS_ENUM(Array, Enum) (_countof((Array)) == RLC_COUNT(Enum))
 
 #define RLC_OFFSETOF_PTR(p,m) ((unsigned)((char *)&(p)->m - (char *)(p)))
-#define RLC_OFFSETOF(t,m) RLC_OFFSETOF((t *)NULL, m)
+#define RLC_OFFSETOF(t,m) RLC_OFFSETOF_PTR((t *)NULL, m)
 
 
 /** @def RLC_DERIVE_CAST(a,b,d)
@@ -30,10 +30,12 @@
 	The base type (no tag).
 @param d:
 	The type name to cast to. */
-#define RLC_DERIVE_CAST(a,b,d) ((d*)(rlc_derive_cast((a), RLC_OFFSETOF(d, fDerived##b))))
+#define RLC_DERIVE_CAST(a,b,d) ((d*)((a) ? (void*)((char*)(a) - RLC_OFFSETOF(d, fDerived##b)) : NULL))
+
+#define RLC_DERIVE_OFFSET(b,d) (-(intptr_t)(RLC_OFFSETOF(d, fDerived##b)))
 
 /** Retrieves the base instance of `a`. */
-#define RLC_BASE_CAST(a,b) ((a) ? &(a)->fDerived##b : 0)
+#define RLC_BASE_CAST(a,b) ((a) ? &(a)->fDerived##b : NULL)
 
 /** @def RLC_DERIVE(tag, b)
 	Derives the current type from the type `b` (if any tags, put them in `tag`). */
@@ -50,30 +52,10 @@
 
 /** @def RLC_DYNAMIC_CAST(a,b,d)
 	Performs a dynamic cast to a deriving type. */
-#define RLC_DYNAMIC_CAST(a,b,tag,d) ((struct d*) \
+#define RLC_DYNAMIC_CAST(a,b,d) ((struct d*) \
 	((a) && ((a)->fDerivingType == k##d) \
 		? (void*)((char*)(a) - RLC_OFFSETOF(struct d, fDerived##b)) \
 		: NULL))
-
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/** Converts a base address into its deriving type.
-	This is a helper function for `RLC_DERIVE`.
-@param[in] a:
-	The base address.
-@param[in] offset:
-	The offset of */
-inline void * rlc_derive_cast(void * a, unsigned offset)
-{
-	return a ? (char*)a - offset : NULL;
-}
-
-#ifdef __cplusplus
-}
-#endif
 
 #ifdef _MSC_VER
 #define __func__ __FUNCTION__

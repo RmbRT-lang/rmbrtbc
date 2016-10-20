@@ -13,7 +13,7 @@ void rlc_variable_destroy(
 
 	if(this->fInitExp)
 	{
-		rlc_parsed_expression_destroy(this->fInitExp);
+		rlc_parsed_expression_destroy_virtual(this->fInitExp);
 		rlc_free((void**)&this->fInitExp);
 	}
 }

@@ -52,10 +52,16 @@ void rlc_parsed_function_destroy(
 struct RlcParsedMemberFunction
 {
 	RLC_DERIVE(struct,RlcParsedMember);
-
-	/** The function. */
-	struct RlcParsedFunction fFunction;
+	RLC_DERIVE(struct,RlcParsedFunction);
 };
+
+/** Creates a member function.
+@memberof RlcParsedMemberFunction
+@param[out] this:
+	The member function to create.
+	@dassert @nonnull */
+void rlc_parsed_member_function_create(
+	struct RlcParsedMemberFunction * this);
 
 /** Destroys a parsed member function.
 @memberof RlcParsedMemberFunction

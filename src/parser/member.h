@@ -5,6 +5,8 @@
 
 #include "../macros.h"
 
+#include <stddef.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -29,6 +31,8 @@ enum RlcParsedMemberType
 	kRlcParsedMemberFunction,
 	/** Corresponds to `RlcParsedMemberVariable`. */
 	kRlcParsedMemberVariable,
+	/** Corresponds to `RlcParsedMemberClass`. */
+	kRlcParsedMemberClass,
 
 	RLC_ENUM_END(RlcParsedMemberType)
 };
@@ -37,21 +41,80 @@ enum RlcParsedMemberType
 /** Contains information of member declarations. */
 struct RlcParsedMember
 {
-	/** The deriving type. */
-	enum RlcParsedMemberType fMemberType;
+	RLC_ABSTRACT(RlcParsedMember);
+	
 	/** The visibility level of the member. */
 	enum RlcVisibility fVisibility;
-	/** Whether the member is static. */
-	int fIsStatic;
 };
+
+/** Creates a member.
+@memberof RlcParsedMember
+@param[out] this:
+	The member to create.
+	@dassert @nonnull
+@param[in] type:
+	The deriving type.
+@param[in] visibility:
+	The visibility level of the member.
+@param[in] isStatic:
+	Whether the member is static. */
+void rlc_parsed_member_create(
+	struct RlcParsedMember * this,
+	enum RlcParsedMemberType type,
+	enum RlcVisibility visibility);
 
 /** Destroys a parsed member.
 @memberof RlcParsedMember
 @param[in] this:
 	The member to destroy.
 	@dassert @nonnull */
-void rlc_parsed_member_destroy(
+void rlc_parsed_member_destroy_virtual(
 	struct RlcParsedMember * this);
+
+/** Destroys a parsed member.
+	This function is to be called by deriving destructors.
+@memberof RlcParsedMember
+@param[in] this:
+	The member to destroy.
+	@dassert @nonnull */
+inline void rlc_parsed_member_destroy_base(
+	struct RlcParsedMember * this) { }
+
+/** A list of parsed members. */
+struct RlcParsedMemberList
+{
+	/** The member list. */
+	struct RlcParsedMember * * fEntries;
+	/** The member count. */
+	size_t fEntryCount;
+};
+
+/** Creates a member list.
+@memberof RlcParsedMemberList
+@param[out] this:
+	The member list to create.
+	@dassert @nonnull */
+void rlc_parsed_member_list_create(
+	struct RlcParsedMemberList * this);
+
+/** Adds a member to a member list.
+@memberof RlcParsedMemberList
+@param[in,out] this:
+	The member list to add a member to.
+	@dassert @nonnull
+@param[in] member:
+	The member to add to the list.
+	@pass_pointer_ownership
+	@dassert @nonnull */
+void rlc_parsed_member_list_add(
+	struct RlcParsedMemberList * this,
+	struct RlcParsedMember * member);
+
+/** Destroys a member list.
+@param[in,out] this:
+	The member list to destroy. */
+void rlc_parsed_member_list_destroy(
+	struct RlcParsedMemberList * this);
 
 #ifdef __cplusplus
 }

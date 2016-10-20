@@ -39,8 +39,8 @@ enum RlcParsedScopeEntryType
 	Contains a name and a declaration position in the source file. */
 struct RlcParsedScopeEntry
 {
-	/** Determines the deriving type. */
-	enum RlcParsedScopeEntryType const fRlcParsedScopeEntry;
+	RLC_ABSTRACT(RlcParsedScopeEntry);
+	
 	/** Where the scope entry was first declared in the source file. */
 	size_t fDeclarationIndex;
 	/** The name tokens indices. */
@@ -50,11 +50,20 @@ struct RlcParsedScopeEntry
 };
 
 /** Destroys a parsed scope entry.
+	This function should only be called by deriving types in their destructor function.
 @memberof RlcParsedScopeEntry
 @param[in,out] this:
 	The parsed scope entry to destroy.
 	@dassert @nonnull */
-void rlc_parsed_scope_entry_destroy(
+void rlc_parsed_scope_entry_destroy_base(
+	struct RlcParsedScopeEntry * this);
+
+/** Looks up the derived type and destroys it.
+@memberof RlcParsedScopeEntry
+@param[in,out] this:
+	The parsed scope entry to destroy.
+	@dassert @nonnull */
+void rlc_parsed_scope_entry_destroy_virtual(
 	struct RlcParsedScopeEntry * this);
 
 /** Creates an empty scope entry.
@@ -62,7 +71,8 @@ void rlc_parsed_scope_entry_destroy(
 	The parsed scope entry to create.
 	@dassert @nonnull */
 void rlc_parsed_scope_entry_create(
-	struct RlcParsedScopeEntry * this);
+	struct RlcParsedScopeEntry * this,
+	enum RlcParsedScopeEntryType derivingType);
 
 /** Adds a name to a scope entry.
 @param[in,out] this:
@@ -73,6 +83,42 @@ void rlc_parsed_scope_entry_add_name(
 	struct RlcParsedScopeEntry * this,
 	size_t name);
 
+
+/** List of scope entries. */
+struct RlcParsedScopeEntryList
+{
+	/** The list. */
+	struct RlcParsedScopeEntry ** fEntries;
+	/** The count. */
+	size_t fEntryCount;
+};
+
+/** Creates an empty scope entry list.
+@memberof RlcParsedScopeEntryList
+@param[out] this:
+	The list to create.
+	@dassert @nonnull */
+void rlc_parsed_scope_entry_list_create(
+	struct RlcParsedScopeEntryList * this);
+
+/** Adds an entry to a scope entry list.
+@memberof RlcParsedScopeEntryList
+@param[in,out] list:
+	The list to add an entry to.
+	@dassert @nonnull
+@param[in] entry:
+	The entry to add. @pass_pointer_ownership */
+void rlc_parsed_scope_entry_list_add(
+	struct RlcParsedScopeEntryList * list,
+	struct RlcParsedScopeEntry * entry);
+
+/** Destroys a scope entry list.
+@memberof RlcParsedScopeEntryList
+@param[in,out] this:
+	The scope entry list to destroy.
+	@dassert @nonnull */
+void rlc_parsed_scope_entry_list_destroy(
+	struct RlcParsedScopeEntryList * this);
 
 #ifdef __cplusplus
 }

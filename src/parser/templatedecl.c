@@ -4,7 +4,7 @@
 
 #include <assert.h>
 
-void rlc_template_decl_init(
+void rlc_template_decl_create(
 	struct RlcTemplateDecl * this)
 {
 	assert(this != NULL);

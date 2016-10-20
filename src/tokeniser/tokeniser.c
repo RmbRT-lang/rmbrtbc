@@ -31,6 +31,7 @@ struct {
 	{"rawtype", kRlcTokRawtype },
 	{"union", kRlcTokUnion },
 	{"typedef", kRlcTokTypedef},
+	{"enum", kRlcTokEnum},
 	{"public", kRlcTokPublic },
 	{"protected", kRlcTokProtected },
 	{"private", kRlcTokPrivate },
@@ -57,6 +58,8 @@ struct {
 	{ "*=", kRlcTokAsteriskEqual },
 	{ "*", kRlcTokAsterisk },
 
+	{ "\\", kRlcTokBackslash },
+
 	{ "/=", kRlcTokForwardSlashEqual },
 	{ "/", kRlcTokForwardSlash },
 
@@ -73,8 +76,15 @@ struct {
 	{ "~:", kRlcTokTildeColon },
 	{ "~", kRlcTokTilde },
 
+	{ "&&=", kRlcTokDoubleAndEqual },
 	{ "&&", kRlcTokDoubleAnd },
+	{ "&=", kRlcTokAndEqual },
 	{ "&", kRlcTokAnd },
+
+	{ "||=", kRlcTokDoublePipeEqual },
+	{ "||", kRlcTokDoublePipe },
+	{ "|=", kRlcTokPipeEqual },
+	{ "|", kRlcTokPipe },
 
 	{ "?", kRlcTokQuestionMark },
 	
@@ -87,12 +97,12 @@ struct {
 	{ ";", kRlcTokSemicolon },
 	{ "==", kRlcTokDoubleEqual },
 
-	{ "[", kRlcTokBracketL },
-	{ "]", kRlcTokBracketR },
-	{ "{", kRlcTokBraceL },
-	{ "}", kRlcTokBraceR },
-	{ "(", kRlcTokParentheseL },
-	{ ")", kRlcTokParentheseR },
+	{ "[", kRlcTokBracketOpen },
+	{ "]", kRlcTokBracketClose },
+	{ "{", kRlcTokBraceOpen },
+	{ "}", kRlcTokBraceClose },
+	{ "(", kRlcTokParentheseOpen },
+	{ ")", kRlcTokParentheseClose },
 
 	{ "<<<=", kRlcTokTripleLessEqual },
 	{ "<<<", kRlcTokTripleLess },

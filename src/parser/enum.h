@@ -31,6 +31,7 @@ void rlc_parsed_enum_constant_create(
 /** Adds an alias to an enum constant.
 @param[in,out] this:
 	The enum constant to add a name to.
+	@dassert @nonnull
 @param[in] nameToken:
 	The alias. */
 void rlc_parsed_enum_constant_add_name(
@@ -42,6 +43,16 @@ void rlc_parsed_enum_constant_add_name(
 	The constant to destroy. */
 void rlc_parsed_enum_constant_destroy(
 	struct RlcParsedEnumConstant * this);
+
+/** Parses an enum constant.
+@param[in,out] parser:
+	The parser data.
+	@dassert @nonnull
+@param[out] out:
+	The enum constant. */
+int rlc_parsed_enum_constant_parse(
+	struct RlcParserData * parser,
+	struct RlcParsedEnumConstant * out);
 
 /** Enum type.
 @extends RlcParsedScopeEntry */
@@ -78,7 +89,7 @@ void rlc_parsed_enum_destroy(
 	@dassert @nonnull */
 void rlc_parsed_enum_add_constant(
 	struct RlcParsedEnum * this,
-	struct RlcParsedEnumConstant * constant);
+	struct RlcParsedEnumConstant const * constant);
 
 /** Parses an enum.
 @param[in,out] parser:

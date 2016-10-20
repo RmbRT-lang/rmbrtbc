@@ -4,6 +4,7 @@
 #define __rlc_parser_numberexpression_h_defined
 
 #include "expression.h"
+#include "parser.h"
 
 #include <stddef.h>
 
@@ -40,6 +41,20 @@ void rlc_parsed_number_expression_create(
 	The number expression to destroy. */
 void rlc_parsed_number_expression_destroy(
 	struct RlcParsedNumberExpression * this);
+
+/** Parses a number expression.
+@memberof RlcParsedNumberExpression
+@param[out] out:
+	The number expression to parse.
+	@dassert @nonnull
+@param[in,out] parser:
+	The parser data.
+	@dassert @nonnull
+@return
+	Whether the number expression could be parsed. */
+int rlc_parsed_number_expression_parse(
+	struct RlcParsedNumberExpression * out,
+	struct RlcParserData * parser);
 
 #ifdef __cplusplus
 }

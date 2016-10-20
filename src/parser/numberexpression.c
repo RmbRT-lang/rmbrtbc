@@ -1,4 +1,5 @@
 #include "numberexpression.h"
+
 #include "../malloc.h"
 #include "../assert.h"
 
@@ -22,5 +23,6 @@ void rlc_parsed_number_expression_destroy(
 	RLC_DASSERT(this != NULL);
 	RLC_DASSERT(RLC_DERIVING_TYPE(RLC_BASE_CAST(this,RlcParsedExpression)) == kRlcParsedNumberExpression);
 
-	// do nothing, nothing to release.
+	rlc_parsed_expression_destroy_base(
+		RLC_BASE_CAST(this, RlcParsedExpression));
 }

@@ -34,6 +34,18 @@ void rlc_parsed_type_name_expression_create(
 void rlc_parsed_type_name_expression_destroy(
 	struct RlcParsedTypeNameExpression * this);
 
+/** Parses a type name expression.
+@memberof RlcParsedTypeNameExpression
+@param[out] out:
+	The type name expression to parse.
+	@dassert @nonnull
+@param[in,out] parser:
+	The parser data.
+	@dassert @nonnull */
+int rlc_parsed_type_name_expression_parse(
+	struct RlcParsedTypeNameExpression * out,
+	struct RlcParserData * parser);
+
 #ifdef __cplusplus
 }
 #endif

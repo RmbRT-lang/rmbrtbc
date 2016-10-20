@@ -18,7 +18,7 @@ extern "C" {
 struct RlcParsedUnion
 {
 	/** The scope entry derive*/
-	struct RlcParsedScopeEntry fScopeEntry;
+	RLC_DERIVE(struct,RlcParsedScopeEntry);
 
 	/** The member functions. */
 	struct RlcParsedMemberFunction * fMemberFunctions;

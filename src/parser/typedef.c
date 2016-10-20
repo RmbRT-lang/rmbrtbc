@@ -13,16 +13,14 @@ int rlc_parsed_typedef_parse(
 
 	RLC_BASE_CAST(out, RlcParsedScopeEntry)->fDeclarationIndex = parser_data->fIndex;
 
-	if(!rlc_parser_data_match(
+	if(!rlc_parser_data_consume(
 		parser_data,
 		kRlcTokTypedef))
 		return 0;
 
 	rlc_parsed_scope_entry_create(
-		RLC_BASE_CAST(out, RlcParsedScopeEntry));
-
-	rlc_parser_data_next(
-		parser_data);
+		RLC_BASE_CAST(out, RlcParsedScopeEntry),
+		kRlcParsedTypedef);
 
 	if(!rlc_parsed_type_name_parse(
 		parser_data,
