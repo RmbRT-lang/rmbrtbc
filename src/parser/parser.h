@@ -31,7 +31,16 @@ enum RlcParseError
 
 	/** Expected an expression. */
 	kRlcParseErrorExpectedExpression,
-	
+
+	kRlcParseErrorExpectedExpressionNoComma,
+
+	kRlcParseErrorExpectedMemberVariable,
+	kRlcParseErrorExpectedMemberFunction,
+	kRlcParseErrorExpectedMemberClass,
+	kRlcParseErrorExpectedMemberUnion,
+	kRlcParseErrorExpectedMemberStruct,
+	kRlcParseErrorExpectedMemberRawtype,
+
 	RLC_ENUM_END(RlcParseError)
 };
 
@@ -59,6 +68,15 @@ struct RlcParserData
 	size_t fIndex;
 };
 
+
+void rlc_parser_data_backup(
+	struct RlcParserData const * parser,
+	struct RlcParserData * backup);
+
+void rlc_parser_data_restore(
+	struct RlcParserData * parser,
+	struct RlcParserData const * backup);
+
 /** Goes to the next token.
 @param[in,out] this:
 	The parser data.
@@ -74,6 +92,9 @@ int rlc_parser_data_next(
 struct RlcToken const * rlc_parser_data_current(
 	struct RlcParserData const * this);
 
+struct RlcToken const * rlc_parser_data_ahead(
+	struct RlcParserData * this);
+
 /** Matches a token.
 @param[in] this:
 	The parser data.
@@ -82,6 +103,10 @@ struct RlcToken const * rlc_parser_data_current(
 @return
 	If matched, the address of the matched token, otherwise `null`. */
 struct RlcToken const * rlc_parser_data_match(
+	struct RlcParserData const * this,
+	enum RlcTokenType type);
+
+struct RlcToken const * rlc_parser_data_match_ahead(
 	struct RlcParserData const * this,
 	enum RlcTokenType type);
 

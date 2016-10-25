@@ -42,10 +42,13 @@ enum RlcParsedMemberType
 struct RlcParsedMember
 {
 	RLC_ABSTRACT(RlcParsedMember);
-	
+
 	/** The visibility level of the member. */
 	enum RlcVisibility fVisibility;
 };
+
+enum RlcVisibility rlc_visibility_parse(
+	enum RlcVisibility * default_visibility);
 
 /** Creates a member.
 @memberof RlcParsedMember
@@ -79,6 +82,14 @@ void rlc_parsed_member_destroy_virtual(
 	@dassert @nonnull */
 inline void rlc_parsed_member_destroy_base(
 	struct RlcParsedMember * this) { }
+
+void rlc_parsed_member_parse_base(
+	struct RlcParsedMember * this,
+	struct RlcParserData * parser);
+
+struct RlcParsedMember * rlc_parsed_member_parse(
+	enum RlcVisibility * default_visibility,
+	struct RlcParserData * parser);
 
 /** A list of parsed members. */
 struct RlcParsedMemberList

@@ -7,6 +7,7 @@
 #include "expression.h"
 #include "typename.h"
 #include "member.h"
+#include "parser.h"
 #include "../macros.h"
 
 #include <stddef.h>
@@ -20,7 +21,7 @@ extern "C" {
 struct RlcParsedVariable
 {
 	RLC_DERIVE(struct, RlcParsedScopeEntry);
-	
+
 	/** The variable type. */
 	struct RlcParsedTypeName fType;
 	/** The initialising expression, or null. */
@@ -35,6 +36,19 @@ struct RlcParsedVariable
 void rlc_parsed_variable_destroy(
 	struct RlcParsedVariable * this);
 
+/** Parses a variable.
+@memberof RlcParsedVariable
+@param[out] out:
+	The variable to parse.
+@param[in,out] parser:
+	The parser data.
+@return
+	Nonzero on success. */
+int rlc_parsed_variable_parse(
+	struct RlcParsedVariable * out,
+	struct RlcParserData * parser,
+	int allow_initialiser);
+
 /** Member variable type.
 @extends RlcParsedMember
 @extends RlcParsedVariable */
@@ -42,6 +56,7 @@ struct RlcParsedMemberVariable
 {
 	RLC_DERIVE(struct,RlcParsedMember);
 	RLC_DERIVE(struct,RlcParsedVariable);
+	int fIsolated;
 };
 
 /** Creates a parsed member variable.
@@ -57,6 +72,19 @@ void rlc_parsed_member_variable_create(
 	The parsed member variable to destroy. */
 void rlc_parsed_member_variable_destroy(
 	struct RlcParsedMemberVariable * this);
+
+/** Parses a member variable, but does not parse the `RlcParsedMember` base instance.
+	To completely parse it, call `rlc_parsed_member_parse_base()` beforehand on a seperate `RlcParsedMember` instance and assign it to `out` afterwards.
+@memberof RlcParsedMemberVariable
+@param[out] out:
+	The member variable to parse into. The `RlcParsedMember` will not be parsed.
+@param[in,out] parser:
+	The parser data.
+@return
+	Whether the parsing was successful. */
+int rlc_parsed_member_variable_parse(
+	struct RlcParsedMemberVariable * out,
+	struct RlcParserData * parser);
 
 #ifdef __cplusplus
 }

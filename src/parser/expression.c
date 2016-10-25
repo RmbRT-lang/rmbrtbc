@@ -52,7 +52,7 @@ int rlc_parsed_expression_parse(
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(*out == NULL);
 	RLC_DASSERT(parser != NULL);
-	RLC_DASSERT(!parser->fErrors);
+	RLC_DASSERT(!parser->fErrorCount);
 
 	union RlcExpressionStorage
 	{
@@ -70,7 +70,7 @@ int rlc_parsed_expression_parse(
 		*(struct RlcParsedNumberExpression *)*out = storage.fRlcParsedNumberExpression;
 
 		return 1; 
-	} else if(!parser->fErrors && rlc_parsed_symbol_expression_parse(
+	} else if(!parser->fErrorCount && rlc_parsed_symbol_expression_parse(
 		&storage.fRlcParsedSymbolExpression,
 		parser))
 	{
@@ -78,7 +78,7 @@ int rlc_parsed_expression_parse(
 		*(struct RlcParsedSymbolExpression *)*out = storage.fRlcParsedSymbolExpression;
 
 		return 1;
-	} else if(!parser->fErrors && rlc_parsed_type_name_expression_parse(
+	} else if(!parser->fErrorCount && rlc_parsed_type_name_expression_parse(
 			&storage.fRlcParsedTypeNameExpression,
 			parser))
 	{
@@ -86,7 +86,7 @@ int rlc_parsed_expression_parse(
 		*(struct RlcParsedTypeNameExpression *)*out = storage.fRlcParsedTypeNameExpression;
 
 		return 1;
-	} else if(parser->fErrors)
+	} else if(parser->fErrorCount)
 	{
 		rlc_parser_data_add_error(
 			parser,
