@@ -17,7 +17,12 @@ void rlc_register_internal_error_function(
 	rlc_internal_error_fn = callback;
 }
 
-void rlc_raise_lexical_error(
+void rlc_register_lexical_error_function(
+	rlc_lexical_error_fn_t callback)
+{
+	rlc_lexical_error_fn = callback;
+}
+void rlc_report_lexical_error(
 	char const * file,
 	size_t line,
 	size_t column,
@@ -31,10 +36,4 @@ void rlc_raise_lexical_error(
 			column,
 			line_string,
 			cause);
-}
-
-void rlc_report_lexical_error_function(
-	rlc_lexical_error_fn_t callback)
-{
-	rlc_lexical_error_fn = callback;
 }

@@ -10,5 +10,6 @@ void rlc_assertion_failure(
 	char const * function)
 {
 	printf("assertion failure: \"%s\" in %s:%i (%s).\n", expression, file, line, function);
+
 	abort();
 }

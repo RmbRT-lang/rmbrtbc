@@ -3,8 +3,9 @@
 #ifndef __rlc_parser_templatedecl_h_defined
 #define __rlc_parser_templatedecl_h_defined
 
-#include <stddef.h>
+#include "parser.h"
 
+#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -14,9 +15,9 @@ extern "C" {
 enum RlcTemplateDeclType
 {
 	/** Argument is a type. */
-	Type,
+	kRlcTemplateDeclTypeType,
 	/** Argument is a number. */
-	Number
+	kRlcTemplateDeclTypeNumber
 };
 
 /** Single template argument declaration. */
@@ -63,6 +64,11 @@ void rlc_template_decl_add_child(
 	The template argument declaration to destroy. */
 void rlc_template_decl_destroy(
 	struct RlcTemplateDecl * this);
+
+/** Parses a template declaration. */
+int rlc_template_decl_parse(
+	struct RlcTemplateDecl * decl,
+	struct RlcParserData * parser);
 
 #ifdef __cplusplus
 }

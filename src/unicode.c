@@ -43,7 +43,7 @@ int rlc_is_utf8_group_start(rlc_utf8_t character)
 
 int rlc_is_utf8_follow(rlc_utf8_t character)
 {
-	return character & (rlc_utf8_t)0xc0 == (rlc_utf8_t)0x80;
+	return (rlc_utf8_t)(character & (rlc_utf8_t)0xc0) == (rlc_utf8_t)0x80;
 }
 
 int rlc_is_utf8_valid(rlc_utf8_t character)
@@ -68,8 +68,10 @@ int rlc_is_utf8_valid_seq(rlc_utf8_t const * character)
 		return 0;
 
 	for(unsigned i = 0; i<length-1; i++)
+	{
 		if(!rlc_is_utf8_follow(character[i+1]))
 			return 0;
+	}
 	return 1;
 }
 
@@ -254,7 +256,7 @@ rlc_char_t * rlc_utf8_to_utf32(
 	rlc_utf8_t const * str)
 {
 	RLC_DASSERT(str != NULL);
-	
+
 	size_t len;
 	if(!(len = rlc_utf8_is_valid_string(str)))
 		return 0;

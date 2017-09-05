@@ -2,20 +2,29 @@
 #include "function.h"
 #include "variable.h"
 #include "class.h"
+#include "rawtype.h"
+#include "union.h"
+#include "struct.h"
+#include "typedef.h"
 
 #include "../assert.h"
 #include "../malloc.h"
 
+#include <string.h>
+
 void rlc_parsed_member_create(
 	struct RlcParsedMember * this,
 	enum RlcParsedMemberType type,
-	enum RlcVisibility visibility)
+	enum RlcVisibility visibility,
+	size_t start_index)
 {
 	RLC_DASSERT(this != NULL);
 
 	RLC_DERIVING_TYPE(this) = type;
 
 	this->fVisibility = visibility;
+	this->fLocation.fBegin = start_index;
+	this->fLocation.fEnd = 0;
 }
 
 void rlc_parsed_member_destroy_virtual(
@@ -30,7 +39,11 @@ void rlc_parsed_member_destroy_virtual(
 	static destructor_t const k_vtable[] = {
 		(destructor_t)&rlc_parsed_member_function_destroy,
 		(destructor_t)&rlc_parsed_member_variable_destroy,
-		(destructor_t)&rlc_parsed_member_class_destroy
+		(destructor_t)&rlc_parsed_member_rawtype_destroy,
+		(destructor_t)&rlc_parsed_member_struct_destroy,
+		(destructor_t)&rlc_parsed_member_union_destroy,
+		(destructor_t)&rlc_parsed_member_class_destroy,
+		(destructor_t)&rlc_parsed_member_typedef_destroy
 	};
 
 	static_assert(RLC_COVERS_ENUM(k_vtable, RlcParsedMemberType), "ill-sized vtable.");
@@ -38,7 +51,11 @@ void rlc_parsed_member_destroy_virtual(
 	static intptr_t const k_offsets[] = {
 		RLC_DERIVE_OFFSET(RlcParsedMember, struct RlcParsedMemberFunction),
 		RLC_DERIVE_OFFSET(RlcParsedMember, struct RlcParsedMemberVariable),
-		RLC_DERIVE_OFFSET(RlcParsedMember, struct RlcParsedMemberClass)
+		RLC_DERIVE_OFFSET(RlcParsedMember, struct RlcParsedMemberRawtype),
+		RLC_DERIVE_OFFSET(RlcParsedMember, struct RlcParsedMemberStruct),
+		RLC_DERIVE_OFFSET(RlcParsedMember, struct RlcParsedMemberUnion),
+		RLC_DERIVE_OFFSET(RlcParsedMember, struct RlcParsedMemberClass),
+		RLC_DERIVE_OFFSET(RlcParsedMember, struct RlcParsedMemberTypedef)
 	};
 
 	static_assert(RLC_COVERS_ENUM(k_offsets, RlcParsedMemberType), "ill-sized offset table.");
@@ -48,12 +65,38 @@ void rlc_parsed_member_destroy_virtual(
 		(uint8_t*)this + k_offsets[RLC_DERIVING_TYPE(this)]);
 }
 
+void rlc_parsed_member_destroy_base(
+	struct RlcParsedMember * this)
+{
+	RLC_DASSERT(this != NULL);
+}
+
+enum RlcMemberAttribute rlc_member_attribute_parse(
+	struct RlcParserData * parser)
+{
+	if(rlc_parser_data_consume(
+		parser,
+		kRlcTokIsolated))
+	{
+		return kRlcMemberAttributeIsolated;
+	} else if(rlc_parser_data_consume(
+		parser,
+		kRlcTokStatic))
+	{
+		return kRlcMemberAttributeStatic;
+	} else
+	{
+		return kRlcMemberAttributeNone;
+	}
+}
+
 enum RlcVisibility rlc_visibility_parse(
 	enum RlcVisibility * default_visibility,
 	struct RlcParserData * parser)
 {
 	RLC_DASSERT(default_visibility != NULL);
 	RLC_DASSERT(parser != NULL);
+
 
 	static struct {
 		enum RlcTokenType fToken;
@@ -66,23 +109,25 @@ enum RlcVisibility rlc_visibility_parse(
 
 	enum RlcVisibility ret = *default_visibility;
 
+	// parse (Modifier ":")* Modifier?
+accept_once_more:
 	for(int i = 0; i < _countof(k_lookup); i++)
 	{
 		if(rlc_parser_data_consume(
-			k_lookup[i].fToken,
-			parser))
+			parser,
+			k_lookup[i].fToken))
 		{
 			ret = k_lookup[i].fVisibility;
-
-			if(rlc_parser_data_consume(
-				kRlcTokColon,
-				parser))
-			{
-				*default_visibility = ret;
-			}
-
 			break;
 		}
+	}
+
+	if(rlc_parser_data_consume(
+		parser,
+		kRlcTokColon))
+	{
+		*default_visibility = ret;
+		goto accept_once_more;
 	}
 
 	return ret;
@@ -90,135 +135,124 @@ enum RlcVisibility rlc_visibility_parse(
 
 struct RlcParsedMember * rlc_parsed_member_parse(
 	enum RlcVisibility * default_visibility,
-	struct RlcParserData * parser)
+	struct RlcParserData * parser,
+	int flags)
 {
 	RLC_DASSERT(default_visibility != NULL);
 	RLC_DASSERT(parser != NULL);
 
-	size_t const parser_index = parser->fIndex;
-	enum RlcVisibility const visibility = rlc_visibility_parse(
-		default_visibility,
-		parser);
+	size_t const start_index = parser->fIndex;
 
-	union {
+	union Pack {
 		struct RlcParsedMemberVariable fVariable;
 		struct RlcParsedMemberFunction fFunction;
 		struct RlcParsedMemberClass fClass;
 		struct RlcParsedMemberUnion fUnion;
 		struct RlcParsedMemberStruct fStruct;
 		struct RlcParsedMemberRawtype fRawtype;
+		struct RlcParsedMemberTypedef fTypedef;
 	} pack;
 
+	typedef int (*parse_fn_t)(
+		union Pack *,
+		enum RlcVisibility *,
+		struct RlcParserData *);
 
-	struct RlcParsedMember * ret = NULL;
 
-	// member variable
-	if(rlc_parsed_member_variable_parse(
-		&pack.fVariable,
-		parser))
-	{
-		struct RlcParsedMemberVariable * var = NULL;
-		rlc_malloc((void**)&var, sizeof(struct RlcParsedMemberVariable));
+#define ENTRY(Type, parse, error) { \
+		k ## Type,\
+		(parse_fn_t)parse, \
+		error, \
+		sizeof(struct Type), \
+		RLC_DERIVE_OFFSET(RlcParsedMember, struct Type) }
 
-		*var = pack.fVariable;
-		ret = RLC_BASE_CAST(var, RlcParsedMember);
-	} else if(parser->fErrorCount)
-	{
-		return rlc_parser_data_add_error(
-			parser,
-			kRlcParseErrorExpectedMemberVariable), 0;
-	}
-	// member function
-	else if(rlc_parsed_member_function_parse(
-		&pack.fFunction,
-		parser))
-	{
-		struct RlcParsedMemberFunction * fun = NULL;
-		rlc_malloc((void**)&fun, sizeof(struct RlcParsedMemberFunction));
+	static struct {
+		enum RlcParsedMemberType fType;
+		parse_fn_t fParseFn;
+		enum RlcParseError fErrorCode;
+		size_t fTypeSize;
+		size_t fOffset;
+	} const k_parse_lookup[] = {
+		ENTRY(RlcParsedMemberFunction, &rlc_parsed_member_function_parse, kRlcParseErrorExpectedMemberFunction),
+		ENTRY(RlcParsedMemberVariable, &rlc_parsed_member_variable_parse, kRlcParseErrorExpectedMemberVariable),
+		ENTRY(RlcParsedMemberClass, &rlc_parsed_member_class_parse, kRlcParseErrorExpectedMemberClass),
+		ENTRY(RlcParsedMemberUnion, &rlc_parsed_member_union_parse, kRlcParseErrorExpectedMemberUnion),
+		ENTRY(RlcParsedMemberStruct, &rlc_parsed_member_struct_parse, kRlcParseErrorExpectedMemberStruct),
+		ENTRY(RlcParsedMemberRawtype, &rlc_parsed_member_rawtype_parse, kRlcParseErrorExpectedMemberRawtype),
+		ENTRY(RlcParsedMemberTypedef, &rlc_parsed_member_typedef_parse, kRlcParseErrorExpectedMemberTypedef)
+	};
 
-		*fun = pack.fFunction;
-		ret = RLC_BASE_CAST(fun, RlcParsedMember);
-	} else if(parser->fErrorCount)
-	{
-		return rlc_parser_data_add_error(
-			parser,
-			kRlcParseErrorExpectedMemberFunction), 0;
-	}
-	// member class
-	else if(rlc_parsed_member_class_parse(
-		&pack.fClass,
-		parser))
-	{
-		struct RlcParsedMemberClass * cls = NULL;
-		rlc_malloc((void**)&fun, sizeof(struct RlcParsedMemberClass));
+	static_assert(RLC_COVERS_ENUM(k_parse_lookup, RlcParsedMemberType), "ill-sized parse table.");
 
-		*fun = pack.fClass;
-		ret = RLC_BASE_CAST(fun, RlcParsedMember);
-	} else if(parser->fErrorCount)
+	for(int i = 0; i < _countof(k_parse_lookup); i++)
 	{
-		return rlc_parser_data_add_error(
-			parser,
-			kRlcParseErrorExpectedMemberClass), 0;
-	}
-	// member union
-	else if(rlc_parsed_member_union_parse(
-		&pack.fUnion,
-		parser))
-	{
-		struct RlcParsedMemberUnion * un = NULL;
-		rlc_malloc((void**)&un, sizeof(struct RlcParsedMemberUnion));
-
-		*un = pack.fUnion;
-		ret = RLC_BASE_CAST(fun, RlcParsedMember);
-	} else if(parser->fErrorCount)
-	{
-		return rlc_parser_data_add_error(
-			parser,
-			kRlcParseErrorExpectedMemberUnion), 0;
-	}
-	// member struct
-	else if(rlc_parsed_member_struct_parse(
-		&pack.fStruct,
-		parser))
-	{
-		struct RlcParsedMemberStruct * struc = NULL;
-		rlc_malloc((void**)&struc, sizeof(struct RlcParsedMemberStruct));
-
-		*struc = pack.fStruct;
-		ret = RLC_BASE_CAST(struc, RlcParsedMember);
-	} else if(parser->fErrorCount)
-	{
-		return rlc_parser_data_add_error(
-			parser,
-			kRlcParseErrorExpectedMemberStruct), 0;
-	}
-	// member rawtype
-	else if(rlc_parsed_member_rawtype_parse(
-		&pack.fRawtype,
-		parser))
-	{
-		struct RlcParsedMemberRawtype * rawtype = NULL;
-		rlc_malloc((void**)&rawtype, sizeof(struct RlcParsedMemberRawtype));
-
-		*rawtype = pack.fRawtype;
-		ret = RLC_BASE_CAST(rawtype, RlcParsedMember);
-	} else if(parser->fErrorCount)
-	{
-		return rlc_parser_data_add_error(
-			parser,
-			kRlcParseErrorExpectedMemberRawtype), 0;
-	}
-	// no success
-	else
-	{
-		if(parser->fIndex != parser_index)
+		if(flags & RLC_FLAG(k_parse_lookup[i].fType))
 		{
-			rlc_parser_data_add_error(
-				parser,
-				kRlcParseErrorExpectedMember);
+			if(k_parse_lookup[i].fParseFn(
+				&pack,
+				default_visibility,
+				parser))
+			{
+				void * temp = NULL;
+				rlc_malloc(&temp, k_parse_lookup[i].fTypeSize);
+
+				memcpy(temp, &pack, k_parse_lookup[i].fTypeSize);
+
+				struct RlcParsedMember * ret;
+				ret = (void*) ((uint8_t*)temp + k_parse_lookup[i].fOffset);
+
+				return ret;
+			} else if(parser->fErrorCount)
+			{
+				rlc_parser_data_add_error(
+					parser,
+					k_parse_lookup[i].fErrorCode);
+				break;
+			}
 		}
-		return 0;
 	}
 
-	ret->fVisibility = visibility;
+	parser->fIndex = start_index;
+	return NULL;
+}
+
+void rlc_parsed_member_list_create(
+	struct RlcParsedMemberList * this)
+{
+	RLC_DASSERT(this != NULL);
+
+	this->fEntries = NULL;
+	this->fEntryCount = 0;
+}
+
+void rlc_parsed_member_list_add(
+	struct RlcParsedMemberList * this,
+	struct RlcParsedMember * member)
+{
+	RLC_DASSERT(this != NULL);
+	RLC_DASSERT(member != NULL);
+
+	rlc_realloc(
+		(void**)&this->fEntries,
+		++this->fEntryCount * sizeof(struct RlcParsedMember *));
+
+	this->fEntries[this->fEntryCount-1] = member;
+}
+
+void rlc_parsed_member_list_destroy(
+	struct RlcParsedMemberList * this)
+{
+	RLC_DASSERT(this != NULL);
+
+	if(this->fEntries)
+	{
+		for(size_t i = 0; i < this->fEntryCount; i++)
+		{
+			rlc_parsed_member_destroy_virtual(this->fEntries[i]);
+			rlc_free((void**)&this->fEntries[i]);
+		}
+		rlc_free((void**)&this->fEntries);
+	}
+
+	this->fEntryCount = 0;
 }

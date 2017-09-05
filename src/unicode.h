@@ -15,6 +15,8 @@ typedef uint8_t rlc_utf8_t;
 /** UTF-32 character type.
 	This type is used to store the source code. */
 typedef uint32_t rlc_char_t;
+#define PRINTF_RLC_CHAR "lc"
+#define PRINTF_RLC_STR "ls"
 
 /** Checks whether the given UTF-8 string is valid.
 @return

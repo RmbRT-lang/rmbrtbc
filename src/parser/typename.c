@@ -2,9 +2,9 @@
 #include "../malloc.h"
 #include "../assert.h"
 
-void rlc_type_indirection_parse(
-	struct RlcParserData * parser,
-	enum RlcTypeIndirection * out)
+int rlc_type_indirection_parse(
+	enum RlcTypeIndirection * out,
+	struct RlcParserData * parser)
 {
 	RLC_DASSERT(parser != NULL);
 	RLC_DASSERT(out != NULL);
@@ -14,20 +14,23 @@ void rlc_type_indirection_parse(
 		kRlcTokAsterisk))
 	{
 		*out = kRlcTypeIndirectionPointer;
+		return 1;
 	} else if(rlc_parser_data_consume(
 		parser,
 		kRlcTokBackslash))
 	{
 		*out = kRlcTypeIndirectionNotNull;
+		return 1;
 	} else
 	{
 		* out = kRlcTypeIndirectionPlain;
+		return 0;
 	}
 }
 
-void rlc_type_qualifier_parse(
-	struct RlcParserData * parser,
-	enum RlcTypeQualifier * out)
+int rlc_type_qualifier_parse(
+	enum RlcTypeQualifier * out,
+	struct RlcParserData * parser)
 {
 	RLC_DASSERT(parser != NULL);
 	RLC_DASSERT(out != NULL);
@@ -42,6 +45,7 @@ void rlc_type_qualifier_parse(
 			*out = kRlcTypeQualifierConst | kRlcTypeQualifierVolatile;
 		else
 			*out = kRlcTypeQualifierConst;
+		return 1;
 	} else if(rlc_parser_data_consume(
 		parser,
 		kRlcTokVolatile))
@@ -52,8 +56,26 @@ void rlc_type_qualifier_parse(
 			*out = kRlcTypeQualifierConst | kRlcTypeQualifierVolatile;
 		else
 			*out = kRlcTypeQualifierVolatile;
+		return 1;
 	} else
 		*out = kRlcTypeQualifierNone;
+	return 0;
+}
+
+void rlc_type_modifier_parse(
+	struct RlcTypeModifier * out,
+	struct RlcParserData * parser)
+{
+	RLC_DASSERT(out != NULL);
+	RLC_DASSERT(parser != NULL);
+
+	rlc_type_indirection_parse(
+		&out->fTypeIndirection,
+		parser);
+
+	rlc_type_qualifier_parse(
+		&out->fTypeQualifier,
+		parser);
 }
 
 void rlc_parsed_type_name_destroy(
@@ -70,6 +92,7 @@ void rlc_parsed_type_name_destroy(
 	if(!this->fIsVoid)
 		rlc_parsed_symbol_destroy(&this->fName);
 }
+
 
 
 void rlc_parsed_type_name_add_modifier(
@@ -99,13 +122,15 @@ void rlc_parsed_type_name_create(
 }
 
 int rlc_parsed_type_name_parse(
-	struct RlcParserData * parser,
-	struct RlcParsedTypeName * out)
+	struct RlcParsedTypeName * out,
+	struct RlcParserData * parser)
 {
 	RLC_DASSERT(parser != NULL);
 	RLC_DASSERT(out != NULL);
 
 	size_t const start = parser->fIndex;
+
+	rlc_parsed_type_name_create(out);
 
 	if(rlc_parser_data_consume(
 		parser,
@@ -113,23 +138,44 @@ int rlc_parsed_type_name_parse(
 	{
 		out->fIsVoid = 1;
 	} else if(!rlc_parsed_symbol_parse(
-		parser,
-		&out->fName))
+		&out->fName,
+		parser))
 	{
 		if(parser->fErrorCount)
 			rlc_parser_data_add_error(
 				parser,
 				kRlcParseErrorExpectedSymbol);
+		rlc_parsed_type_name_destroy(out);
 		return 0;
 	}
 
 	struct RlcTypeModifier modifier;
 
-	do
+	int qualifier = 0;
+
+	for(;;)
 	{
-		rlc_type_modifier_parse(
-			parser,
-			&modifier);
-	} while(modifier.fTypeIndirection != kRlcTypeIndirectionPlain
-		|| modifier.fTypeQualifier != kRlcTypeQualifierNone);
+		if(rlc_type_indirection_parse(
+			&modifier.fTypeIndirection,
+			parser))
+		{
+			qualifier = 0;
+		}
+
+		if(!qualifier)
+		{
+			qualifier = rlc_type_qualifier_parse(
+				&modifier.fTypeQualifier,
+				parser);
+		} else break;
+
+		if(modifier.fTypeIndirection != kRlcTypeIndirectionPlain || qualifier)
+			rlc_parsed_type_name_add_modifier(
+				out,
+				&modifier);
+		else
+			break;
+	}
+
+	return 1;
 }

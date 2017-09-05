@@ -27,15 +27,17 @@ enum RlcTypeIndirection
 
 /** Parses a type indirection.
 @memberof RlcParserData
+@param[out] out:
+	The indirection to parse.
+	@dassert @nonnull
 @param[in,out] parser:
 	The parser data.
 	@dassert @nonnull
-@param[out] out:
-	The indirection to parse.
-	@dassert @nonnull */
-void rlc_type_indirection_parse(
-	struct RlcParserData * parser,
-	enum RlcTypeIndirection * out);
+@return
+	Whether any tokens were consumed. */
+int rlc_type_indirection_parse(
+	enum RlcTypeIndirection * out,
+	struct RlcParserData * parser);
 
 /** CV qualifier flag enum. */
 enum RlcTypeQualifier
@@ -57,10 +59,12 @@ enum RlcTypeQualifier
 	@dassert @nonnull
 @param[out] out:
 	The type qualifier to parse.
-	@dassert @nonnull */
-void rlc_type_qualifier_parse(
-	struct RlcParserData * parser,
-	enum RlcTypeQualifier * out);
+	@dassert @nonnull
+@return
+	Whether any tokens were consumed. */
+int rlc_type_qualifier_parse(
+	enum RlcTypeQualifier * out,
+	struct RlcParserData * parser);
 
 /** A type modifier that consists of an indirection and a cv qualifier. */
 struct RlcTypeModifier
@@ -75,8 +79,8 @@ struct RlcTypeModifier
 @memberof RlcParserData
 @relates RlcTypeModifier */
 void rlc_type_modifier_parse(
-	struct RlcParserData * parser,
-	struct RlcTypeModifier * out);
+	struct RlcTypeModifier * out,
+	struct RlcParserData * parser);
 
 /** A (possibly) scope-qualified identifier, or void, and type qualifiers. */
 struct RlcParsedTypeName
@@ -127,8 +131,8 @@ void rlc_parsed_type_name_create(
 @return
 	Nonzero on success, 0 on error. */
 int rlc_parsed_type_name_parse(
-	struct RlcParserData * parser,
-	struct RlcParsedTypeName * out);
+	struct RlcParsedTypeName * out,
+	struct RlcParserData * parser);
 
 #ifdef __cplusplus
 }

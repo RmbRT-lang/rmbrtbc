@@ -65,36 +65,36 @@ static inline int rlc_is_char_type(rlc_utf8_t character, unsigned type)
 		rlc_set_buffer(s_types, HEX, CHARS_HEX);
 		s_inited = 1;
 	}
-	
+
 	return (s_types[character] & (bitmask_t)(1 << type)) != 0;
 }
 
 int rlc_is_ident_first_char(rlc_char_t character)
 {
-	return character > 0xff || rlc_is_char_type(character, ID_FC);
+	return character > 0x7f || rlc_is_char_type(character, ID_FC);
 }
 
 int rlc_is_ident_last_char(rlc_char_t character)
 {
-	return character > 0xff || rlc_is_char_type(character, ID_LC);
+	return character > 0x7f || rlc_is_char_type(character, ID_LC);
 }
 
 int rlc_is_whitespace(rlc_char_t character)
 {
-	return character <= 0xff && rlc_is_char_type(character, WS);
+	return character <= 0x7f && rlc_is_char_type(character, WS);
 }
 
 int rlc_is_decimal(rlc_char_t character)
 {
-	return character <= 0xff && rlc_is_char_type(character, DEC);
+	return character <= 0x7f && rlc_is_char_type(character, DEC);
 }
 
 int rlc_is_octal(rlc_char_t character)
 {
-	return character <= 0xff && rlc_is_char_type(character, OCT);
+	return character <= 0x7f && rlc_is_char_type(character, OCT);
 }
 
 int rlc_is_hex(rlc_char_t character)
 {
-	return character <= 0xff && rlc_is_char_type(character, HEX);
+	return character <= 0x7f && rlc_is_char_type(character, HEX);
 }

@@ -40,8 +40,8 @@ void rlc_parsed_enum_constant_destroy(
 }
 
 int rlc_parsed_enum_constant_parse(
-	struct RlcParserData * parser,
-	struct RlcParsedEnumConstant * out)
+	struct RlcParsedEnumConstant * out,
+	struct RlcParserData * parser)
 {
 	RLC_DASSERT(parser != NULL);
 	RLC_DASSERT(out != NULL);
@@ -55,7 +55,7 @@ int rlc_parsed_enum_constant_parse(
 		{
 			rlc_parsed_enum_constant_add_name(
 				out,
-				rlc_parser_matched_index(parser));
+				rlc_parser_data_consumed_index(parser));
 		} else
 			return rlc_parser_data_add_error(
 				parser,
@@ -68,13 +68,15 @@ int rlc_parsed_enum_constant_parse(
 }
 
 void rlc_parsed_enum_create(
-	struct RlcParsedEnum * this)
+	struct RlcParsedEnum * this,
+	size_t start_index)
 {
 	RLC_DASSERT(this != NULL);
 
 	rlc_parsed_scope_entry_create(
 		RLC_BASE_CAST(this, RlcParsedScopeEntry),
-		kRlcParsedEnum);
+		kRlcParsedEnum,
+		start_index);
 
 	this->fConstants = NULL;
 	this->fConstantCount = 0;
@@ -88,7 +90,7 @@ void rlc_parsed_enum_destroy(
 	for(int i = 0; i < this->fConstantCount; i++)
 		rlc_parsed_enum_constant_destroy(
 			&this->fConstants[i]);
-	
+
 	if(this->fConstants)
 	{
 		rlc_free((void**)&this->fConstants);
@@ -110,12 +112,14 @@ void rlc_parsed_enum_add_constant(
 }
 
 int rlc_parsed_enum_parse(
-	struct RlcParserData * parser,
-	struct RlcParsedEnum * out)
+	struct RlcParsedEnum * out,
+	struct RlcParserData * parser)
 {
 	RLC_DASSERT(parser != NULL);
 	RLC_DASSERT(out != NULL);
 
+	size_t const start_index = parser->fIndex;
+	enum RlcParseError error_code;
 
 	if(!rlc_parser_data_consume(
 		parser,
@@ -124,43 +128,41 @@ int rlc_parsed_enum_parse(
 		return 0;
 	}
 
-	rlc_parsed_enum_create(out);
+	rlc_parsed_enum_create(
+		out,
+		start_index);
 
 	if(!rlc_parser_data_consume(
 		parser,
 		kRlcTokIdentifier))
 	{
-		return rlc_parser_data_add_error(
-			parser,
-			kRlcParseErrorExpectedIdentifier), 0;
+		error_code = kRlcParseErrorExpectedIdentifier;
+		goto failure;
 	}
 
 	if(!rlc_parser_data_consume(
 		parser,
 		kRlcTokBraceOpen))
 	{
-		return rlc_parser_data_add_error(
-			parser,
-			kRlcParseErrorExpectedBraceOpen), 0;
+		error_code = kRlcParseErrorExpectedBraceOpen;
+		goto failure;
 	}
 
 	do {
 		struct RlcParsedEnumConstant constant;
 
-		if(!rlc_parsed_enum_constant_parse,
-			parser,
-			&constant)
+		if(!rlc_parsed_enum_constant_parse(
+			&constant,
+			parser))
 		{
-			return rlc_parser_data_add_error(
-				parser,
-				kRlcParseErrorExpectedEnumConstant), 0;
+			error_code = kRlcParseErrorExpectedEnumConstant;
+			goto failure;
 		}
-		else
-		{
-			rlc_parsed_enum_add_constant(
-				out,
-				&constant);
-		}
+
+		rlc_parsed_enum_add_constant(
+			out,
+			&constant);
+
 	} while(rlc_parser_data_consume(
 		parser,
 		kRlcTokComma));
@@ -169,19 +171,26 @@ int rlc_parsed_enum_parse(
 		parser,
 		kRlcTokBraceClose))
 	{
-		return rlc_parser_data_add_error(
-			parser,
-			kRlcParseErrorExpectedBraceClose), 0;
+		error_code = kRlcParseErrorExpectedBraceClose;
+		goto failure;
 	}
 
 	if(!rlc_parser_data_consume(
 		parser,
 		kRlcTokSemicolon))
 	{
-		return rlc_parser_data_add_error(
-			parser,
-			kRlcParseErrorExpectedSemicolon), 0;
+		error_code = kRlcParseErrorExpectedSemicolon;
+		goto failure;
 	}
 
+success:
+	RLC_BASE_CAST(out, RlcParsedScopeEntry)->fLocation.fEnd = parser->fIndex;
 	return 1;
+failure:
+	rlc_parser_data_add_error(
+		parser,
+		error_code);
+	rlc_parsed_enum_destroy(out);
+	parser->fIndex = start_index;
+	return 0;
 }

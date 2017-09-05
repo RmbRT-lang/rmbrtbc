@@ -15,6 +15,8 @@
 
 #include "../malloc.h"
 
+#include <string.h>
+
 void rlc_parsed_scope_entry_destroy_base(
 	struct RlcParsedScopeEntry * this)
 {
@@ -69,11 +71,13 @@ void rlc_parsed_scope_entry_destroy_virtual(
 
 void rlc_parsed_scope_entry_create(
 	struct RlcParsedScopeEntry * this,
-	enum RlcParsedScopeEntryType derivingType)
+	enum RlcParsedScopeEntryType derivingType,
+	size_t start_index)
 {
 	RLC_DASSERT(this != NULL);
 
-	this->fDeclarationIndex = 0;
+	this->fLocation.fBegin = start_index;
+	this->fLocation.fEnd = 0;
 	this->fNames = NULL;
 	this->fNameCount = 0;
 
@@ -90,6 +94,108 @@ void rlc_parsed_scope_entry_add_name(
 		(void**)&this->fNames,
 		sizeof(size_t) * ++this->fNameCount);
 	this->fNames[this->fNameCount-1] = name;
+}
+
+static int dummy_rlc_parsed_variable_parse(
+	struct RlcParsedVariable * variable,
+	struct RlcParserData * parser)
+{
+	RLC_DASSERT(variable != NULL);
+	RLC_DASSERT(parser != NULL);
+
+	if(rlc_parsed_variable_parse(variable, parser, 1, 0, 0))
+	{
+		if(!rlc_parser_data_consume(
+			parser,
+			kRlcTokSemicolon))
+		{
+			rlc_parsed_variable_destroy(variable);
+			rlc_parser_data_add_error(
+				parser,
+				kRlcParseErrorExpectedSemicolon);
+			return 0;
+		} else return 1;
+	} else if(parser->fErrorCount)
+	{
+		rlc_parser_data_add_error(
+			parser,
+			kRlcParseErrorExpectedVariable);
+		return 0;
+	}
+}
+
+
+struct RlcParsedScopeEntry * rlc_parsed_scope_entry_parse(
+	struct RlcParserData * parser)
+{
+	RLC_DASSERT(parser != NULL);
+
+	union Pack {
+		struct RlcParsedVariable fVariable;
+		struct RlcParsedFunction fFunction;
+		struct RlcParsedClass fClass;
+		struct RlcParsedUnion fUnion;
+		struct RlcParsedStruct fStruct;
+		struct RlcParsedRawtype fRawtype;
+		struct RlcParsedTypedef fTypedef;
+		struct RlcParsedNamespace fNamespace;
+		struct RlcParsedEnum fEnum;
+	} pack;
+
+	typedef int (*parse_fn_t)(
+		union Pack *,
+		struct RlcParserData *);
+
+
+#define ENTRY(Type, parse, error) { \
+		(parse_fn_t)parse, \
+		error, \
+		sizeof(struct Type), \
+		RLC_DERIVE_OFFSET(RlcParsedScopeEntry, struct Type) }
+
+	static struct {
+		parse_fn_t fParseFn;
+		enum RlcParseError fErrorCode;
+		size_t fTypeSize;
+		size_t fOffset;
+	} const k_parse_lookup[] = {
+		ENTRY(RlcParsedVariable, &dummy_rlc_parsed_variable_parse, kRlcParseErrorExpectedVariable),
+		ENTRY(RlcParsedFunction, &rlc_parsed_function_parse, kRlcParseErrorExpectedFunction),
+		ENTRY(RlcParsedClass, &rlc_parsed_class_parse, kRlcParseErrorExpectedClass),
+		ENTRY(RlcParsedUnion, &rlc_parsed_union_parse, kRlcParseErrorExpectedUnion),
+		ENTRY(RlcParsedStruct, &rlc_parsed_struct_parse, kRlcParseErrorExpectedStruct),
+		ENTRY(RlcParsedRawtype, &rlc_parsed_rawtype_parse, kRlcParseErrorExpectedRawtype),
+		ENTRY(RlcParsedTypedef, &rlc_parsed_typedef_parse, kRlcParseErrorExpectedTypedef),
+		ENTRY(RlcParsedNamespace, &rlc_parsed_namespace_parse, kRlcParseErrorExpectedNamespace),
+		ENTRY(RlcParsedEnum, &rlc_parsed_enum_parse, kRlcParseErrorExpectedEnum)
+	};
+
+	static_assert(RLC_COVERS_ENUM(k_parse_lookup, RlcParsedScopeEntryType), "ill-sized parse table.");
+
+	for(int i = 0; i < _countof(k_parse_lookup); i++)
+	{
+		if(k_parse_lookup[i].fParseFn(
+			&pack,
+			parser))
+		{
+			void * temp = NULL;
+			rlc_malloc(&temp, k_parse_lookup[i].fTypeSize);
+
+			memcpy(temp, &pack, k_parse_lookup[i].fTypeSize);
+
+			struct RlcParsedScopeEntry * ret;
+			ret = (void*) ((uint8_t*)temp + k_parse_lookup[i].fOffset);
+			return ret;
+		} else if(parser->fErrorCount)
+		{
+			rlc_parser_data_add_error(
+				parser,
+				k_parse_lookup[i].fErrorCode);
+			return NULL;
+		}
+	}
+
+	return NULL;
 }
 
 void rlc_parsed_scope_entry_list_create(
@@ -112,7 +218,7 @@ void rlc_parsed_scope_entry_list_add(
 		(void**)&this->fEntries,
 		sizeof(struct RlcParsedScopeEntry *) * ++this->fEntryCount);
 
-	this->fEntries[this->fEntryCount -1] = 0;
+	this->fEntries[this->fEntryCount -1] = entry;
 }
 
 void rlc_parsed_scope_entry_list_destroy(
@@ -120,12 +226,12 @@ void rlc_parsed_scope_entry_list_destroy(
 {
 	RLC_DASSERT(this != NULL);
 
-	for(int i = 0; i < this->fEntryCount; i++)
+	for(size_t i = 0; i < this->fEntryCount; i++)
 	{
 		rlc_parsed_scope_entry_destroy_virtual(
 			this->fEntries[i]);
 		rlc_free((void**)&this->fEntries[i]);
 	}
-
-	rlc_free((void**)&this->fEntries);
+	if(this->fEntries)
+		rlc_free((void**)&this->fEntries);
 }

@@ -1,10 +1,15 @@
+/** @file scopeentry.h
+	Defines the scope entry base class. */
 #ifndef __rlc_parser_scopeentry_h_defined
 #define __rlc_parser_scopeentry_h_defined
 
 
-#include <stddef.h>
+#include "parser.h"
+#include "location.h"
 
 #include "../macros.h"
+
+#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -40,9 +45,9 @@ enum RlcParsedScopeEntryType
 struct RlcParsedScopeEntry
 {
 	RLC_ABSTRACT(RlcParsedScopeEntry);
-	
-	/** Where the scope entry was first declared in the source file. */
-	size_t fDeclarationIndex;
+
+	/** Where the scope entry lies in the source code. */
+	struct RlcParseLocation fLocation;
 	/** The name tokens indices. */
 	size_t * fNames;
 	/** The name count. */
@@ -69,10 +74,15 @@ void rlc_parsed_scope_entry_destroy_virtual(
 /** Creates an empty scope entry.
 @param[in,out] this:
 	The parsed scope entry to create.
-	@dassert @nonnull */
+	@dassert @nonnull
+@param[in] derivingType:
+	The constant representing the deriving type.
+@param[in] start_index:
+	The start index in the token stream. */
 void rlc_parsed_scope_entry_create(
 	struct RlcParsedScopeEntry * this,
-	enum RlcParsedScopeEntryType derivingType);
+	enum RlcParsedScopeEntryType derivingType,
+	size_t start_index);
 
 /** Adds a name to a scope entry.
 @param[in,out] this:
@@ -83,6 +93,9 @@ void rlc_parsed_scope_entry_add_name(
 	struct RlcParsedScopeEntry * this,
 	size_t name);
 
+/** Parses a scope entry. */
+struct RlcParsedScopeEntry * rlc_parsed_scope_entry_parse(
+	struct RlcParserData * parser);
 
 /** List of scope entries. */
 struct RlcParsedScopeEntryList

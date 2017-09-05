@@ -23,7 +23,7 @@ char const * rlc_file_result_message(
 /** Reads the whole (text) file and returns the text contained inside.
 	The file must be formatted in either UTF-8 with BOM or UTF-8 without BOM.
 @param[in] filename:
-	The file to load.
+	The file to load. If null, stdin is used.
 @param[out] content:
 	If successful, will hold a copy of the file contents.
 @return

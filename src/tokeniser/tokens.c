@@ -1,6 +1,7 @@
 #include "tokens.h"
-#include "../assert.h"
 
+#include "../assert.h"
+#include "../malloc.h"
 
 char const * rlc_tok_result_message(
 	enum RlcTokResult result)
@@ -9,21 +10,22 @@ char const * rlc_tok_result_message(
 		"tokenising successful",
 		"end of source file reached",
 		"invalid hexadecimal digit",
-		"invalid octal digit.",
-		"invalid decimal digit.",
+		"invalid octal digit",
+		"invalid decimal digit",
 		"invalid floating type specifier",
-		"unclosed caracter/string literal.",
-		"invalid hexadecimal escape sequence.",
-		"invalid octal escape sequence.",
-		"invalid decimal escape sequence.",
-		"invalid escape sequence.",
-		"invalid UTF-8 byte.",
-		"empty character literal.",
-		"unexpected symbol."
+		"unclosed caracter/string literal",
+		"invalid hexadecimal escape sequence",
+		"invalid octal escape sequence",
+		"invalid decimal escape sequence",
+		"invalid escape sequence",
+		"invalid UTF-8 byte",
+		"empty character literal",
+		"unclosed comment",
+		"unexpected symbol"
 	};
 
 	static_assert(RLC_COVERS_ENUM(messages, RlcTokResult), "mal-sized table.");
-	
+
 	RLC_DASSERT(RLC_IN_ENUM(result, RlcTokResult));
 
 	return messages[result];
@@ -34,6 +36,7 @@ char const * rlc_token_type_name(
 {
 	static char const * const names[] = {
 		"Whitespace",
+		"Comment",
 		"Identifier",
 		"HexNumber",
 		"DecimalNumber",
@@ -58,6 +61,7 @@ char const * rlc_token_type_name(
 		"Backslash",
 		"Comma",
 		"Dot",
+		"DotAsterisk",
 		"TripleDot",
 		"Plus",
 		"PlusEqual",
@@ -67,6 +71,7 @@ char const * rlc_token_type_name(
 		"MinusColon",
 		"MinusEqual",
 		"MinusGreater",
+		"MinusGreaterAsterisk",
 		"Asterisk",
 		"AsteriskEqual",
 		"And",
@@ -116,6 +121,7 @@ char const * rlc_token_type_name(
 
 		"If",
 		"Else",
+		"Do",
 		"While",
 		"For",
 		"Continue",
@@ -143,7 +149,10 @@ char const * rlc_token_type_name(
 		"Const",
 		"Volatile",
 		"Isolated",
-		"This"
+		"This",
+
+		"Number",
+		"Type"
 	};
 
 	static_assert(RLC_COVERS_ENUM(names, RlcTokenType), "mal-sized table.");
@@ -152,3 +161,79 @@ char const * rlc_token_type_name(
 
 	return names[type];
 };
+
+rlc_char_t * rlc_file_get_line_contents(
+	struct RlcFile const * this,
+	size_t begin)
+{
+	RLC_DASSERT(this != NULL);
+	RLC_DASSERT(begin < this->fContentLength);
+
+	size_t end;
+	for(end = begin; ; end++)
+		if(this->fContents[end] == '\0' && this->fContents[end] == '\n')
+			break;
+
+	size_t const length = end - begin;
+	rlc_char_t * line = NULL;
+	rlc_malloc(
+		(void**)&line,
+		sizeof(rlc_char_t) * (length + 1));
+
+
+	for(size_t i = 0; i < length; i++)
+		line[i] = this->fContents[begin + i];
+
+	line[length] = '\0';
+
+	return line;
+}
+
+void rlc_token_position(
+	struct RlcToken const * this,
+	size_t * line,
+	size_t * column)
+{
+	RLC_DASSERT(this != NULL);
+	RLC_DASSERT(line != NULL);
+	RLC_DASSERT(column != NULL);
+	RLC_DASSERT(this->fBegin < this->fFile->fContentLength);
+
+	*line = 0;
+
+	size_t last_begin = 0;
+
+	rlc_char_t const * const content = this->fFile->fContents;
+
+	for(size_t i = 0; i < this->fBegin; i++)
+		if(content[i] == '\n')
+		{
+			++*line;
+			last_begin = i+1;
+		}
+
+	*column = this->fBegin - last_begin;
+}
+
+rlc_char_t * rlc_token_content(
+	struct RlcToken const * this)
+{
+	RLC_DASSERT(this != NULL);
+	RLC_DASSERT(this->fBegin + this->fLength < this->fFile->fContentLength);
+
+	rlc_char_t * ret = NULL;
+	rlc_malloc(
+		(void**)&ret,
+		sizeof(rlc_char_t) * (this->fLength + 1));
+
+	rlc_char_t const * const contents = this->fFile->fContents + this->fBegin;
+
+	for(size_t i = this->fLength; i--;)
+	{
+		ret[i] = contents[i];
+	}
+
+	ret[this->fLength] = '\0';
+
+	return ret;
+}

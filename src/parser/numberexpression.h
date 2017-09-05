@@ -26,7 +26,7 @@ struct RlcParsedNumberExpression
 /** Initialises a number expression.
 @memberof RlcParsedNumberExpression
 
-@param[in] this:
+@param[out] this:
 	The number expression to initialise.
 @param[in] token_index:
 	The number token's index. */

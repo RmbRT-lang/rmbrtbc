@@ -4,13 +4,13 @@
 
 ### Cloning
 
-```git clone https://github.com/RmbRT/rlc.git```
+	git clone https://github.com/RmbRT/rlc.git
 
 ### Compiling
 
 Navigate into the cloned directory, then execute:
 
-```cmake .```
+	cmake .
 
 to generate the necessary project / make files your machine needs to build the library. This also copies all header files into the directory ```rlc/include/rlc/```.
 
@@ -18,7 +18,7 @@ to generate the necessary project / make files your machine needs to build the l
 
 You need to have doxygen installed on your machine. Navigate into the ```rlc/doxygen/``` directory, and issue:
 
-```doxygen Doxyfile```
+	doxygen Doxyfile
 
 This generates a HTML documentation based on the comments in the code, and places it in ```rlc/doxygen/html/```.
 
@@ -28,4 +28,4 @@ The RmbRT Language Compiler is free (as in freedom, or libre) software, and rele
 
 ## The Project
 
-```... more to come ...```
+	... more to come ...

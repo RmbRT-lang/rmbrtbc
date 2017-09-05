@@ -2,6 +2,7 @@
 #include "../malloc.h"
 #include "../macros.h"
 #include "../chartype.h"
+#include "../error.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -43,6 +44,8 @@ struct {
 	{"volatile", kRlcTokVolatile },
 	{"isolated", kRlcTokIsolated },
 	{"this", kRlcTokThis },
+	{"type", kRlcTokType },
+	{"number", kRlcTokNumber }
 }, s_operators [] = {
 	// operators
 	{ "+=", kRlcTokPlusEqual },
@@ -52,6 +55,7 @@ struct {
 	{ "-=", kRlcTokMinusEqual },
 	{ "-:", kRlcTokMinusColon },
 	{ "--", kRlcTokDoubleMinus },
+	{ "->*", kRlcTokMinusGreaterAsterisk },
 	{ "->", kRlcTokMinusGreater },
 	{ "-", kRlcTokMinus },
 
@@ -87,11 +91,12 @@ struct {
 	{ "|", kRlcTokPipe },
 
 	{ "?", kRlcTokQuestionMark },
-	
+
 	{ ":=", kRlcTokColonEqual },
 	{ "::", kRlcTokDoubleColon },
 	{ ":", kRlcTokColon },
 	{ "...", kRlcTokTripleDot },
+	{ ".*", kRlcTokDotAsterisk },
 	{ ".", kRlcTokDot },
 	{ ",", kRlcTokComma },
 	{ ";", kRlcTokSemicolon },
@@ -110,13 +115,16 @@ struct {
 	{ "<<", kRlcTokDoubleLess },
 	{ "<=", kRlcTokLessEqual },
 	{ "<", kRlcTokLess },
-	
+
 	{ ">>>=", kRlcTokTripleGreaterEqual },
 	{ ">>>", kRlcTokTripleGreater },
 	{ ">>=", kRlcTokDoubleGreaterEqual },
 	{ ">>", kRlcTokDoubleGreater },
 	{ ">=", kRlcTokGreaterEqual },
 	{ ">", kRlcTokGreater },
+
+	{ "$", kRlcTokVolatile },
+	{ "#", kRlcTokConst },
 };
 
 int rlc_match_string(
@@ -259,6 +267,33 @@ enum RlcTokResult rlc_next_token(
 	enum RlcTokenType unicode_modifier;
 	int unicode_modifier_found = 0;
 
+	if(src[index] == '/')
+	{
+		if(src[index+1] == '*')
+		{
+			index += 2;
+			while(src[index])
+			{
+				if(src[index] == '*'
+				&& src[index+1] == '/')
+				{
+					return rlc_finish_token(out, offset, index + 2, kRlcTokComment);
+				}
+				else
+					++index;
+			}
+			return (*error_index = offset), kRlcTokResultUnclosedComment;
+		} else if(src[index+1] == '/')
+		{
+			index += 2;
+
+			while(src[index] && src[index] != '\n')
+				++index;
+
+			return rlc_finish_token(out, offset, index+1, kRlcTokComment);
+		}
+	}
+
 
 	static struct {
 		rlc_char_t const match[5];
@@ -267,7 +302,7 @@ enum RlcTokResult rlc_next_token(
 	} const utf_literals[] = {
 		// string literals.
 		{{'8','\"',0,0,0}, kRlcTokUtf8String, 1},
-		
+
 		{{'1','6','L','\"',0}, kRlcTokUtf16leString, 3},
 		{{'1','6','l','\"',0}, kRlcTokUtf16leString, 3},
 		{{'1','6','B','\"',0}, kRlcTokUtf16beString, 3},
@@ -361,7 +396,7 @@ enum RlcTokResult rlc_next_token(
 					int len_to_cmp = strlen(s_keywords[i].str);
 					if(index-offset > len_to_cmp)
 						len_to_cmp = index-offset;
-					
+
 					if(!rlc_strncmp_utf8(src+offset, s_keywords[i].str, len_to_cmp))
 					{
 						return rlc_finish_token(out, offset, index, s_keywords[i].kw);
@@ -376,20 +411,67 @@ enum RlcTokResult rlc_next_token(
 					++index;
 					if(src[index] == 'x' || src[index] == 'X')
 					{
+						if(!rlc_is_hex(src[++index]))
+							return (*error_index = index), kRlcTokResultInvalidHexDigit;
 						while(rlc_is_hex(src[++index]));
+
+						if(src[index] == '.')
+						{
+							while(rlc_is_hex(src[++index]));
+							enum RlcTokenType type;
+							if(src[index == '\''] && ++index
+							&& rlc_floating_type(src[index], &type) && ++index)
+								if(rlc_is_ident_first_char(src[index]))
+									return (*error_index = index), kRlcTokResultInvalidHexDigit;
+								else
+									return rlc_finish_token(out, offset, index, type);
+							else
+								return (*error_index = index),
+									kRlcTokResultInvalidFloatingSpecifier;
+						}
+
 						if(rlc_is_ident_first_char(src[index]))
 							return (*error_index = index), kRlcTokResultInvalidHexDigit;
 						else
 							return rlc_finish_token(out, offset, index, kRlcTokHexNumber);
-					} else if(rlc_is_decimal(src[index]))
+					} else if(rlc_is_octal(src[index]))
 					{
 						while(rlc_is_octal(src[++index]));
 						if(rlc_is_decimal(src[index]) || rlc_is_ident_first_char(src[index]))
 							return (*error_index = index), kRlcTokResultInvalidOctalDigit;
+						else if(src[index] == '.')
+						{
+							while(rlc_is_octal(src[++index]));
+							enum RlcTokenType type;
+							if(src[index == '\''] && ++index
+							&& rlc_floating_type(src[index], &type) && ++index)
+								if(rlc_is_ident_first_char(src[index]))
+									return (*error_index = index), kRlcTokResultInvalidHexDigit;
+								else
+									return rlc_finish_token(out, offset, index, type);
+							else
+								return (*error_index = index),
+									kRlcTokResultInvalidFloatingSpecifier;
+						}
 						else
 							return rlc_finish_token(out, offset, index, kRlcTokOctalNumber);
 					} else if(rlc_is_ident_first_char(src[index]))
-						return kRlcTokResultInvalidOctalDigit;
+						return (*error_index = index),
+							kRlcTokResultInvalidOctalDigit;
+					else if(src[index] == '.')
+					{
+						while(rlc_is_decimal(src[++index]));
+						enum RlcTokenType type;
+						if(src[index == '\''] && ++index
+						&& rlc_floating_type(src[index], &type) && ++index)
+							if(rlc_is_ident_first_char(src[index]))
+								return (*error_index = index), kRlcTokResultInvalidHexDigit;
+							else
+								return rlc_finish_token(out, offset, index, type);
+						else
+							return (*error_index = index),
+								kRlcTokResultInvalidFloatingSpecifier;
+					}
 					else
 						return rlc_finish_token(out, offset, index, kRlcTok0);
 				} else
@@ -402,8 +484,12 @@ enum RlcTokResult rlc_next_token(
 					{
 						while(rlc_is_decimal(src[++index]));
 						enum RlcTokenType type;
-						if(rlc_floating_type(src[index], &type))
-							return rlc_finish_token(out, offset, ++index, type);
+						if(src[index == '\''] && ++index
+						&& rlc_floating_type(src[index], &type) && ++index)
+							if(rlc_is_ident_first_char(src[index]))
+								return (*error_index = index), kRlcTokResultInvalidHexDigit;
+							else
+								return rlc_finish_token(out, offset, index, type);
 						else
 							return (*error_index = index),
 								kRlcTokResultInvalidFloatingSpecifier;
@@ -415,7 +501,7 @@ enum RlcTokResult rlc_next_token(
 				for(int i = 0; i < _countof(s_operators); i++)
 				{
 					int len_to_cmp = strlen(s_operators[i].str);
-					
+
 					if(!rlc_strncmp_utf8(src+offset, s_operators[i].str, len_to_cmp))
 						return rlc_finish_token(out, offset, index+len_to_cmp, s_operators[i].kw);
 				}
@@ -427,18 +513,45 @@ enum RlcTokResult rlc_next_token(
 }
 
 
+static size_t get_line_number(
+	rlc_char_t const * src,
+	size_t const index,
+	size_t * col,
+	size_t * line_len)
+{
+	size_t line = 0;
+	size_t lastline = 0;
+	for(size_t i = 0; i < index; i++)
+	{
+		if(src[i] == '\n')
+		{
+			++line;
+			lastline = i+1;
+		}
+	}
+	size_t i;
+	for(i = lastline; src[i] && src[i] != '\n'; i++) { ; }
+
+	if(src[i] == '\n')
+		--i;
+
+	* col = index - lastline + 1;
+	* line_len = i - lastline + 1;
+	return line+1;
+}
+
 enum RlcTokResult rlc_tokenise(
 	rlc_char_t const * src,
-	struct RlcToken ** out,
+	struct RlcFile * out,
 	int skip_whitespaces,
-	size_t * count,
+	int skip_comments,
 	size_t * error_index)
 {
 
 	size_t const len = src ? rlc_strlen(src) : 0;
 
-	*count = 0;
-	*out = 0;
+	out->fTokenCount = 0;
+	out->fTokens = NULL;
 
 	if(!len)
 		return kRlcTokResultOk;
@@ -448,20 +561,45 @@ enum RlcTokResult rlc_tokenise(
 	enum RlcTokResult result;
 	while(index < len)
 	{
+		tok.fFile = out;
 		if((result=rlc_next_token(src, index, &tok, error_index)) == kRlcTokResultOk)
 		{
-			if(!(tok.fType == kRlcTokWhitespace && skip_whitespaces))
+			if(!(tok.fType == kRlcTokWhitespace && skip_whitespaces)
+			&& !(tok.fType == kRlcTokComment && skip_comments))
 			{
-				rlc_realloc((void**)out, ++*count * sizeof(struct RlcToken));
-				(*out)[*count-1] = tok;
+				rlc_realloc((void**)&out->fTokens, ++out->fTokenCount * sizeof(struct RlcToken));
+				out->fTokens[out->fTokenCount-1] = tok;
 			}
 			index += tok.fLength;
 		}
 		else
 		{
-			if(*out)
-				rlc_free((void**)out);
-			*count = 0;
+			size_t col;
+			size_t len;
+			size_t line = get_line_number(
+				src,
+				*error_index,
+				&col,
+				&len);
+
+			rlc_char_t * content = NULL;
+			rlc_malloc(
+				(void**) &content,
+				sizeof(rlc_char_t) * len + 1);
+
+			memcpy(content, src + (*error_index - col + 1), sizeof(rlc_char_t) * len);
+			content[len] = '\0';
+
+			rlc_report_lexical_error(
+				out->fName,
+				line,
+				col,
+				content,
+				result);
+
+			if(out->fTokens)
+				rlc_free((void**)&out->fTokens);
+			out->fTokenCount = 0;
 
 			return result;
 		}

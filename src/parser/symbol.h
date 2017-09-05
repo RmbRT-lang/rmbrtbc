@@ -32,6 +32,9 @@ struct RlcParsedSymbolChild
 void rlc_parsed_symbol_child_create(
 	struct RlcParsedSymbolChild * this);
 
+void rlc_parsed_symbol_child_destroy(
+	struct RlcParsedSymbolChild * this);
+
 /** Adds a template argument to a symbol child.
 @memberof RlcParsedSymbolChild
 
@@ -46,6 +49,10 @@ void rlc_parsed_symbol_child_add_template(
 	struct RlcParsedSymbolChild * this,
 	struct RlcParsedExpression * template_argument);
 
+int rlc_parsed_symbol_child_parse(
+	struct RlcParsedSymbolChild * out,
+	struct RlcParserData * parser);
+
 
 /** A (possibly) namespace-qualified symbol. */
 struct RlcParsedSymbol
@@ -54,7 +61,7 @@ struct RlcParsedSymbol
 	struct RlcParsedSymbolChild * fChildren;
 	/** The count of symbol children. */
 	size_t fChildCount;
-	/** Whether the symbol was prefixed with ```::``` to access the root namespace. */
+	/** Whether the symbol was prefixed with `::` to access the root namespace. */
 	int fIsRoot;
 };
 /** Destroys a symbol.
@@ -96,8 +103,8 @@ void rlc_parsed_symbol_create(
 	The symbol to parse.
 	@dassert @nonnull */
 int rlc_parsed_symbol_parse(
-	struct RlcParserData * parser,
-	struct RlcParsedSymbol * out);
+	struct RlcParsedSymbol * out,
+	struct RlcParserData * parser);
 
 #ifdef __cplusplus
 }

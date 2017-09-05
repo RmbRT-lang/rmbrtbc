@@ -13,7 +13,7 @@ extern "C" {
 typedef void (*rlc_internal_error_fn_t)(
 	char const * message);
 
-/** Reports an internal error. 
+/** Reports an internal error.
 	Invokes the registered internal error callback.
 @param[in] message:
 	The error message. */

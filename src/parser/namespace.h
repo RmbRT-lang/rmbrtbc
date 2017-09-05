@@ -26,9 +26,10 @@ struct RlcParsedNamespace
 	The namespace to create.
 	@dassert @nonnull */
 void rlc_parsed_namespace_create(
-	struct RlcParsedNamespace * this);
+	struct RlcParsedNamespace * this,
+	size_t start_index);
 
-/** Destroys a namespace
+/** Destroys a namespace.
 @memberof RlcParsedNamespace
 
 @param[in,out] this:
@@ -36,6 +37,17 @@ void rlc_parsed_namespace_create(
 	@dassert @nonnull */
 void rlc_parsed_namespace_destroy(
 	struct RlcParsedNamespace * this);
+
+/** Parses a namespace.
+@param[out] out:
+	The namespace to parse.
+@param[in,out] parser:
+	The parser data.
+@return
+	Whether the parsing succeeded. */
+int rlc_parsed_namespace_parse(
+	struct RlcParsedNamespace * out,
+	struct RlcParserData * parser);
 
 #ifdef __cplusplus
 }

@@ -56,6 +56,10 @@ int rlc_preprocess(
 	struct RlcPreprocessorSymbols const * input,
 	struct RlcPreprocessedFile * out);
 
+void rlc_preprocessed_file_create_from_rlc_file(
+	struct RlcPreprocessedFile * this,
+	struct RlcFile const * source);
+
 /** Destroys a preprocessed file.
 @memberof RlcPreprocessedFile
 

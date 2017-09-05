@@ -16,6 +16,7 @@ void rlc_malloc(
 	if(!*ptr)
 	{
 		fputs("Ran out of memory.", stderr);
+		abort();
 		exit(EXIT_FAILURE);
 	}
 
@@ -36,6 +37,7 @@ void rlc_realloc(
 		if(!*ptr)
 		{
 			fputs("Ran out of memory.", stderr);
+			abort();
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -51,7 +53,7 @@ void rlc_free(
 
 	free(*ptr);
 	*ptr = NULL;
-	
+
 	s_rlc_allocations--;
 }
 

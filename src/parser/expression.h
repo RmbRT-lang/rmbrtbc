@@ -16,12 +16,18 @@ extern "C" {
 
 /** Deriving types of RlcParsedExpression. */
 enum RlcParsedExpressionType {
-	/** RlcParsedSymbolExpression */
+	/** RlcParsedSymbolExpression. */
 	kRlcParsedSymbolExpression,
-	/** RlcParsedNumberExpression */
+	/** RlcParsedSymbolChildExpression. */
+	kRlcParsedSymbolChildExpression,
+	/** RlcParsedNumberExpression. */
 	kRlcParsedNumberExpression,
-	/** RlcParsedTypeNameExpression */
+	/** RlcParsedStringExpression. */
+	kRlcParsedStringExpression,
+	/** RlcParsedTypeNameExpression. */
 	kRlcParsedTypeNameExpression,
+	/** RlcParsedOperatorExpression. */
+	kRlcParsedOperatorExpression,
 
 	RLC_ENUM_END(RlcParsedExpressionType)
 };
@@ -60,18 +66,18 @@ void rlc_parsed_expression_destroy_virtual(
 @param[in,out] this:
 	The expression base instance to destroy.
 	@dassert @nonnull */
-inline void rlc_parsed_expression_destroy_base(
-	struct RlcParsedExpression * this) {}
+void rlc_parsed_expression_destroy_base(
+	struct RlcParsedExpression * this);
 
 /** Parses an expression.
 @memberof RlcParsedExpression
-@param[out] out:
-	A pointer to store the address of the parsed expression.
 @param[in,out] parser:
-	The parser data. */
-int rlc_parsed_expression_parse(
-	struct RlcParsedExpression ** out,
-	struct RlcParserData * parser);
+	The parser data.
+@return
+	A pointer to the parsed expression. */
+struct RlcParsedExpression * rlc_parsed_expression_parse(
+	struct RlcParserData * parser,
+	int flags);
 
 #ifdef __cplusplus
 }

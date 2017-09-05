@@ -24,30 +24,55 @@ struct RlcParsedVariable
 
 	/** The variable type. */
 	struct RlcParsedTypeName fType;
-	/** The initialising expression, or null. */
-	struct RlcParsedExpression * fInitExp;
+	/** The initialising arguments, or null. */
+	struct RlcParsedExpression ** fInitArgs;
+	/** The initialising argument count. */
+	size_t fInitArgCount;
 };
+
+/** Creates a variable.
+@memberof RlcParsedVariable
+@param[out] this:
+	The variable to create.
+	@dassert @nonnull */
+void rlc_parsed_variable_create(
+	struct RlcParsedVariable * this,
+	size_t start_index);
 
 /** Destroys a variable.
 @memberof RlcParsedVariable
-@param[in] this:
+@param[in,out] this:
 	The variable to destroy.
 	@dassert @nonnull */
 void rlc_parsed_variable_destroy(
 	struct RlcParsedVariable * this);
 
 /** Parses a variable.
+	Syntax:
+
+	Initialiser ::= ':=' Expression
+	Initialiser ::= '(' Argument (',' Argument )* ')
+		*identifier* : *type name expression* := 
+
 @memberof RlcParsedVariable
 @param[out] out:
 	The variable to parse.
 @param[in,out] parser:
 	The parser data.
+@param[in] needs_name:
+	Whether a name is expected.
+@param[in] allow_initialiser:
+	Whether an initialiser is allowed.
+@param[in] force_initialiser:
+	Whether an initialiser is expected.
 @return
 	Nonzero on success. */
 int rlc_parsed_variable_parse(
 	struct RlcParsedVariable * out,
 	struct RlcParserData * parser,
-	int allow_initialiser);
+	int needs_name,
+	int allow_initialiser,
+	int force_initialiser);
 
 /** Member variable type.
 @extends RlcParsedMember
@@ -56,7 +81,9 @@ struct RlcParsedMemberVariable
 {
 	RLC_DERIVE(struct,RlcParsedMember);
 	RLC_DERIVE(struct,RlcParsedVariable);
-	int fIsolated;
+
+	/** Whether this variable has a modifier like `static` or `isolated`. */
+	enum RlcMemberAttribute fAttribute;
 };
 
 /** Creates a parsed member variable.
@@ -64,7 +91,10 @@ struct RlcParsedMemberVariable
 	The parsed member variable to create.
 	@dassert @nonnull */
 void rlc_parsed_member_variable_create(
-	struct RlcParsedMemberVariable * this);
+	struct RlcParsedMemberVariable * this,
+	enum RlcVisibility visibility,
+	enum RlcMemberAttribute attribute,
+	size_t start_index);
 
 /** Destroys a parsed member variable.
 @memberof RlcParsedMemberVariable
@@ -84,6 +114,7 @@ void rlc_parsed_member_variable_destroy(
 	Whether the parsing was successful. */
 int rlc_parsed_member_variable_parse(
 	struct RlcParsedMemberVariable * out,
+	enum RlcVisibility * default_visibility,
 	struct RlcParserData * parser);
 
 #ifdef __cplusplus

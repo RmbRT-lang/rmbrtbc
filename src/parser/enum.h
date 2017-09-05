@@ -51,8 +51,8 @@ void rlc_parsed_enum_constant_destroy(
 @param[out] out:
 	The enum constant. */
 int rlc_parsed_enum_constant_parse(
-	struct RlcParserData * parser,
-	struct RlcParsedEnumConstant * out);
+	struct RlcParsedEnumConstant * out,
+	struct RlcParserData * parser);
 
 /** Enum type.
 @extends RlcParsedScopeEntry */
@@ -71,7 +71,8 @@ struct RlcParsedEnum
 	The enum to create.
 	@dassert @nonnull */
 void rlc_parsed_enum_create(
-	struct RlcParsedEnum * this);
+	struct RlcParsedEnum * this,
+	size_t start_index);
 
 /** Destroys an enum.
 @memberof RlcParsedEnum
@@ -99,8 +100,8 @@ void rlc_parsed_enum_add_constant(
 	The enum to parse.
 	@dassert @nonnull */
 int rlc_parsed_enum_parse(
-	struct RlcParserData * parser,
-	struct RlcParsedEnum * out);
+	struct RlcParsedEnum * out,
+	struct RlcParserData * parser);
 
 #ifdef __cplusplus
 }

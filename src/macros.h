@@ -18,6 +18,9 @@
 #define RLC_IN_ENUM(x,Enum) (((unsigned) x) < RLC_COUNT(Enum))
 #define RLC_COVERS_ENUM(Array, Enum) (_countof((Array)) == RLC_COUNT(Enum))
 
+#define RLC_FLAG(x) (1<<(x))
+#define RLC_ALL_FLAGS(enum) (RLC_FLAG(RLC_COUNT(enum))-1)
+
 #define RLC_OFFSETOF_PTR(p,m) ((unsigned)((char *)&(p)->m - (char *)(p)))
 #define RLC_OFFSETOF(t,m) RLC_OFFSETOF_PTR((t *)NULL, m)
 
@@ -32,6 +35,7 @@
 	The type name to cast to. */
 #define RLC_DERIVE_CAST(a,b,d) ((d*)((a) ? (void*)((char*)(a) - RLC_OFFSETOF(d, fDerived##b)) : NULL))
 
+/** Base + RLC_DERIVE_OFFSET = Derived */
 #define RLC_DERIVE_OFFSET(b,d) (-(intptr_t)(RLC_OFFSETOF(d, fDerived##b)))
 
 /** Retrieves the base instance of `a`. */

@@ -32,17 +32,25 @@ enum RlcTokResult rlc_next_token(
 	size_t * error_index);
 
 /** Reads all tokens in the given source.
-@param[in] src: The RL source code to be tokenised.
-@param[out] out: The address of a pointer that should hold the tokens.
-@param[in] skip_whitespaces: Whether to discard whitespace tokens or not.
-@param[out] count: The token count.
-@param[out] error_index: The character an error occured at.
-@return 1 on success, 0 on failure. */
+@param[in] src:
+	The RL source code to be tokenised.
+@param[out] out:
+	The RlcFile to tokenise into. The file name field should be set before calling this funtion.
+@param[in] skip_whitespaces:
+	Whether to discard whitespace tokens or not.
+@param[in] skip_comments:
+	Whether to discard comment tokens or not.
+@param[out] count:
+	The token count.
+@param[out] error_index:
+	The character an error occured at.
+@return
+	1 on success, 0 on failure. */
 enum RlcTokResult rlc_tokenise(
 	rlc_char_t const * src,
-	struct RlcToken ** out,
+	struct RlcFile * out,
 	int skip_whitespaces,
-	size_t * count,
+	int skip_comments,
 	size_t * error_index);
 
 /** Parses a character in a string or character literal.

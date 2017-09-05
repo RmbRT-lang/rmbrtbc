@@ -17,6 +17,7 @@ extern "C" {
 enum RlcTokenType
 {
 	kRlcTokWhitespace,
+	kRlcTokComment,
 	kRlcTokIdentifier,
 	kRlcTokHexNumber,
 	kRlcTokDecimalNumber,
@@ -41,6 +42,7 @@ enum RlcTokenType
 	kRlcTokBackslash,
 	kRlcTokComma,
 	kRlcTokDot,
+	kRlcTokDotAsterisk,
 	kRlcTokTripleDot,
 	kRlcTokPlus,
 	kRlcTokPlusEqual,
@@ -50,6 +52,7 @@ enum RlcTokenType
 	kRlcTokMinusColon,
 	kRlcTokMinusEqual,
 	kRlcTokMinusGreater,
+	kRlcTokMinusGreaterAsterisk,
 	kRlcTokAsterisk,
 	kRlcTokAsteriskEqual,
 	kRlcTokAnd,
@@ -99,6 +102,7 @@ enum RlcTokenType
 
 	kRlcTokIf,
 	kRlcTokElse,
+	kRlcTokDo,
 	kRlcTokWhile,
 	kRlcTokFor,
 	kRlcTokContinue,
@@ -128,6 +132,9 @@ enum RlcTokenType
 	kRlcTokIsolated,
 	kRlcTokThis,
 
+	kRlcTokNumber,
+	kRlcTokType,
+
 	RLC_ENUM_END(RlcTokenType)
 
 };
@@ -156,6 +163,7 @@ enum RlcTokResult
 	kRlcTokResultInvalidEscape,
 	kRlcTokResultInvalidUtf8,
 	kRlcTokResultEmptyCharLiteral,
+	kRlcTokResultUnclosedComment,
 
 	kRlcTokResultUnexpected,
 
@@ -171,14 +179,45 @@ char const * rlc_tok_result_message(
 struct RlcFile
 {
 	/** The file name. */
-	rlc_char_t const * fName;
+	char const * fName;
+	/** The file's contents. */
+	rlc_char_t * fContents;
+	/** The file's content's length. */
+	size_t fContentLength;
 	/** The file's tokens. */
 	struct RlcToken * fTokens;
 	/** The token count. */
 	size_t fTokenCount;
 };
 
-/** A token as used by the tokenizer.
+void rlc_file_create(
+	struct RlcFile * this);
+
+void rlc_file_destroy(
+	struct RlcFile * this);
+
+void rlc_file_set_name(
+	struct RlcFile * this,
+	rlc_char_t const * fName);
+
+void rlc_file_add_token(
+	struct RlcFile * this,
+	struct RlcToken const * token);
+
+/** Retrieves a line of code of a source file.
+@param[in] this:
+	The file whose line to read.
+	@dassert @nonnull
+@param[in] begin:
+	The character index the line starts with.
+	@dassert `begin < rlc_strlen(this->contents)`
+@return
+	A copy of the source line. The newline character is excluded. */
+rlc_char_t * rlc_file_get_line_contents(
+	struct RlcFile const * this,
+	size_t begin);
+
+/** A token as used by the tokenizer and preprocessor.
 	It represents a substring of a source file. */
 struct RlcToken
 {
@@ -187,10 +226,28 @@ struct RlcToken
 	/** The byte length of the substring. */
 	size_t fLength;
 	/** Stores a rlcTokenType. */
-	unsigned char fType;
+	enum RlcTokenType fType;
 	/** The source file of the token. */
 	struct RlcFile const * fFile;
 };
+
+/** Retrieves the text position of the token.
+@param[in] this:
+	The token whose position to retrieve.
+	@dassert @nonnull
+@param[out] line:
+	The source line (0-based).
+	@dassert @nonnull
+@param[out] column:
+	The source column (0-based).
+	@dassert @nonnull */
+void rlc_token_position(
+	struct RlcToken const * this,
+	size_t * line,
+	size_t * column);
+
+rlc_char_t * rlc_token_content(
+	struct RlcToken const * this);
 
 #ifdef __cplusplus
 }

@@ -20,16 +20,18 @@ struct RlcParsedUnion
 	/** The scope entry derive*/
 	RLC_DERIVE(struct,RlcParsedScopeEntry);
 
-	/** The member functions. */
-	struct RlcParsedMemberFunction * fMemberFunctions;
-	/** The member function count. */
-	size_t fMemberFunctionCount;
-
-	/** The member variables. */
-	struct RlcParsedMemberVariable * fMemberVariables;
-	/** The member variable count. */
-	size_t fMemberVariableCount;
+	/** The list of members. */
+	struct RlcParsedMemberList fMembers;
 };
+
+/** Creates a parsed union.
+@memberof RlcParsedUnion
+@param[out] this:
+	The union to create.
+	@dassert @nonnull */
+void rlc_parsed_union_create(
+	struct RlcParsedUnion * this,
+	size_t start_index);
 
 /** Destroys a parsed union.
 @memberof RlcParsedUnion
@@ -38,23 +40,31 @@ struct RlcParsedUnion
 void rlc_parsed_union_destroy(
 	struct RlcParsedUnion * this);
 
-/** Searches for a member of a union.
-@memberof RlcParsedUnion
-@param[in] this:
-	The union to search.
-@param[in] name:
-	The member's name.
-@param[in,out] start:
-	Where to start searching. Use this to find multiple overloads of functions, for example. The value held will only be valid if nonzero was returned.
-	@dassert
-		@nonnull
-		The referenced pointer shall either be `null` or an address returned by `rlc_parsed_union_find_member()`.
-@return
-	Whether a member was found. */
-int rlc_parsed_union_find_member(
-	struct RlcParsedUnion const * this,
-	char const * name,
-	struct RlcParsedMember const ** start);
+int rlc_parsed_union_parse(
+	struct RlcParsedUnion * out,
+	struct RlcParserData * parser);
+
+/** A member union as used by the parser.
+@implements RlcParsedMember
+@implements RlcParsedUnion */
+struct RlcParsedMemberUnion
+{
+	RLC_DERIVE(struct,RlcParsedMember);
+	RLC_DERIVE(struct,RlcParsedUnion);
+};
+
+void rlc_parsed_member_union_create(
+	struct RlcParsedMemberUnion * this,
+	enum RlcVisibility visibility,
+	size_t start_index);
+
+void rlc_parsed_member_union_destroy(
+	struct RlcParsedMemberUnion * this);
+
+int rlc_parsed_member_union_parse(
+	struct RlcParsedMemberUnion * out,
+	enum RlcVisibility * default_visibility,
+	struct RlcParserData * parser);
 
 #ifdef __cplusplus
 }

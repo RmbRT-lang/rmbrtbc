@@ -6,6 +6,7 @@
 #include "parser.h"
 #include "typename.h"
 #include "scopeentry.h"
+#include "member.h"
 #include "../macros.h"
 
 #ifdef __cplusplus
@@ -22,7 +23,12 @@ struct RlcParsedTypedef
 	struct RlcParsedTypeName fType;
 };
 
+void rlc_parsed_typedef_create(
+	struct RlcParsedTypedef * this,
+	size_t start_index);
+
 /** Destroys a typedef.
+@memberof RlcParsedTypedef
 @param[out] this:
 	The typedef to destroy. */
 void rlc_parsed_typedef_destroy(
@@ -36,8 +42,46 @@ void rlc_parsed_typedef_destroy(
 	The typedef to parse into.
 	@dassert @nonnull */
 int rlc_parsed_typedef_parse(
-	struct RlcParserData * parser,
-	struct RlcParsedTypedef * out);
+	struct RlcParsedTypedef * out,
+	struct RlcParserData * parser);
+
+/** Describes a member typedef as used by the parser.
+@extends RlcParsedTypedef
+@extends RlcParsedMember */
+struct RlcParsedMemberTypedef
+{
+	RLC_DERIVE(struct,RlcParsedMember);
+	RLC_DERIVE(struct,RlcParsedTypedef);
+};
+
+/** Creates a member typedef.
+@memberof RlcParsedMemberTypedef
+@param[out] this:
+	The member typedef to create.
+	@dassert @nonnull
+@param[in,out] visibility:
+	The visibility to use.
+@param[in] start_index:
+	The starting index. */
+void rlc_parsed_member_typedef_create(
+	struct RlcParsedMemberTypedef * this,
+	enum RlcVisibility visibility,
+	size_t start_index);
+
+/** Destroys a member typedef.
+@memberof RlcParsedMemberTypedef
+@param[in,out] this:
+	The member typedef to destroy.
+	@dassert @nonnull. */
+void rlc_parsed_member_typedef_destroy(
+	struct RlcParsedMemberTypedef * this);
+
+/** Parses a member typedef.
+@memberof RlcParsedMemberTypedef */
+int rlc_parsed_member_typedef_parse(
+	struct RlcParsedMemberTypedef * out,
+	enum RlcVisibility * default_visibility,
+	struct RlcParserData * parser);
 
 #ifdef __cplusplus
 }
