@@ -18,6 +18,8 @@ enum RlcParseError
 	kRlcParseErrorExpectedIdentifier,
 	/** Expected a type name. */
 	kRlcParseErrorExpectedTypeName,
+	/** Expected a function signature. */
+	kRlcParseErrorExpectedFunctionSignature,
 	/** Expected a semicolon. */
 	kRlcParseErrorExpectedSemicolon,
 	kRlcParseErrorExpectedColon,

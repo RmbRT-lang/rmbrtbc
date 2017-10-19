@@ -45,8 +45,10 @@ struct {
 	{"isolated", kRlcTokIsolated },
 	{"this", kRlcTokThis },
 	{"type", kRlcTokType },
-	{"number", kRlcTokNumber }
+	{"number", kRlcTokNumber },
+	{"operator", kRlcTokOperator }
 }, s_operators [] = {
+	{ "@", kRlcTokDynamic },
 	// operators
 	{ "+=", kRlcTokPlusEqual },
 	{ "++", kRlcTokDoublePlus },

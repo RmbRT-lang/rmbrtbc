@@ -152,7 +152,9 @@ char const * rlc_token_type_name(
 		"This",
 
 		"Number",
-		"Type"
+		"Type",
+
+		"Operator"
 	};
 
 	static_assert(RLC_COVERS_ENUM(names, RlcTokenType), "mal-sized table.");

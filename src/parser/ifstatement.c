@@ -8,6 +8,10 @@ void rlc_parsed_if_statement_create(
 {
 	RLC_DASSERT(this != NULL);
 
+	rlc_parsed_statement_create(
+		RLC_BASE_CAST(this, RlcParsedStatement),
+		kRlcParsedIfStatement);
+
 	this->fCondition.fIsVariable = 0;
 	this->fCondition.fExpression = NULL;
 
@@ -73,11 +77,6 @@ int rlc_parsed_if_statement_parse(
 		1,
 		1))
 	{
-		if(!out->fCondition.fVariable.fInitArgCount)
-		{
-			error_code = kRlcParseErrorExpectedColonEqual;
-			goto failure;
-		}
 	} else if(!(out->fCondition.fExpression = rlc_parsed_expression_parse(
 		parser,
 		RLC_ALL_FLAGS(RlcParsedExpressionType))))
@@ -99,7 +98,8 @@ int rlc_parsed_if_statement_parse(
 		RLC_FLAG(kRlcParsedExpressionStatement)
 	|	RLC_FLAG(kRlcParsedBlockStatement)
 	|	RLC_FLAG(kRlcParsedIfStatement)
-	|	RLC_FLAG(kRlcParsedLoopStatement))))
+	|	RLC_FLAG(kRlcParsedLoopStatement)
+	|	RLC_FLAG(kRlcParsedReturnStatement))))
 	{
 		error_code = kRlcParseErrorExpectedBodyStatement;
 		goto failure;
@@ -114,7 +114,8 @@ int rlc_parsed_if_statement_parse(
 			RLC_FLAG(kRlcParsedExpressionStatement)
 		|	RLC_FLAG(kRlcParsedBlockStatement)
 		|	RLC_FLAG(kRlcParsedIfStatement)
-		|	RLC_FLAG(kRlcParsedLoopStatement))))
+		|	RLC_FLAG(kRlcParsedLoopStatement)
+		|	RLC_FLAG(kRlcParsedReturnStatement))))
 		{
 			error_code = kRlcParseErrorExpectedBodyStatement;
 			goto failure;

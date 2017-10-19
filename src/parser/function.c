@@ -182,6 +182,10 @@ int rlc_parsed_function_parse(
 		goto failure;
 	}
 
+	out->fIsInline = rlc_parser_data_consume(
+		parser,
+		kRlcTokInline);
+
 	// parse function body.
 
 	if(rlc_parsed_block_statement_parse(

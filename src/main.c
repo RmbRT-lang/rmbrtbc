@@ -158,8 +158,6 @@ int main(
 	int argc,
 	char ** argv)
 {
-	for(int volatile i = 0; i < 0x14fffff; i++) { ; }
-
 	rlc_register_lexical_error_function(_rlc_report_lexical_error);
 	compile(argv[1]) ? 0: 1;
 	return 0;

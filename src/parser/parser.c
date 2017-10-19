@@ -10,6 +10,7 @@ char const * rlc_parse_error_msg(
 	static char * error_msg[] = {
 		"Expected Identifier",
 		"Expected Type Name",
+		"Expected Function Signature",
 		"Expected ';'",
 		"Expected ':'",
 		"Expected ','",

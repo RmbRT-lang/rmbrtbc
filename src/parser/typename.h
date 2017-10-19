@@ -43,11 +43,13 @@ int rlc_type_indirection_parse(
 enum RlcTypeQualifier
 {
 	/** No qualifier. */
-	kRlcTypeQualifierNone,
+	kRlcTypeQualifierNone = 0,
 	/** Const qualifier. */
-	kRlcTypeQualifierConst,
+	kRlcTypeQualifierConst = 1,
 	/** Volatile qualifier. */
-	kRlcTypeQualifierVolatile,
+	kRlcTypeQualifierVolatile = 2,
+	/** Dynamic qualifier. */
+	kRlcTypeQualifierDynamic = 4,
 
 	RLC_ENUM_END(RlcTypeQualifier)
 };
@@ -82,28 +84,46 @@ void rlc_type_modifier_parse(
 	struct RlcTypeModifier * out,
 	struct RlcParserData * parser);
 
+/** Controls what value the type name has. */
+enum RlcParsedTypeNameValue
+{
+	/** The type name has a void type. */
+	kRlcParsedTypeNameValueVoid,
+	/** The type name is a name. */
+	kRlcParsedTypeNameValueName,
+	/** The type name is a function signature. */
+	kRlcParsedTypeNameValueFunction
+};
+
 /** A (possibly) scope-qualified identifier, or void, and type qualifiers. */
 struct RlcParsedTypeName
 {
-	/** The name of the type. */
-	struct RlcParsedSymbol fName;
-	/** Whether the type name is void.
-		If true, the name field is unused. */
-	int fIsVoid;
+	/** Determines the type name's value type. */
+	enum RlcParsedTypeNameValue fValue;
+	union {
+		/** The name of the type. */
+		struct RlcParsedSymbol * fName;
+		/** The function signature type. */
+		struct RlcParsedFunctionSignature * fFunction;
+	};
 
 	/** The type modifiers list. */
 	struct RlcTypeModifier * fTypeModifiers;
 	/** The type modifier count. */
 	size_t fTypeModifierCount;
 };
+
+
 /** Destroys a type name.
 	Releases memory allocated by the given type name, but not the type name itself.
+@memberof RlcParsedTypeName
 @param[in] this:
 	The type name to destroy.
 	@dassert @nonnull */
 void rlc_parsed_type_name_destroy(
 	struct RlcParsedTypeName * this);
 /** Adds a type modifier to the type name.
+@memberof RlcParsedTypeName
 @param[in,out] this:
 	The type name to add a modifier to.
 	@dassert @nonnull
@@ -115,6 +135,7 @@ void rlc_parsed_type_name_add_modifier(
 	struct RlcTypeModifier const * modifier);
 
 /** Creates a parsed type name.
+@memberof RlcParsedTypeName
 @param[in,out] this:
 	The parsed type name to create.
 	@dassert @nonnull */
@@ -122,16 +143,73 @@ void rlc_parsed_type_name_create(
 	struct RlcParsedTypeName * this);
 
 /** Parses a type name.
-@param[in,out] parser:
-	The parser data.
-	@dassert @nonnull
+@memberof RlcParsedTypeName
 @param[out] out:
 	The type name to parse into.
+	@dassert @nonnull
+@param[in,out] parser:
+	The parser data.
 	@dassert @nonnull
 @return
 	Nonzero on success, 0 on error. */
 int rlc_parsed_type_name_parse(
 	struct RlcParsedTypeName * out,
+	struct RlcParserData * parser);
+
+
+
+/** A function signature. */
+struct RlcParsedFunctionSignature
+{
+	/** The argument types. */
+	struct RlcParsedTypeName * fArguments;
+	/** The argument count. */
+	size_t fArgumentCount;
+	/** The result type. */
+	struct RlcParsedTypeName fResult;
+};
+
+/** Creates a function signature.
+@memberof RlcParsedFunctionSignature
+@param[out] this:
+	The function signature to create.
+	@dassert @nonnull */
+void rlc_parsed_function_signature_create(
+	struct RlcParsedFunctionSignature * this);
+
+/** Destroys a function signature.
+@memberof RlcParsedFunctionSignature
+@param[in,out] this:
+	The function signature to destroy.
+	@dassert @nonnull */
+void rlc_parsed_function_signature_destroy(
+	struct RlcParsedFunctionSignature * this);
+
+/** Adds an argument to a function signature.
+@memberof RlcParsedFunctionSignature
+@param[in,out] this:
+	The function signature to add an argument to.
+	@dassert @nonnull
+@param[in,out] argument:
+	The argument to add.
+	@pass_ownership
+	@dassert @nonnull */
+void rlc_parsed_function_signature_add_argument(
+	struct RlcParsedFunctionSignature * this,
+	struct RlcParsedTypeName * argument);
+
+/** Parses a function signature.
+@memberof RlcParsedFunctionSignature
+@param[out] out:
+	The function signature to parse into.
+	@dassert @nonnull
+@param[in,out] parser:
+	The parser data.
+	@dassert @nonnull
+@return
+	Nonzero on success, 0 on error. */
+int rlc_parsed_function_signature_parse(
+	struct RlcParsedFunctionSignature * out,
 	struct RlcParserData * parser);
 
 #ifdef __cplusplus

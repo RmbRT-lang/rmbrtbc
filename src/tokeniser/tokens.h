@@ -135,6 +135,8 @@ enum RlcTokenType
 	kRlcTokNumber,
 	kRlcTokType,
 
+	kRlcTokOperator,
+
 	RLC_ENUM_END(RlcTokenType)
 
 };

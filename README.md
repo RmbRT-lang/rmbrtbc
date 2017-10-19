@@ -1,5 +1,7 @@
 # RmbRT Language Compiler Readme
 
+The RmbRT Language Compiler a work in progress implementation of a compiler for a programming language invented by me. The language is not yet fully specified. The documentation can be found [here](docs/index.md).
+
 ## How to install
 
 ### Cloning
