@@ -13,10 +13,19 @@
 extern "C" {
 #endif
 
+enum RlcParsedSymbolChildType
+{
+	kRlcParsedSymbolChildTypeIdentifier,
+	kRlcParsedSymbolChildTypeConstructor,
+	kRlcParsedSymbolChildTypeDestructor
+};
+
 /** A single identifier, possibly templated.
 @relates RlcParsedSymbol */
 struct RlcParsedSymbolChild
 {
+	/** The name token type. */
+	enum RlcParsedSymbolChildType fType;
 	/** The name token's index. */
 	size_t fNameToken;
 	/** The template arguments. */
@@ -31,7 +40,11 @@ struct RlcParsedSymbolChild
 	@dassert @nonnull */
 void rlc_parsed_symbol_child_create(
 	struct RlcParsedSymbolChild * this);
-
+/** Destroys a symbol child.
+@memberof RlcParsedSymbolChild
+@param[in,out] this:
+	The symbol child to destroy.
+	@dassert @nonnull */
 void rlc_parsed_symbol_child_destroy(
 	struct RlcParsedSymbolChild * this);
 

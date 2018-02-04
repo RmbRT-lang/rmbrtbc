@@ -16,7 +16,7 @@ int rlc_parsed_typedef_parse(
 
 	if(!rlc_parser_data_consume(
 		parser,
-		kRlcTokTypedef))
+		kRlcTokType))
 	{
 		return 0;
 	}
@@ -26,6 +26,30 @@ int rlc_parsed_typedef_parse(
 		start_index);
 	RLC_BASE_CAST(out, RlcParsedScopeEntry)->fLocation.fBegin = start_index;
 
+	if(!rlc_parser_data_consume(
+		parser,
+		kRlcTokIdentifier))
+	{
+		error_code = kRlcParseErrorExpectedIdentifier;
+		goto failure;
+	}
+
+	if(!rlc_template_decl_parse(
+		&out->fTemplates,
+		parser))
+	{
+		error_code = kRlcParseErrorExpectedTemplateDeclaration;
+		goto failure;
+	}
+
+	if(!rlc_parser_data_consume(
+		parser,
+		kRlcTokColonEqual))
+	{
+		error_code = kRlcParseErrorExpectedColonEqual;
+		goto failure;
+	}
+
 	if(!rlc_parsed_type_name_parse(
 		&out->fType,
 		parser))
@@ -34,23 +58,6 @@ int rlc_parsed_typedef_parse(
 		goto failure;
 	}
 
-	do {
-		if(!rlc_parser_data_consume(
-			parser,
-			kRlcTokIdentifier))
-		{
-			error_code = kRlcParseErrorExpectedIdentifier;
-			goto failure;
-		}
-
-		rlc_parsed_scope_entry_add_name(
-			RLC_BASE_CAST(out, RlcParsedScopeEntry),
-			rlc_parser_data_consumed_index(parser));
-
-	} while(rlc_parser_data_consume(
-		parser,
-		kRlcTokComma));
-
 	if(!rlc_parser_data_consume(
 		parser,
 		kRlcTokSemicolon))
@@ -58,7 +65,6 @@ int rlc_parsed_typedef_parse(
 		error_code = kRlcParseErrorExpectedSemicolon;
 		goto failure;
 	}
-
 
 success:
 	RLC_BASE_CAST(out, RlcParsedScopeEntry)->fLocation.fEnd = parser->fIndex;
@@ -80,6 +86,9 @@ void rlc_parsed_typedef_create(
 		kRlcParsedTypedef,
 		start_index);
 
+	rlc_template_decl_create(
+		&this->fTemplates);
+
 	rlc_parsed_type_name_create(
 		&this->fType);
 }
@@ -91,6 +100,9 @@ void rlc_parsed_typedef_destroy(
 
 	rlc_parsed_type_name_destroy(
 		&this->fType);
+
+	rlc_template_decl_destroy(
+		&this->fTemplates);
 
 	rlc_parsed_scope_entry_destroy_base(
 		RLC_BASE_CAST(this, RlcParsedScopeEntry));

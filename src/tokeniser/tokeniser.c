@@ -31,7 +31,6 @@ struct {
 	{"struct", kRlcTokStruct },
 	{"rawtype", kRlcTokRawtype },
 	{"union", kRlcTokUnion },
-	{"typedef", kRlcTokTypedef},
 	{"enum", kRlcTokEnum},
 	{"public", kRlcTokPublic },
 	{"protected", kRlcTokProtected },
@@ -44,6 +43,8 @@ struct {
 	{"volatile", kRlcTokVolatile },
 	{"isolated", kRlcTokIsolated },
 	{"this", kRlcTokThis },
+	{"constructor", kRlcTokConstructor },
+	{"destructor", kRlcTokDestructor },
 	{"type", kRlcTokType },
 	{"number", kRlcTokNumber },
 	{"operator", kRlcTokOperator }

@@ -16,6 +16,8 @@ void rlc_parsed_class_create(
 	rlc_template_decl_create(&this->fTemplateDecl);
 
 	rlc_parsed_member_list_create(&this->fMembers);
+
+	this->fHasDestructor = 0;
 }
 
 void rlc_parsed_class_destroy(
@@ -28,6 +30,12 @@ void rlc_parsed_class_destroy(
 	rlc_template_decl_destroy(&this->fTemplateDecl);
 
 	rlc_parsed_member_list_destroy(&this->fMembers);
+
+	if(this->fHasDestructor)
+	{
+		rlc_parsed_destructor_destroy(&this->fDestructor);
+		this->fHasDestructor = 0;
+	}
 }
 
 int rlc_parsed_class_parse(
@@ -90,9 +98,29 @@ int rlc_parsed_class_parse(
 	// default visibility is private.
 	enum RlcVisibility visibility = kRlcVisibilityPrivate;
 	struct RlcParsedMember * member = NULL;
+	struct RlcParsedDestructor destructor;
 	for(;;)
 	{
-		if(member = rlc_parsed_member_parse(
+		if(rlc_parsed_destructor_parse(
+			&destructor,
+			&visibility,
+			parser))
+		{
+			if(out->fHasDestructor)
+			{
+				rlc_parsed_destructor_destroy(&destructor);
+				error_code = kRlcParseErrorDoubleDestructor;
+				goto failure;
+			} else
+			{
+				out->fHasDestructor = 1;
+				out->fDestructor = destructor;
+			}
+		} else if(parser->fErrorCount)
+		{
+			error_code = kRlcParseErrorExpectedDestructor;
+			goto failure;
+		} else if(member = rlc_parsed_member_parse(
 			&visibility,
 			parser,
 			RLC_ALL_FLAGS(RlcParsedMemberType))) // any kind of member is allowed inside classes.
@@ -129,10 +157,10 @@ success:
 	RLC_BASE_CAST(out, RlcParsedScopeEntry)->fLocation.fEnd = parser->fIndex;
 	return 1;
 failure:
-	rlc_parsed_class_destroy(out);
 	rlc_parser_data_add_error(
 		parser,
 		error_code);
+	rlc_parsed_class_destroy(out);
 	parser->fIndex = start_index;
 	return 0;
 }

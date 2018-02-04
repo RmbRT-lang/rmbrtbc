@@ -28,14 +28,34 @@ int rlc_parsed_symbol_child_parse(
 		parser,
 		kRlcTokIdentifier))
 	{
-		out->fNameToken = rlc_parser_data_consumed_index(parser);
+		out->fType = kRlcParsedSymbolChildTypeIdentifier;
+	} else if(rlc_parser_data_consume(
+		parser,
+		kRlcTokConstructor))
+	{
+		out->fType = kRlcParsedSymbolChildTypeConstructor;
+	} else if(rlc_parser_data_consume(
+		parser,
+		kRlcTokDestructor))
+	{
+		out->fType = kRlcParsedSymbolChildTypeDestructor;
 	} else
 		goto nonfatal_failure;
+
+	out->fNameToken = rlc_parser_data_consumed_index(parser);
+
+
 
 	if(rlc_parser_data_consume(
 		parser,
 		kRlcTokBraceOpen))
 	{
+		if(out->fType == kRlcParsedSymbolChildTypeDestructor)
+		{
+			error_code = kRlcParseErrorDestructorTemplate;
+			goto failure;
+		}
+
 		struct RlcParsedExpression * expression;
 		do {
 			if(expression = rlc_parsed_expression_parse(

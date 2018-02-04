@@ -137,7 +137,6 @@ char const * rlc_token_type_name(
 		"Struct",
 		"Rawtype",
 		"Union",
-		"Typedef",
 		"Enum",
 		"Public",
 		"Protected",
@@ -150,6 +149,9 @@ char const * rlc_token_type_name(
 		"Volatile",
 		"Isolated",
 		"This",
+
+		"Constructor",
+		"Destructor",
 
 		"Number",
 		"Type",
@@ -215,6 +217,32 @@ void rlc_token_position(
 		}
 
 	*column = this->fBegin - last_begin;
+}
+
+void rlc_token_end(
+	struct RlcToken const * this,
+	size_t * line,
+	size_t * column)
+{
+	RLC_DASSERT(this != NULL);
+	RLC_DASSERT(line != NULL);
+	RLC_DASSERT(column != NULL);
+	RLC_DASSERT(this->fBegin + this->fLength < this->fFile->fContentLength);
+
+	*line = 0;
+
+	size_t last_begin = 0;
+
+	rlc_char_t const * const content = this->fFile->fContents;
+
+	for(size_t i = 0; i < this->fBegin + this->fLength; i++)
+		if(content[i] == '\n')
+		{
+			++*line;
+			last_begin = i+1;
+		}
+
+	*column = this->fBegin + this->fLength - last_begin;
 }
 
 rlc_char_t * rlc_token_content(

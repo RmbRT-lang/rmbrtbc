@@ -118,7 +118,6 @@ enum RlcTokenType
 	kRlcTokStruct,
 	kRlcTokRawtype,
 	kRlcTokUnion,
-	kRlcTokTypedef,
 	kRlcTokEnum,
 	kRlcTokPublic,
 	kRlcTokProtected,
@@ -131,6 +130,9 @@ enum RlcTokenType
 	kRlcTokVolatile,
 	kRlcTokIsolated,
 	kRlcTokThis,
+
+	kRlcTokConstructor,
+	kRlcTokDestructor,
 
 	kRlcTokNumber,
 	kRlcTokType,
@@ -244,6 +246,21 @@ struct RlcToken
 	The source column (0-based).
 	@dassert @nonnull */
 void rlc_token_position(
+	struct RlcToken const * this,
+	size_t * line,
+	size_t * column);
+
+/** Retrieves the text position of the end of the token.
+@param[in] this:
+	The token whose position to retrieve.
+	@dassert @nonnull
+@param[out] line:
+	The source line (0-based).
+	@dassert @nonnull
+@param[out] column:
+	The source column (0-based).
+	@dassert @nonnull */
+void rlc_token_end(
 	struct RlcToken const * this,
 	size_t * line,
 	size_t * column);

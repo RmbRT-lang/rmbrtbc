@@ -6,6 +6,7 @@
 #include "union.h"
 #include "struct.h"
 #include "typedef.h"
+#include "constructor.h"
 
 #include "../assert.h"
 #include "../malloc.h"
@@ -43,7 +44,8 @@ void rlc_parsed_member_destroy_virtual(
 		(destructor_t)&rlc_parsed_member_struct_destroy,
 		(destructor_t)&rlc_parsed_member_union_destroy,
 		(destructor_t)&rlc_parsed_member_class_destroy,
-		(destructor_t)&rlc_parsed_member_typedef_destroy
+		(destructor_t)&rlc_parsed_member_typedef_destroy,
+		(destructor_t)&rlc_parsed_constructor_destroy
 	};
 
 	static_assert(RLC_COVERS_ENUM(k_vtable, RlcParsedMemberType), "ill-sized vtable.");
@@ -55,7 +57,8 @@ void rlc_parsed_member_destroy_virtual(
 		RLC_DERIVE_OFFSET(RlcParsedMember, struct RlcParsedMemberStruct),
 		RLC_DERIVE_OFFSET(RlcParsedMember, struct RlcParsedMemberUnion),
 		RLC_DERIVE_OFFSET(RlcParsedMember, struct RlcParsedMemberClass),
-		RLC_DERIVE_OFFSET(RlcParsedMember, struct RlcParsedMemberTypedef)
+		RLC_DERIVE_OFFSET(RlcParsedMember, struct RlcParsedMemberTypedef),
+		RLC_DERIVE_OFFSET(RlcParsedMember, struct RlcParsedConstructor)
 	};
 
 	static_assert(RLC_COVERS_ENUM(k_offsets, RlcParsedMemberType), "ill-sized offset table.");
@@ -179,7 +182,8 @@ struct RlcParsedMember * rlc_parsed_member_parse(
 		ENTRY(RlcParsedMemberUnion, &rlc_parsed_member_union_parse, kRlcParseErrorExpectedMemberUnion),
 		ENTRY(RlcParsedMemberStruct, &rlc_parsed_member_struct_parse, kRlcParseErrorExpectedMemberStruct),
 		ENTRY(RlcParsedMemberRawtype, &rlc_parsed_member_rawtype_parse, kRlcParseErrorExpectedMemberRawtype),
-		ENTRY(RlcParsedMemberTypedef, &rlc_parsed_member_typedef_parse, kRlcParseErrorExpectedMemberTypedef)
+		ENTRY(RlcParsedMemberTypedef, &rlc_parsed_member_typedef_parse, kRlcParseErrorExpectedMemberTypedef),
+		ENTRY(RlcParsedConstructor, &rlc_parsed_constructor_parse, kRlcParseErrorExpectedConstructor)
 	};
 
 	static_assert(RLC_COVERS_ENUM(k_parse_lookup, RlcParsedMemberType), "ill-sized parse table.");

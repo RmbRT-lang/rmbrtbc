@@ -3,9 +3,11 @@
 #ifndef __rlc_parser_class_h_defined
 #define __rlc_parser_class_h_defined
 
+#include "destructor.h"
 #include "scopeentry.h"
 #include "templatedecl.h"
 #include "member.h"
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -22,6 +24,11 @@ struct RlcParsedClass
 
 	/** The list of members. */
 	struct RlcParsedMemberList fMembers;
+
+	/** Whether the class has a destructor. */
+	int fHasDestructor;
+	/** The class' destructor. */
+	struct RlcParsedDestructor fDestructor;
 };
 
 /** Creates a parsed class.

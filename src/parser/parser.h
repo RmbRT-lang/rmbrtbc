@@ -64,6 +64,8 @@ enum RlcParseError
 	kRlcParseErrorExpectedMemberStruct,
 	kRlcParseErrorExpectedMemberRawtype,
 	kRlcParseErrorExpectedMemberTypedef,
+	kRlcParseErrorExpectedConstructor,
+	kRlcParseErrorExpectedDestructor,
 
 	kRlcParseErrorExpectedClassMember,
 	kRlcParseErrorExpectedStructMember,
@@ -98,6 +100,9 @@ enum RlcParseError
 	kRlcParseErrorExpectedBodyStatement,
 
 	kRlcParseErrorExpectedInitialiser,
+
+	kRlcParseErrorDoubleDestructor,
+	kRlcParseErrorDestructorTemplate,
 
 	RLC_ENUM_END(RlcParseError)
 };

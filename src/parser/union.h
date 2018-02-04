@@ -17,7 +17,6 @@ extern "C" {
 @implements RlcParsedScopeEntry */
 struct RlcParsedUnion
 {
-	/** The scope entry derive*/
 	RLC_DERIVE(struct,RlcParsedScopeEntry);
 
 	/** The list of members. */

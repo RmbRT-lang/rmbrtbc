@@ -49,7 +49,9 @@ const k_unary[] = {
 	{ kRlcTokTilde, kBitNot },
 	{ kRlcTokExclamationMark, kLogNot },
 	{ kRlcTokAnd, kAddress },
-	{ kRlcTokAsterisk, kDereference }
+	{ kRlcTokAsterisk, kDereference },
+	{ kRlcTokDoublePlus, kPreIncrement },
+	{ kRlcTokDoubleMinus, kPreDecrement }
 },
 // binary operators.
 k_binary[] = {
@@ -189,6 +191,36 @@ static struct RlcParsedExpression * parse_postfix(
 	// get all postfix operators, if any.
 	for(int postfix = 1; postfix--;)
 	{
+		static struct {
+			enum RlcTokenType fTok;
+			enum RlcOperator fOp;
+		} const k_unary_postfix[] = {
+			{ kRlcTokDoublePlus, kPostIncrement },
+			{ kRlcTokDoubleMinus, kPostDecrement }
+		};
+
+		{
+			int found = 0;
+			for(size_t i = _countof(k_unary_postfix); i--;)
+				if(rlc_parser_data_consume(
+					parser,
+					k_unary_postfix[i].fTok))
+				{
+					out = RLC_BASE_CAST(
+						make_unary_expression(
+							k_unary_postfix[i].fOp,
+							out),
+						RlcParsedExpression);
+
+					found = 1;
+					break;
+				}
+			if(found)
+			{
+				++postfix;
+				continue;
+			}
+		}
 		// Subscript operator?
 		if(rlc_parser_data_consume(
 			parser,
@@ -293,7 +325,8 @@ static struct RlcParsedExpression * parse_postfix(
 					if(!(out = RLC_BASE_CAST(temp, RlcParsedExpression)))
 					{
 						error_code = kRlcParseErrorExpectedSymbolChildExpression;
-						goto delete_out_failure;
+						// make_binary_expression already deleted everything.
+						goto failure;
 					}
 
 					++postfix;
@@ -377,6 +410,7 @@ static struct RlcParsedExpression * parse_binary(
 			parser,
 			k_binary[i].fTok))
 		{
+			size_t const before = parser->fIndex;
 			struct RlcParsedOperatorExpression * op =
 				make_binary_expression(
 					k_binary[i].fOp,
@@ -384,6 +418,14 @@ static struct RlcParsedExpression * parse_binary(
 					group
 						? parse_binary(parser, group)
 						: parse_prefix(parser));
+			if(!op)
+			{
+				//parser->fIndex = before;
+				rlc_parser_data_add_error(
+					parser,
+					kRlcParseErrorExpectedExpression);
+				// lhs is already destroyed by make_binary_expression().
+			}
 			return RLC_BASE_CAST(op, RlcParsedExpression);
 		}
 	}

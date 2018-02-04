@@ -39,6 +39,8 @@ char const * rlc_parse_error_msg(
 		"Expected Member Struct",
 		"Expected Member Rawtype",
 		"Expected Member Typedef",
+		"Expected Constructor",
+		"Expected Destructor",
 		"Expected Class Member",
 		"Expected Struct Member",
 		"Expected Expression Or Variable",
@@ -64,7 +66,9 @@ char const * rlc_parse_error_msg(
 		"Expected For Head",
 		"Expected While Head",
 		"Expected Body Statement",
-		"Expected Initialiser"
+		"Expected Initialiser",
+		"Redefined Destructor",
+		"Destructor Template Arguments"
 	};
 
 	static_assert(RLC_COVERS_ENUM(error_msg, RlcParseError), "lookup table");

@@ -90,9 +90,13 @@ int compile(
 					size_t line, column;
 
 					struct RlcToken const * token;
-					if(parser.fErrors[i].fLocation < parser.fFile->fTokenCount)
-						rlc_token_position(
-							parser.fFile->fTokens[parser.fErrors[i].fLocation],
+					if(!parser.fErrors[i].fLocation)
+					{
+						line = 1;
+						column = 1;
+					} else if(parser.fErrors[i].fLocation < parser.fFile->fTokenCount)
+						rlc_token_end(
+							parser.fFile->fTokens[parser.fErrors[i].fLocation-1],
 							&line,
 							&column);
 					else

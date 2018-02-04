@@ -7,6 +7,7 @@
 #include "typename.h"
 #include "scopeentry.h"
 #include "member.h"
+#include "templatedecl.h"
 #include "../macros.h"
 
 #ifdef __cplusplus
@@ -19,6 +20,8 @@ struct RlcParsedTypedef
 {
 	RLC_DERIVE(struct,RlcParsedScopeEntry);
 
+	/** The template declaration. */
+	struct RlcTemplateDecl fTemplates;
 	/** The type name that has been aliased. */
 	struct RlcParsedTypeName fType;
 };

@@ -24,6 +24,8 @@ enum RlcOperator
 	kMemberReference, kMemberPointer,
 	kBindReference, kBindPointer,
 	kDereference, kAddress,
+	kPreIncrement, kPreDecrement,
+	kPostIncrement, kPostDecrement,
 
 	kAssign
 };
