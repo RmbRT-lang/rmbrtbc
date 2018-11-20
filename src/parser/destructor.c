@@ -7,7 +7,7 @@ void rlc_parsed_destructor_create(
 {
 	RLC_DASSERT(this != NULL);
 
-	this->fVisibility = kRlcVisibilityPublic;
+	RLC_BASE_CAST(this, RlcParsedMember)->fVisibility = kRlcVisibilityPublic;
 	rlc_parsed_block_statement_create(&this->fBody);
 }
 
@@ -20,7 +20,6 @@ void rlc_parsed_destructor_destroy(
 	rlc_parsed_block_statement_destroy(&this->fBody);
 }
 
-
 int rlc_parsed_destructor_parse(
 	struct RlcParsedDestructor * out,
 	enum RlcVisibility * default_visibility,
@@ -32,7 +31,7 @@ int rlc_parsed_destructor_parse(
 	size_t const start = parser->fIndex;
 	rlc_parsed_destructor_create(out);
 
-	out->fVisibility = rlc_visibility_parse(
+	RLC_BASE_CAST(out, RlcParsedMember)->fVisibility = rlc_visibility_parse(
 		default_visibility,
 		parser);
 
@@ -43,8 +42,6 @@ int rlc_parsed_destructor_parse(
 		parser->fIndex = start;
 		return 0;
 	}
-
-
 
 	enum RlcParseError error_code;
 

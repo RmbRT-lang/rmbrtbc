@@ -77,7 +77,6 @@ void rlc_parsed_function_add_argument(
 #endif
 }
 
-
 int rlc_parsed_function_parse(
 	struct RlcParsedFunction * out,
 	struct RlcParserData * parser)
@@ -203,7 +202,8 @@ int rlc_parsed_function_parse(
 		goto failure;
 	} else if(out->fReturnValue = rlc_parsed_expression_parse(
 		parser,
-		RLC_ALL_FLAGS(RlcParsedExpressionType)))
+		RLC_ALL_FLAGS(RlcParsedExpressionType)
+		&~RLC_FLAG(kRlcParsedTypeNameExpression)))
 	{
 		out->fIsShortHandBody = 1;
 	} else

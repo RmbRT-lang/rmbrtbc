@@ -112,6 +112,9 @@ char const * rlc_token_type_name(
 		"CircumflexEqual",
 		"Circumflex",
 
+		"Dollar",
+		"Hash",
+
 		"BracketOpen",
 		"BracketClose",
 		"ParentheseOpen",

@@ -16,6 +16,7 @@ struct {
 	// keywords.
 	{"if", kRlcTokIf },
 	{"else", kRlcTokElse },
+	{"do", kRlcTokDo },
 	{"while", kRlcTokWhile },
 	{"for", kRlcTokFor },
 	{"continue", kRlcTokContinue },
@@ -126,8 +127,8 @@ struct {
 	{ ">=", kRlcTokGreaterEqual },
 	{ ">", kRlcTokGreater },
 
-	{ "$", kRlcTokVolatile },
-	{ "#", kRlcTokConst },
+	{ "$", kRlcTokDollar },
+	{ "#", kRlcTokHash },
 };
 
 int rlc_match_string(

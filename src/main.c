@@ -8,6 +8,8 @@
 
 #include "malloc.h"
 
+#define RLC_CASCADE_ERRORS 1
+
 void end_of_file_position(
 	struct RlcPreprocessedFile const * file,
 	size_t * line,
@@ -37,6 +39,11 @@ int compile(
 	struct RlcFile tokfile;
 	{
 		enum RlcFileResult result = rlc_read_text_file(file, &tokfile.fContents);
+		if(result != kRlcFileSuccess)
+			printf(
+				"%s: %s\n",
+				file ? "/dev/stdin" : file,
+				rlc_file_result_message(result));
 	}
 	tokfile.fContentLength = rlc_strlen(tokfile.fContents);
 

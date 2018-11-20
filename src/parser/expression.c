@@ -153,13 +153,16 @@ struct RlcParsedExpression * rlc_parsed_expression_parse(
 		}
 	}
 
-	if(rlc_parser_data_consume(
+	// For type name expressions, do not 
+	if(flags != RLC_FLAG(kRlcParsedTypeNameExpression)
+	&& rlc_parser_data_consume(
 		parser,
 		kRlcTokParentheseOpen))
 	{
 		ret = rlc_parsed_expression_parse(
 			parser,
-			RLC_ALL_FLAGS(RlcParsedExpressionType));
+			RLC_ALL_FLAGS(RlcParsedExpressionType)
+			&~RLC_FLAG(kRlcParsedTypeNameExpression));
 
 		if(rlc_parser_data_consume(
 			parser,

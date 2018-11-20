@@ -37,22 +37,34 @@ int rlc_type_qualifier_parse(
 
 	if(rlc_parser_data_consume(
 		parser,
-		kRlcTokConst))
+		kRlcTokConst)
+	|| rlc_parser_data_consume(
+		parser,
+		kRlcTokHash))
 	{
 		if(rlc_parser_data_consume(
 			parser,
-			kRlcTokVolatile))
+			kRlcTokVolatile)
+		|| rlc_parser_data_consume(
+			parser,
+			kRlcTokDollar))
 			*out = kRlcTypeQualifierConst | kRlcTypeQualifierVolatile;
 		else
 			*out = kRlcTypeQualifierConst;
 		return 1;
 	} else if(rlc_parser_data_consume(
 		parser,
-		kRlcTokVolatile))
+		kRlcTokVolatile)
+	|| rlc_parser_data_consume(
+		parser,
+		kRlcTokDollar))
 	{
 		if(rlc_parser_data_consume(
 			parser,
-			kRlcTokConst))
+			kRlcTokConst)
+		|| rlc_parser_data_consume(
+			parser,
+			kRlcTokHash))
 			*out = kRlcTypeQualifierConst | kRlcTypeQualifierVolatile;
 		else
 			*out = kRlcTypeQualifierVolatile;
@@ -269,6 +281,7 @@ void rlc_parsed_function_signature_add_argument(
 	this->fArguments[this->fArgumentCount-1] = *argument;
 }
 
+
 int rlc_parsed_function_signature_parse(
 	struct RlcParsedFunctionSignature * out,
 	struct RlcParserData * parser)
@@ -282,6 +295,8 @@ int rlc_parsed_function_signature_parse(
 		return 0;
 
 	enum RlcParseError error_code = kRlcParseErrorExpectedSymbol;
+
+	rlc_parsed_function_signature_create(out);
 
 	if(!rlc_parser_data_consume(
 		parser,

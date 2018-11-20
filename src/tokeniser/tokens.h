@@ -93,6 +93,9 @@ enum RlcTokenType
 	kRlcTokCircumflexEqual,
 	kRlcTokCircumflex,
 
+	kRlcTokDollar,
+	kRlcTokHash,
+
 	kRlcTokBracketOpen,
 	kRlcTokBracketClose,
 	kRlcTokParentheseOpen,

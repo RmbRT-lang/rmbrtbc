@@ -15,8 +15,7 @@ extern "C" {
 /** A destructor as used by the parser. */
 struct RlcParsedDestructor
 {
-	/** The destructor's visibility. */
-	enum RlcVisibility fVisibility;
+	RLC_DERIVE(struct,RlcParsedMember);
 
 	/** The destructor's function body. */
 	struct RlcParsedBlockStatement fBody;

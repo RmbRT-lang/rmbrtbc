@@ -56,6 +56,7 @@ static void rlc_parsed_variable_add_arg(
 	out->fInitArgs[out->fInitArgCount - 1] = arg;
 }
 
+
 int rlc_parsed_variable_parse(
 	struct RlcParsedVariable * out,
 	struct RlcParserData * parser,
@@ -232,8 +233,8 @@ int rlc_parsed_member_variable_parse(
 	if(!rlc_parsed_variable_parse(
 		RLC_BASE_CAST(out, RlcParsedVariable),
 		parser,
-		is_static,
-		is_static,
+		is_static, // needs name
+		is_static, // allow initialiser
 		0)) // if static, force name and allow initialiser.
 	{
 		// something was parsed already?

@@ -93,9 +93,9 @@ int rlc_parsed_struct_parse(
 			&visibility,
 			parser,
 			RLC_FLAG(kRlcParsedMemberRawtype)
-			|RLC_FLAG(kRlcParsedMemberStruct)
-			|RLC_FLAG(kRlcParsedMemberFunction)
-			|RLC_FLAG(kRlcParsedMemberVariable));
+			| RLC_FLAG(kRlcParsedMemberStruct)
+			| RLC_FLAG(kRlcParsedMemberFunction)
+			| RLC_FLAG(kRlcParsedMemberVariable));
 		if(!member)
 			break;
 		else

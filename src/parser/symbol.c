@@ -44,8 +44,6 @@ int rlc_parsed_symbol_child_parse(
 
 	out->fNameToken = rlc_parser_data_consumed_index(parser);
 
-
-
 	if(rlc_parser_data_consume(
 		parser,
 		kRlcTokBraceOpen))
@@ -58,17 +56,38 @@ int rlc_parsed_symbol_child_parse(
 
 		struct RlcParsedExpression * expression;
 		do {
-			if(expression = rlc_parsed_expression_parse(
+			if(rlc_parser_data_consume(
 				parser,
-				RLC_ALL_FLAGS(RlcParsedExpressionType)))
+				kRlcTokHash))
 			{
-				rlc_parsed_symbol_child_add_template(
-					out,
-					expression);
+
+				if(expression = rlc_parsed_expression_parse(
+					parser,
+					RLC_ALL_FLAGS(RlcParsedExpressionType)
+					& ~RLC_FLAG(kRlcParsedTypeNameExpression)))
+				{
+					rlc_parsed_symbol_child_add_template(
+						out,
+						expression);
+				} else
+				{
+					error_code = kRlcParseErrorExpectedExpression;
+					goto failure;
+				}
 			} else
 			{
-				error_code = kRlcParseErrorExpectedExpression;
-				goto failure;
+				if(expression = rlc_parsed_expression_parse(
+					parser,
+					RLC_FLAG(kRlcParsedTypeNameExpression)))
+				{
+					rlc_parsed_symbol_child_add_template(
+						out,
+						expression);
+				} else
+				{
+					error_code = kRlcParseErrorExpectedTypeNameExpression;
+					goto failure;
+				}
 			}
 		} while(rlc_parser_data_consume(
 			parser,
@@ -186,67 +205,29 @@ int rlc_parsed_symbol_parse(
 	? 1
 	: 0;
 
+	int parsed_any = 0;
+
 	do {
 		struct RlcParsedSymbolChild child;
-		rlc_parsed_symbol_child_create(&child);
-
-		if(rlc_parser_data_consume(
-			parser,
-			kRlcTokIdentifier))
+		if(rlc_parsed_symbol_child_parse(
+			&child,
+			parser))
 		{
-			child.fNameToken = rlc_parser_data_consumed_index(parser);
-		} else
-		{
-			rlc_parsed_symbol_child_destroy(
+			parsed_any = 1;
+			rlc_parsed_symbol_add_child(
+				out,
 				&child);
-
-			if(out->fChildCount || out->fIsRoot)
-			{
-				error_code = kRlcParseErrorExpectedIdentifier;
-				goto failure;
-			}
-			else
-				goto nonfatal_failure;
-		}
-
-		if(rlc_parser_data_consume(
-			parser,
-			kRlcTokBraceOpen))
+		} else if(parsed_any || out->fIsRoot)
 		{
-			struct RlcParsedExpression * expression;
-			do {
-				if(expression = rlc_parsed_expression_parse(
-					parser,
-					RLC_ALL_FLAGS(RlcParsedExpressionType)))
-				{
-					rlc_parsed_symbol_child_add_template(
-						&child,
-						expression);
-				} else
-				{
-					rlc_parsed_symbol_child_destroy(
-						&child);
-					error_code = kRlcParseErrorExpectedExpression;
-					goto failure;
-				}
-			} while(rlc_parser_data_consume(
-				parser,
-				kRlcTokComma));
-
-			if(!rlc_parser_data_consume(
-				parser,
-				kRlcTokBraceClose))
-			{
-				error_code = kRlcParseErrorExpectedBraceClose;
-			}
+			error_code = kRlcParseErrorExpectedSymbol;
+			goto failure;
 		}
-
-		rlc_parsed_symbol_add_child(
-			out,
-			&child);
 	} while(rlc_parser_data_consume(
 		parser,
 		kRlcTokDoubleColon));
+
+	if(!parsed_any)
+		goto nonfatal_failure;
 
 success:
 	return 1;

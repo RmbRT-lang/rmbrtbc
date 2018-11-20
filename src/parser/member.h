@@ -48,6 +48,8 @@ enum RlcParsedMemberType
 
 	/** Corresponds to `RlcParsedConstructor`. */
 	kRlcParsedConstructor,
+	/** Corresponds to `RlcParsedDestructor`.*/
+	kRlcParsedDestructor,
 
 	RLC_ENUM_END(RlcParsedMemberType)
 };

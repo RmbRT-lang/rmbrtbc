@@ -7,6 +7,7 @@
 #include "struct.h"
 #include "typedef.h"
 #include "constructor.h"
+#include "destructor.h"
 
 #include "../assert.h"
 #include "../malloc.h"
@@ -45,7 +46,8 @@ void rlc_parsed_member_destroy_virtual(
 		(destructor_t)&rlc_parsed_member_union_destroy,
 		(destructor_t)&rlc_parsed_member_class_destroy,
 		(destructor_t)&rlc_parsed_member_typedef_destroy,
-		(destructor_t)&rlc_parsed_constructor_destroy
+		(destructor_t)&rlc_parsed_constructor_destroy,
+		(destructor_t)&rlc_parsed_destructor_destroy
 	};
 
 	static_assert(RLC_COVERS_ENUM(k_vtable, RlcParsedMemberType), "ill-sized vtable.");
@@ -58,7 +60,8 @@ void rlc_parsed_member_destroy_virtual(
 		RLC_DERIVE_OFFSET(RlcParsedMember, struct RlcParsedMemberUnion),
 		RLC_DERIVE_OFFSET(RlcParsedMember, struct RlcParsedMemberClass),
 		RLC_DERIVE_OFFSET(RlcParsedMember, struct RlcParsedMemberTypedef),
-		RLC_DERIVE_OFFSET(RlcParsedMember, struct RlcParsedConstructor)
+		RLC_DERIVE_OFFSET(RlcParsedMember, struct RlcParsedConstructor),
+		RLC_DERIVE_OFFSET(RlcParsedMember, struct RlcParsedDestructor)
 	};
 
 	static_assert(RLC_COVERS_ENUM(k_offsets, RlcParsedMemberType), "ill-sized offset table.");
@@ -154,6 +157,8 @@ struct RlcParsedMember * rlc_parsed_member_parse(
 		struct RlcParsedMemberStruct fStruct;
 		struct RlcParsedMemberRawtype fRawtype;
 		struct RlcParsedMemberTypedef fTypedef;
+		struct RlcParsedConstructor fConstructor;
+		struct RlcParsedDestructor fDestructor;
 	} pack;
 
 	typedef int (*parse_fn_t)(
@@ -176,14 +181,16 @@ struct RlcParsedMember * rlc_parsed_member_parse(
 		size_t fTypeSize;
 		size_t fOffset;
 	} const k_parse_lookup[] = {
+		ENTRY(RlcParsedConstructor, &rlc_parsed_constructor_parse, kRlcParseErrorExpectedConstructor),
+		ENTRY(RlcParsedDestructor, &rlc_parsed_destructor_parse,
+			kRlcParseErrorExpectedDestructor),
 		ENTRY(RlcParsedMemberFunction, &rlc_parsed_member_function_parse, kRlcParseErrorExpectedMemberFunction),
 		ENTRY(RlcParsedMemberVariable, &rlc_parsed_member_variable_parse, kRlcParseErrorExpectedMemberVariable),
 		ENTRY(RlcParsedMemberClass, &rlc_parsed_member_class_parse, kRlcParseErrorExpectedMemberClass),
 		ENTRY(RlcParsedMemberUnion, &rlc_parsed_member_union_parse, kRlcParseErrorExpectedMemberUnion),
 		ENTRY(RlcParsedMemberStruct, &rlc_parsed_member_struct_parse, kRlcParseErrorExpectedMemberStruct),
 		ENTRY(RlcParsedMemberRawtype, &rlc_parsed_member_rawtype_parse, kRlcParseErrorExpectedMemberRawtype),
-		ENTRY(RlcParsedMemberTypedef, &rlc_parsed_member_typedef_parse, kRlcParseErrorExpectedMemberTypedef),
-		ENTRY(RlcParsedConstructor, &rlc_parsed_constructor_parse, kRlcParseErrorExpectedConstructor)
+		ENTRY(RlcParsedMemberTypedef, &rlc_parsed_member_typedef_parse, kRlcParseErrorExpectedMemberTypedef)
 	};
 
 	static_assert(RLC_COVERS_ENUM(k_parse_lookup, RlcParsedMemberType), "ill-sized parse table.");

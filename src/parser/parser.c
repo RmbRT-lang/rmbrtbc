@@ -65,6 +65,7 @@ char const * rlc_parse_error_msg(
 		"Expected Loop Initial",
 		"Expected For Head",
 		"Expected While Head",
+		"Expected For/While Head",
 		"Expected Body Statement",
 		"Expected Initialiser",
 		"Redefined Destructor",
@@ -183,9 +184,7 @@ void rlc_parser_data_destroy(
 {
 	RLC_DASSERT(this != NULL);
 
-	if(this->fErrors)
-		rlc_free((void**)&this->fErrors);
-	this->fErrorCount = 0;
+	rlc_parser_data_clear_errors(this);
 
 	if(this->fFile)
 	{
@@ -211,6 +210,14 @@ void rlc_parser_data_add_error(
 
 	msg->fError = error_message;
 	msg->fLocation = this->fIndex;
+}
+
+void rlc_parser_data_clear_errors(
+	struct RlcParserData * this)
+{
+	if(this->fErrors)
+		rlc_free((void**)&this->fErrors);
+	this->fErrorCount = 0;
 }
 
 size_t rlc_parser_data_matched_index(

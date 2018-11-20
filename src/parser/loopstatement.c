@@ -81,7 +81,8 @@ static int parse_initial(
 			error_code = kRlcParseErrorExpectedVariable;
 			goto failure;
 		}
-	} else if(!(out->fInitial.fExpression = rlc_parsed_expression_parse(
+	} else goto success;
+	if(!(out->fInitial.fExpression = rlc_parsed_expression_parse(
 		parser,
 		RLC_ALL_FLAGS(RlcParsedExpressionType))))
 	{
@@ -90,8 +91,8 @@ static int parse_initial(
 			error_code = kRlcParseErrorExpectedExpression;
 			goto failure;
 		}
-	}
-
+	} else goto success;
+success:
 	return 1;
 failure:
 	rlc_parser_data_add_error(parser, error_code);
@@ -119,6 +120,13 @@ static int parse_for_head(
 			kRlcTokIdentifier))
 		{
 			out->fLabelToken = rlc_parser_data_consumed_index(parser);
+			if(!rlc_parser_data_consume(
+				parser,
+				kRlcTokColon))
+			{
+				error_code = kRlcParseErrorExpectedColon;
+				goto failure;
+			}
 		}
 	}
 
@@ -211,6 +219,13 @@ static int parse_while_head(
 			kRlcTokIdentifier))
 		{
 			out->fLabelToken = rlc_parser_data_consumed_index(parser);
+			if(!rlc_parser_data_consume(
+				parser,
+				kRlcTokColon))
+			{
+				error_code = kRlcParseErrorExpectedColon;
+				goto failure;
+			}
 		}
 	}
 
@@ -285,11 +300,15 @@ int rlc_parsed_loop_statement_parse(
 		parser,
 		kRlcTokDo))
 	{
-		if(out->fHasLabel = rlc_parser_data_consume(
+		if(rlc_parser_data_match_ahead(
 			parser,
-			kRlcTokIdentifier))
+			kRlcTokColon)
+		&& (out->fHasLabel = rlc_parser_data_consume(
+			parser,
+			kRlcTokIdentifier)))
 		{
 			out->fLabelToken = rlc_parser_data_consumed_index(parser);
+			rlc_parser_data_next(parser);
 		}
 
 		if(!rlc_parser_data_consume(
@@ -297,7 +316,7 @@ int rlc_parsed_loop_statement_parse(
 			kRlcTokParentheseOpen))
 		{
 			error_code = kRlcParseErrorExpectedParentheseOpen;
-			goto failure;
+			goto parsed_head;
 		}
 
 		if(!parse_initial(out, parser))
@@ -321,17 +340,22 @@ int rlc_parsed_loop_statement_parse(
 			{
 				error_code = kRlcParseErrorExpectedForHead;
 				goto failure;
-			} else goto nonfatal_failure;
-		} else if(!parse_while_head(out, parser))
+			}
+		} else goto parsed_head;
+		if(!parse_while_head(out, parser))
 		{
 			if(parser->fErrorCount)
 			{
 				error_code = kRlcParseErrorExpectedWhileHead;
 				goto failure;
-			} else goto nonfatal_failure;
+			} else
+			{
+				error_code = kRlcParseErrorExpectedLoopHead;
+				goto failure;
+			}
 		}
 	}
-
+parsed_head:
 	if(!(out->fBody = rlc_parsed_statement_parse(
 		parser,
 		RLC_ALL_FLAGS(RlcParsedStatementType))))
@@ -345,14 +369,27 @@ int rlc_parsed_loop_statement_parse(
 		if(!parse_for_head(out, parser))
 		{
 			if(parser->fErrorCount)
-				goto nonfatal_failure;
-		} else if(!parse_while_head(out, parser))
+			{
+				error_code = kRlcParseErrorExpectedForHead;
+				goto failure;
+			}
+		} else goto success;
+
+		if(!parse_while_head(out, parser))
 		{
 			if(parser->fErrorCount)
-				goto nonfatal_failure;
-		}
+			{
+				error_code = kRlcParseErrorExpectedForHead;
+				goto failure;
+			} else
+			{
+				error_code = kRlcParseErrorExpectedLoopHead;
+				goto failure;
+			}
+		} else goto success;
 	}
 
+success:
 	return 1;
 
 failure:

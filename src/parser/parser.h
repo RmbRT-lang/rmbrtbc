@@ -95,6 +95,7 @@ enum RlcParseError
 	kRlcParseErrorExpectedLoopInitial,
 	kRlcParseErrorExpectedForHead,
 	kRlcParseErrorExpectedWhileHead,
+	kRlcParseErrorExpectedLoopHead,
 
 	/** If/else body. */
 	kRlcParseErrorExpectedBodyStatement,
@@ -210,6 +211,12 @@ void rlc_parser_data_destroy(
 void rlc_parser_data_add_error(
 	struct RlcParserData * this,
 	enum RlcParseError error_message);
+
+/** Clears all errors from the parser.
+@param[in,out] this:
+	The parser data whose errors to clear. */
+void rlc_parser_data_clear_errors(
+	struct RlcParserData * this);
 
 /** Returns the index of the matched token.
 @memberof RlcParserData

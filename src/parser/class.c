@@ -123,7 +123,8 @@ int rlc_parsed_class_parse(
 		} else if(member = rlc_parsed_member_parse(
 			&visibility,
 			parser,
-			RLC_ALL_FLAGS(RlcParsedMemberType))) // any kind of member is allowed inside classes.
+			RLC_ALL_FLAGS(RlcParsedMemberType)
+			&~RLC_FLAG(kRlcParsedDestructor))) // any kind of member is allowed inside classes.
 		{
 			// add the member to the members list.
 			rlc_parsed_member_list_add(

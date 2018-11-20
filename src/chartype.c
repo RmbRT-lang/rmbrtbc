@@ -20,12 +20,12 @@ typedef uint16_t bitmask_t;
 
 enum
 {
-	ID_FC,
-	ID_LC,
-	WS,
-	DEC,
-	OCT,
-	HEX,
+	kIdentifierFirstChar,
+	kIdentifierLastChar,
+	kWhitespace,
+	kDecimal,
+	kOctal,
+	kHexadecimal,
 
 	CT_COUNT
 };
@@ -57,12 +57,12 @@ static inline int rlc_is_char_type(rlc_utf8_t character, unsigned type)
 	{
 		for(uint8_t i = 255; i--;)
 			s_types[i] = 0;
-		rlc_set_buffer(s_types, ID_FC, CHARS_IDENT_FC);
-		rlc_set_buffer(s_types, ID_LC, CHARS_IDENT_LC);
-		rlc_set_buffer(s_types, WS, CHARS_WHITESPACE);
-		rlc_set_buffer(s_types, DEC, CHARS_DECIMAL);
-		rlc_set_buffer(s_types, OCT, CHARS_OCTAL);
-		rlc_set_buffer(s_types, HEX, CHARS_HEX);
+		rlc_set_buffer(s_types, kIdentifierFirstChar, CHARS_IDENT_FC);
+		rlc_set_buffer(s_types, kIdentifierLastChar, CHARS_IDENT_LC);
+		rlc_set_buffer(s_types, kWhitespace, CHARS_WHITESPACE);
+		rlc_set_buffer(s_types, kDecimal, CHARS_DECIMAL);
+		rlc_set_buffer(s_types, kOctal, CHARS_OCTAL);
+		rlc_set_buffer(s_types, kHexadecimal, CHARS_HEX);
 		s_inited = 1;
 	}
 
@@ -71,30 +71,30 @@ static inline int rlc_is_char_type(rlc_utf8_t character, unsigned type)
 
 int rlc_is_ident_first_char(rlc_char_t character)
 {
-	return character > 0x7f || rlc_is_char_type(character, ID_FC);
+	return character > 0x7f || rlc_is_char_type(character, kIdentifierFirstChar);
 }
 
 int rlc_is_ident_last_char(rlc_char_t character)
 {
-	return character > 0x7f || rlc_is_char_type(character, ID_LC);
+	return character > 0x7f || rlc_is_char_type(character, kIdentifierLastChar);
 }
 
 int rlc_is_whitespace(rlc_char_t character)
 {
-	return character <= 0x7f && rlc_is_char_type(character, WS);
+	return character <= 0x7f && rlc_is_char_type(character, kWhitespace);
 }
 
 int rlc_is_decimal(rlc_char_t character)
 {
-	return character <= 0x7f && rlc_is_char_type(character, DEC);
+	return character <= 0x7f && rlc_is_char_type(character, kDecimal);
 }
 
 int rlc_is_octal(rlc_char_t character)
 {
-	return character <= 0x7f && rlc_is_char_type(character, OCT);
+	return character <= 0x7f && rlc_is_char_type(character, kOctal);
 }
 
 int rlc_is_hex(rlc_char_t character)
 {
-	return character <= 0x7f && rlc_is_char_type(character, HEX);
+	return character <= 0x7f && rlc_is_char_type(character, kHexadecimal);
 }
