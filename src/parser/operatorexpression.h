@@ -27,6 +27,11 @@ enum RlcOperator
 	kPreIncrement, kPreDecrement,
 	kPostIncrement, kPostDecrement,
 
+	kAsync,
+	kFullAsync,
+	kExpectDynamic,
+	kMaybeDynamic,
+
 	kAssign
 };
 

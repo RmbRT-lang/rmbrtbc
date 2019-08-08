@@ -48,16 +48,25 @@ int rlc_parsed_class_parse(
 	enum RlcParseError error_code;
 	size_t const start_index = parser->fIndex;
 
+	rlc_parsed_class_create(
+		out,
+		start_index);
+
+	if(!rlc_template_decl_parse(
+		&out->fTemplateDecl,
+		parser))
+	{
+		error_code = kRlcParseErrorExpectedTemplateDeclaration;
+		goto failure;
+	}
+
 	if(!rlc_parser_data_consume(
 		parser,
 		kRlcTokClass))
 	{
-		return 0;
+		goto nonfatal_failure;
 	}
 
-	rlc_parsed_class_create(
-		out,
-		start_index);
 
 	if(!rlc_parser_data_consume(
 		parser,
@@ -70,14 +79,6 @@ int rlc_parsed_class_parse(
 	rlc_parsed_scope_entry_add_name(
 		RLC_BASE_CAST(out,RlcParsedScopeEntry),
 		rlc_parser_data_consumed_index(parser));
-
-	if(!rlc_template_decl_parse(
-		&out->fTemplateDecl,
-		parser))
-	{
-		error_code = kRlcParseErrorExpectedTemplateDeclaration;
-		goto failure;
-	}
 
 	if(!rlc_parser_data_consume(
 		parser,
@@ -161,6 +162,7 @@ failure:
 	rlc_parser_data_add_error(
 		parser,
 		error_code);
+nonfatal_failure:
 	rlc_parsed_class_destroy(out);
 	parser->fIndex = start_index;
 	return 0;

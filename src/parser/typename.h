@@ -21,6 +21,12 @@ enum RlcTypeIndirection
 	kRlcTypeIndirectionNotNull,
 	/** Pointer qualifier - nullable pointer. */
 	kRlcTypeIndirectionPointer,
+	/** Expected dynamic qualifier. */
+	kRlcTypeIndirectionExpectDynamic,
+	/** Maybe dynamic qualifier. */
+	kRlcTypeIndirectionMaybeDynamic,
+	/** Future qualifier. */
+	kRlcTypeIndirectionFuture,
 
 	RLC_ENUM_END(RlcTypeIndirection)
 };
@@ -48,8 +54,6 @@ enum RlcTypeQualifier
 	kRlcTypeQualifierConst = 1,
 	/** Volatile qualifier. */
 	kRlcTypeQualifierVolatile = 2,
-	/** Dynamic qualifier. */
-	kRlcTypeQualifierDynamic = 4,
 
 	RLC_ENUM_END(RlcTypeQualifier)
 };
@@ -80,7 +84,7 @@ struct RlcTypeModifier
 /** Parses a type modifier.
 @memberof RlcParserData
 @relates RlcTypeModifier */
-void rlc_type_modifier_parse(
+int rlc_type_modifier_parse(
 	struct RlcTypeModifier * out,
 	struct RlcParserData * parser);
 
@@ -161,6 +165,8 @@ int rlc_parsed_type_name_parse(
 /** A function signature. */
 struct RlcParsedFunctionSignature
 {
+	/** Whether the function is asynchronous. */
+	int fIsAsync;
 	/** The argument types. */
 	struct RlcParsedTypeName * fArguments;
 	/** The argument count. */

@@ -74,6 +74,7 @@ static int parse_initial(
 		parser,
 		1,
 		1,
+		0,
 		0)))
 	{
 		if(parser->fErrorCount)
@@ -244,7 +245,8 @@ static int parse_while_head(
 			parser,
 			1,
 			1,
-			1)))
+			1,
+			0)))
 	{
 		if(parser->fErrorCount)
 		{

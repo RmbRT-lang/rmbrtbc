@@ -121,6 +121,7 @@ int rlc_parsed_constructor_parse(
 				parser,
 				0,
 				0,
+				0,
 				0))
 			{
 				error_code = kRlcParseErrorExpectedArgument;

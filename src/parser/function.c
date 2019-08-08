@@ -14,12 +14,13 @@ void rlc_parsed_function_create(
 		kRlcParsedFunction,
 		start_index);
 
-	rlc_parsed_type_name_create(&this->fReturnType);
+	this->fHasReturnType = 0;
 
 	this->fArguments = NULL;
 	this->fArgumentCount = 0;
 
 	this->fIsInline = 0;
+	this->fIsAsync = 0;
 
 	rlc_parsed_block_statement_create(&this->fBodyStatement);
 	this->fIsShortHandBody = 0;
@@ -30,7 +31,9 @@ void rlc_parsed_function_destroy(
 {
 	RLC_DASSERT(this != NULL);
 
-	rlc_parsed_type_name_destroy(&this->fReturnType);
+	if(this->fHasReturnType)
+		rlc_parsed_type_name_destroy(&this->fReturnType);
+	this->fHasReturnType = 0;
 
 	if(this->fArguments)
 	{
@@ -89,22 +92,9 @@ int rlc_parsed_function_parse(
 
 	enum RlcParseError error_code;
 
-	// look ahead for possibility of a function.
-
-	if(!rlc_parser_data_consume(
-		parser,
-		kRlcTokIdentifier))
-	{
-		return 0;
-	}
-
 	rlc_parsed_function_create(
 		out,
-		start_index);
-
-	rlc_parsed_scope_entry_add_name(
-		RLC_BASE_CAST(out, RlcParsedScopeEntry),
-		rlc_parser_data_consumed_index(parser));
+		parser->fIndex);
 
 	if(!rlc_template_decl_parse(
 		&out->fTemplates,
@@ -114,6 +104,18 @@ int rlc_parsed_function_parse(
 		error_code = kRlcParseErrorExpectedTemplateDeclaration;
 		goto failure;
 	}
+
+	if(!rlc_parser_data_consume(
+		parser,
+		kRlcTokIdentifier))
+	{
+		goto nonfatal_failure;
+	}
+
+
+	rlc_parsed_scope_entry_add_name(
+		RLC_BASE_CAST(out, RlcParsedScopeEntry),
+		rlc_parser_data_consumed_index(parser));
 
 	if(!rlc_parser_data_consume(
 		parser,
@@ -130,6 +132,7 @@ int rlc_parsed_function_parse(
 		if(rlc_parsed_variable_parse(
 			&argument,
 			parser,
+			0,
 			0,
 			0,
 			0))
@@ -155,31 +158,47 @@ int rlc_parsed_function_parse(
 		goto failure;
 	}
 
-	if(!rlc_parser_data_consume(
+	int accept_block_statement = 1;
+	int accept_expression = 0;
+	int expect_semicolon = 1;
+
+	if((out->fHasReturnType = rlc_parser_data_consume(
 		parser,
-		kRlcTokColon))
+		kRlcTokColon)))
 	{
-		error_code = kRlcParseErrorExpectedColon;
-		goto failure;
-	}
+		// parse return type.
 
-	// parse return type.
+		if(!rlc_parsed_type_name_parse(
+			&out->fReturnType,
+			parser))
+		{
+			error_code = kRlcParseErrorExpectedTypeName;
+			goto failure;
+		}
 
-	if(!rlc_parsed_type_name_parse(
-		&out->fReturnType,
-		parser))
-	{
-		error_code = kRlcParseErrorExpectedTypeName;
-		goto failure;
-	}
+		if(!rlc_parser_data_consume(
+			parser,
+			kRlcTokColonEqual))
+		{
+			error_code =
+				(out->fHasReturnType)
+				? kRlcParseErrorExpectedColonEqual
+				: kRlcParseErrorExpectedColonEqualOrColon;
+			goto failure;
+		}
 
-	if(!rlc_parser_data_consume(
+		accept_expression = 1;
+	} else if(rlc_parser_data_consume(
 		parser,
-		kRlcTokColonEqual))
+		kRlcTokDoubleColonEqual))
 	{
-		error_code = kRlcParseErrorExpectedColonEqual;
-		goto failure;
-	}
+		accept_expression = 1;
+		accept_block_statement = 0;
+	} else expect_semicolon = 0;
+
+	out->fIsAsync = rlc_parser_data_consume(
+		parser,
+		kRlcTokAt);
 
 	out->fIsInline = rlc_parser_data_consume(
 		parser,
@@ -187,7 +206,8 @@ int rlc_parsed_function_parse(
 
 	// parse function body.
 
-	if(rlc_parsed_block_statement_parse(
+	if(accept_block_statement
+	&& rlc_parsed_block_statement_parse(
 		&out->fBodyStatement,
 		parser))
 	{
@@ -198,21 +218,26 @@ int rlc_parsed_function_parse(
 		//*
 		out->fIsShortHandBody = 1;
 		out->fReturnValue = NULL; //*/
-		error_code = kRlcParseErrorExpectedStatement;
+		error_code = kRlcParseErrorExpectedBlockStatement;
 		goto failure;
-	} else if(out->fReturnValue = rlc_parsed_expression_parse(
+	} else if(accept_expression
+	&& (out->fReturnValue = rlc_parsed_expression_parse(
 		parser,
 		RLC_ALL_FLAGS(RlcParsedExpressionType)
-		&~RLC_FLAG(kRlcParsedTypeNameExpression)))
+		&~RLC_FLAG(kRlcParsedTypeNameExpression))))
 	{
 		out->fIsShortHandBody = 1;
 	} else
 	{
-		error_code = kRlcParseErrorExpectedExpression;
+		if(!accept_expression)
+			error_code = kRlcParseErrorExpectedBlockStatement;
+		else
+			error_code = kRlcParseErrorExpectedExpression;
 		goto failure;
 	}
 
-	if(!rlc_parser_data_consume(
+	if(expect_semicolon
+	&& !rlc_parser_data_consume(
 		parser,
 		kRlcTokSemicolon))
 	{

@@ -23,6 +23,8 @@ struct RlcParsedFunction
 {
 	RLC_DERIVE(struct,RlcParsedScopeEntry);
 
+	/** Whether the function has an explicit return type. */
+	int fHasReturnType;
 	/** The return type of the function. */
 	struct RlcParsedTypeName fReturnType;
 
@@ -36,6 +38,8 @@ struct RlcParsedFunction
 
 	/** Whether the function is inline. */
 	int fIsInline;
+	/** Whether the function is asynchronous. */
+	int fIsAsync;
 
 	union {
 		/** The function's return value expression. */

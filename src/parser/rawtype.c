@@ -50,16 +50,24 @@ int rlc_parsed_rawtype_parse(
 	enum RlcParseError error_code;
 	size_t const start_index = parser->fIndex;
 
+	rlc_parsed_rawtype_create(
+		out,
+		start_index);
+
+	if(!rlc_template_decl_parse(
+		&out->fTemplates,
+		parser))
+	{
+		error_code = kRlcParseErrorExpectedTemplateDeclaration;
+		goto failure;
+	}
+
 	if(!rlc_parser_data_consume(
 		parser,
 		kRlcTokRawtype))
 	{
-		return 0;
+		goto nonfatal_failure;
 	}
-
-	rlc_parsed_rawtype_create(
-		out,
-		start_index);
 
 	if(!rlc_parser_data_consume(
 		parser,
@@ -74,13 +82,6 @@ int rlc_parsed_rawtype_parse(
 			rlc_parser_data_consumed_index(parser));
 	}
 
-	if(!rlc_template_decl_parse(
-		&out->fTemplates,
-		parser))
-	{
-		error_code = kRlcParseErrorExpectedTemplateDeclaration;
-		goto failure;
-	}
 
 	if(!rlc_parser_data_consume(
 		parser,
@@ -167,10 +168,11 @@ success:
 	RLC_BASE_CAST(out, RlcParsedScopeEntry)->fLocation.fEnd = parser->fIndex;
 	return 1;
 failure:
-	rlc_parsed_rawtype_destroy(out);
 	rlc_parser_data_add_error(
 		parser,
 		error_code);
+nonfatal_failure:
+	rlc_parsed_rawtype_destroy(out);
 	return 0;
 }
 

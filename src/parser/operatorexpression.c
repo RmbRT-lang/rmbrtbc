@@ -51,7 +51,11 @@ const k_unary[] = {
 	{ kRlcTokAnd, kAddress },
 	{ kRlcTokAsterisk, kDereference },
 	{ kRlcTokDoublePlus, kPreIncrement },
-	{ kRlcTokDoubleMinus, kPreDecrement }
+	{ kRlcTokDoubleMinus, kPreDecrement },
+	{ kRlcTokTripleDotExclamationMark, kExpectDynamic },
+	{ kRlcTokTripleDot, kMaybeDynamic },
+	{ kRlcTokAt, kAsync },
+	{ kRlcTokDoubleAt, kFullAsync }
 },
 // binary operators.
 k_binary[] = {

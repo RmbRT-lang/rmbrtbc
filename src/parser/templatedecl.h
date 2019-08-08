@@ -4,6 +4,7 @@
 #define __rlc_parser_templatedecl_h_defined
 
 #include "parser.h"
+#include "typename.h"
 
 #include <stddef.h>
 
@@ -23,8 +24,13 @@ enum RlcTemplateDeclType
 /** Single template argument declaration. */
 struct RlcTemplateDeclChild
 {
+	/** Whether this template declaration's type is a type expression. */
+	int fIsTypeName;
 	/** Argument type. */
-	enum RlcTemplateDeclType fType;
+	union {
+		struct RlcParsedTypeName fTypeName;
+		enum RlcTemplateDeclType fNativeType;
+	} fType;
 	/** The name of the argument. */
 	size_t fNameToken;
 };
@@ -70,11 +76,20 @@ int rlc_template_decl_parse(
 	struct RlcTemplateDecl * decl,
 	struct RlcParserData * parser);
 
+/** Checks whether a template declaration has entries.
+@memberof RlcTemplateDecl
+@param[in] this:
+	The template declaration to check.
+@return
+	Whether the template declaration is empty. */
+static inline int rlc_template_decl_exists(
+	struct RlcTemplateDecl const * this);
+
+#include "templatedecl.inl"
+
+
 #ifdef __cplusplus
 }
 #endif
-
-
-
 
 #endif

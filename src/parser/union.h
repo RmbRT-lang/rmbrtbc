@@ -5,6 +5,7 @@
 
 #include "scopeentry.h"
 #include "member.h"
+#include "templatedecl.h"
 
 #include <stddef.h>
 
@@ -19,6 +20,8 @@ struct RlcParsedUnion
 {
 	RLC_DERIVE(struct,RlcParsedScopeEntry);
 
+	/** The template declaration. */
+	struct RlcTemplateDecl fTemplates;
 	/** The list of members. */
 	struct RlcParsedMemberList fMembers;
 };

@@ -9,10 +9,14 @@ void rlc_parsed_variable_create(
 {
 	RLC_DASSERT(this != NULL);
 
+
 	rlc_parsed_scope_entry_create(
 		RLC_BASE_CAST(this, RlcParsedScopeEntry),
 		kRlcParsedVariable,
 		start_index);
+
+	rlc_template_decl_create(
+		&this->fTemplates);
 
 	rlc_parsed_type_name_create(
 		&this->fType);
@@ -29,6 +33,7 @@ void rlc_parsed_variable_destroy(
 	rlc_parsed_scope_entry_destroy_base(
 		RLC_BASE_CAST(this, RlcParsedScopeEntry));
 
+	rlc_template_decl_destroy(&this->fTemplates);
 	rlc_parsed_type_name_destroy(&this->fType);
 
 	if(this->fInitArgs)
@@ -62,7 +67,8 @@ int rlc_parsed_variable_parse(
 	struct RlcParserData * parser,
 	int needs_name,
 	int allow_initialiser,
-	int force_initialiser)
+	int force_initialiser,
+	int allow_templates)
 {
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
@@ -74,15 +80,27 @@ int rlc_parsed_variable_parse(
 		out,
 		start_index);
 
+	if(!rlc_template_decl_parse(
+		&out->fTemplates,
+		parser))
+	{
+		error_code = kRlcParseErrorExpectedTemplateDeclaration;
+		goto failure;
+	}
+
 	int has_name = 0;
+	int is_shortcut = 0;
 
 	// "name: type" style variable?
 	if(rlc_parser_data_match(
 		parser,
 		kRlcTokIdentifier)
-	&& rlc_parser_data_match_ahead(
+	&& (rlc_parser_data_match_ahead(
 		parser,
-		kRlcTokColon))
+		kRlcTokColon)
+	|| (is_shortcut = 0 != rlc_parser_data_match_ahead(
+		parser,
+		kRlcTokDoubleColonEqual))))
 	{
 		has_name = 1;
 
@@ -91,6 +109,11 @@ int rlc_parsed_variable_parse(
 			rlc_parser_data_matched_index(parser));
 
 		rlc_parser_data_next(parser);
+		if(!allow_initialiser && is_shortcut)
+		{
+			error_code = kRlcParseErrorForbiddenDoubleColonEqual;
+			goto failure;
+		}
 		rlc_parser_data_next(parser);
 	} // If !isArgument, "name: type" is expected.
 	else if(needs_name)
@@ -98,67 +121,90 @@ int rlc_parsed_variable_parse(
 		goto nonfatal_failure;
 	}
 
-	if(!rlc_parsed_type_name_parse(
-		&out->fType,
-		parser))
+	out->fHasType = !is_shortcut;
+
+	if(is_shortcut)
 	{
-		if(parser->fErrorCount
-		|| has_name)
+		struct RlcParsedExpression * init = rlc_parsed_expression_parse(
+			parser,
+			RLC_ALL_FLAGS(RlcParsedExpressionType));
+		if(!init)
 		{
-			error_code = kRlcParseErrorExpectedTypeName;
+			error_code = kRlcParseErrorExpectedExpression;
 			goto failure;
-		} else {
-			goto nonfatal_failure;
 		}
-	}
-
-	if(allow_initialiser)
+		rlc_parsed_variable_add_arg(out, init);
+	} else
 	{
-		int isParenthese = 0;
-		if(rlc_parser_data_consume(
-			parser,
-			kRlcTokColonEqual)
-		|| (isParenthese = rlc_parser_data_consume(
-			parser,
-			kRlcTokParentheseOpen)))
+		if(!rlc_parsed_type_name_parse(
+			&out->fType,
+			parser))
 		{
-			// check for empty initialiser.
-			if(!isParenthese
-			|| !rlc_parser_data_consume(
-				parser,
-				kRlcTokParentheseClose))
+			if(parser->fErrorCount
+			|| has_name)
 			{
-				do {
-
-					struct RlcParsedExpression * arg = rlc_parsed_expression_parse(
-						parser,
-						RLC_ALL_FLAGS(RlcParsedExpressionType));
-
-					if(!arg)
-					{
-						error_code = kRlcParseErrorExpectedExpression;
-						goto failure;
-					}
-
-					rlc_parsed_variable_add_arg(out, arg);
-
-				} while(isParenthese && rlc_parser_data_consume(
-					parser,
-					kRlcTokComma));
-
-				if(isParenthese && !rlc_parser_data_consume(
+				error_code = kRlcParseErrorExpectedTypeName;
+				goto failure;
+			} else {
+				goto nonfatal_failure;
+			}
+		}
+		if(allow_initialiser)
+		{
+			int isParenthese = 0;
+			if(rlc_parser_data_consume(
+				parser,
+				kRlcTokColonEqual)
+			|| (isParenthese = rlc_parser_data_consume(
+				parser,
+				kRlcTokParentheseOpen)))
+			{
+				// check for empty initialiser.
+				if(!isParenthese
+				|| !rlc_parser_data_consume(
 					parser,
 					kRlcTokParentheseClose))
 				{
-					error_code = kRlcParseErrorExpectedParentheseClose;
-					goto failure;
+					do {
+
+						struct RlcParsedExpression * arg = rlc_parsed_expression_parse(
+							parser,
+							RLC_ALL_FLAGS(RlcParsedExpressionType));
+
+						if(!arg)
+						{
+							error_code = kRlcParseErrorExpectedExpression;
+							goto failure;
+						}
+
+						rlc_parsed_variable_add_arg(out, arg);
+
+					} while(isParenthese && rlc_parser_data_consume(
+						parser,
+						kRlcTokComma));
+
+					if(isParenthese && !rlc_parser_data_consume(
+						parser,
+						kRlcTokParentheseClose))
+					{
+						error_code = kRlcParseErrorExpectedParentheseClose;
+						goto failure;
+					}
 				}
+			} else if(force_initialiser)
+			{
+				error_code = kRlcParseErrorExpectedInitialiser;
+				goto failure;
 			}
-		} else if(force_initialiser)
-		{
-			error_code = kRlcParseErrorExpectedInitialiser;
-			goto failure;
 		}
+	}
+
+	if(!allow_templates
+	&& rlc_template_decl_exists(&out->fTemplates))
+	{
+		parser->fIndex = start_index;
+		error_code = kRlcParseErrorForbiddenTemplateDeclaration;
+		goto failure;
 	}
 
 success:
@@ -235,7 +281,8 @@ int rlc_parsed_member_variable_parse(
 		parser,
 		is_static, // needs name
 		is_static, // allow initialiser
-		0)) // if static, force name and allow initialiser.
+		0, // if static, force name and allow initialiser.
+		is_static)) // if static, allow template declarations.
 	{
 		// something was parsed already?
 		if(parser->fErrorCount)

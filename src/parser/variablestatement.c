@@ -43,6 +43,7 @@ int rlc_parsed_variable_statement_parse(
 		parser,
 		1,
 		1,
+		0,
 		0))
 	{
 		if(parser->fErrorCount)

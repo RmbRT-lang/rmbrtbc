@@ -18,6 +18,10 @@ enum RlcParseError
 	kRlcParseErrorExpectedIdentifier,
 	/** Expected a type name. */
 	kRlcParseErrorExpectedTypeName,
+	/** Forbidden type qualifier after dynamic indirection. */
+	kRlcParseErrorForbiddenTypeQualifier,
+	kRlcParseErrorExpectedTypeModifier,
+	kRlcParseErrorForbiddenDynamic,
 	/** Expected a function signature. */
 	kRlcParseErrorExpectedFunctionSignature,
 	/** Expected a semicolon. */
@@ -38,12 +42,15 @@ enum RlcParseError
 	kRlcParseErrorExpectedBracketClose,
 
 	kRlcParseErrorExpectedColonEqual,
+	kRlcParseErrorExpectedColonEqualOrColon,
+	kRlcParseErrorForbiddenDoubleColonEqual,
 
 	kRlcParseErrorExpectedParentheseOpen,
 	/** Expected a ')'. */
 	kRlcParseErrorExpectedParentheseClose,
 
 	kRlcParseErrorExpectedTemplateDeclaration,
+	kRlcParseErrorForbiddenTemplateDeclaration,
 
 	/** Expected an expression. */
 	kRlcParseErrorExpectedExpression,

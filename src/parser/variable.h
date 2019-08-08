@@ -6,6 +6,7 @@
 #include "scopeentry.h"
 #include "expression.h"
 #include "typename.h"
+#include "templatedecl.h"
 #include "member.h"
 #include "parser.h"
 #include "../macros.h"
@@ -22,6 +23,10 @@ struct RlcParsedVariable
 {
 	RLC_DERIVE(struct, RlcParsedScopeEntry);
 
+	/** The template declaration. */
+	struct RlcTemplateDecl fTemplates;
+	/** Whether the variable has an explicit type. */
+	int fHasType;
 	/** The variable type. */
 	struct RlcParsedTypeName fType;
 	/** The initialising arguments, or null. */
@@ -65,6 +70,8 @@ void rlc_parsed_variable_destroy(
 	Whether an initialiser is allowed.
 @param[in] force_initialiser:
 	Whether an initialiser is expected.
+@param[in] allow_templates:
+	Whether to allow a template declaration.
 @return
 	Nonzero on success. */
 int rlc_parsed_variable_parse(
@@ -72,7 +79,8 @@ int rlc_parsed_variable_parse(
 	struct RlcParserData * parser,
 	int needs_name,
 	int allow_initialiser,
-	int force_initialiser);
+	int force_initialiser,
+	int allow_templates);
 
 /** Member variable type.
 @extends RlcParsedMember

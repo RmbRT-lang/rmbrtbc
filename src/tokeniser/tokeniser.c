@@ -24,7 +24,6 @@ struct {
 	{"return", kRlcTokReturn },
 	{"switch", kRlcTokSwitch },
 	{"case", kRlcTokCase },
-	{"fn", kRlcTokFn },
 	{"inline", kRlcTokInline },
 	{"void", kRlcTokVoid },
 	{"namespace", kRlcTokNamespace },
@@ -38,7 +37,6 @@ struct {
 	{"private", kRlcTokPrivate },
 	{"asm", kRlcTokAsm },
 	{"static", kRlcTokStatic },
-	{"dynamic", kRlcTokDynamic },
 	{"virtual", kRlcTokVirtual },
 	{"const", kRlcTokConst },
 	{"volatile", kRlcTokVolatile },
@@ -50,7 +48,6 @@ struct {
 	{"number", kRlcTokNumber },
 	{"operator", kRlcTokOperator }
 }, s_operators [] = {
-	{ "@", kRlcTokDynamic },
 	// operators
 	{ "+=", kRlcTokPlusEqual },
 	{ "++", kRlcTokDoublePlus },
@@ -96,9 +93,13 @@ struct {
 
 	{ "?", kRlcTokQuestionMark },
 
+	{ "::=", kRlcTokDoubleColonEqual },
 	{ ":=", kRlcTokColonEqual },
 	{ "::", kRlcTokDoubleColon },
 	{ ":", kRlcTokColon },
+	{ "@@", kRlcTokDoubleAt },
+	{ "@", kRlcTokAt },
+	{ "...!", kRlcTokTripleDotExclamationMark },
 	{ "...", kRlcTokTripleDot },
 	{ ".*", kRlcTokDotAsterisk },
 	{ ".", kRlcTokDot },
@@ -306,6 +307,8 @@ enum RlcTokResult rlc_next_token(
 	} const utf_literals[] = {
 		// string literals.
 		{{'8','\"',0,0,0}, kRlcTokUtf8String, 1},
+		{{'1','6','\"',0,0}, kRlcTokUtf16String, 2},
+		{{'3','2','\"',0,0}, kRlcTokUtf32String, 2},
 
 		{{'1','6','L','\"',0}, kRlcTokUtf16leString, 3},
 		{{'1','6','l','\"',0}, kRlcTokUtf16leString, 3},
@@ -320,7 +323,17 @@ enum RlcTokResult rlc_next_token(
 		// char literals.
 		{{'8','\'',0,0,0}, kRlcTokUtf8CharNumber, 1},
 		{{'1','6','\'',0,0}, kRlcTokUtf16CharNumber, 2},
-		{{'3','2','\'',0,0}, kRlcTokUtf32CharNumber, 2}
+		{{'3','2','\'',0,0}, kRlcTokUtf32CharNumber, 2},
+
+		{{'1','6','L','\'',0}, kRlcTokUtf16leCharNumber, 3},
+		{{'1','6','l','\'',0}, kRlcTokUtf16leCharNumber, 3},
+		{{'1','6','B','\'',0}, kRlcTokUtf16beCharNumber, 3},
+		{{'1','6','b','\'',0}, kRlcTokUtf16beCharNumber, 3},
+
+		{{'3','2','L','\'',0}, kRlcTokUtf32leCharNumber, 3},
+		{{'3','2','l','\'',0}, kRlcTokUtf32leCharNumber, 3},
+		{{'3','2','b','\'',0}, kRlcTokUtf32beCharNumber, 3},
+		{{'3','2','B','\'',0}, kRlcTokUtf32beCharNumber, 3},
 	};
 
 

@@ -2,13 +2,29 @@
 
 In RL, functions are defined via the following syntax:
 
-	Function-Declaration ::= Identifier Template-Declaration? "(" Argument ("," Argument)* ")" ":" Type-Expression ":=" (Block-Statement | Expression) ";";
+	name(arg1: type1, arg2: type2, type3, type4, arg5: type5): type := {
+		statements;
+	};
 
-If the function body is an expression instead of a block element, it is equal to a block statement containing solely a return statement, returning the given expression. A function is then invoked via the following syntax:
+	name(): type := expression;
 
-	Expression "(" Expression ("," Expression)* ")"
+	name() ::= expression;
 
-where the first expression is the function name or evaluates into one, and the following expressions are the function's arguments.
+	name() { statements; }
+
+	name() inline { }
+
+Arguments are, like variables, of the form `name: type`.
+Anonymous arguments are just type names.
+To specify a return type, use the syntax of the first two examples.
+The third type uses the auto-type assignment, which makes the function return the same type as the expression.
+The last two examples have no return value, and do not need a trailing semicolon.
+By writing `inline` before the body, a function can be inlined.
+By writing `@` before the body (before potential `inline`), the function becomes asynchronous, and can be used as a coroutine:
+
+	coroutine(int x) @ { /*...*/ }
+
+This enables the use of the `yield` statement.
 
 ## Example
 

@@ -14,18 +14,32 @@ int rlc_type_indirection_parse(
 		kRlcTokAsterisk))
 	{
 		*out = kRlcTypeIndirectionPointer;
-		return 1;
 	} else if(rlc_parser_data_consume(
 		parser,
 		kRlcTokBackslash))
 	{
 		*out = kRlcTypeIndirectionNotNull;
-		return 1;
+	} else if(rlc_parser_data_consume(
+		parser,
+		kRlcTokAt))
+	{
+		*out = kRlcTypeIndirectionFuture;
+	} else if(rlc_parser_data_consume(
+		parser,
+		kRlcTokTripleDotExclamationMark))
+	{
+		*out = kRlcTypeIndirectionExpectDynamic;
+	} else if(rlc_parser_data_consume(
+		parser,
+		kRlcTokTripleDot))
+	{
+		*out = kRlcTypeIndirectionMaybeDynamic;
 	} else
 	{
-		* out = kRlcTypeIndirectionPlain;
+		*out = kRlcTypeIndirectionPlain;
 		return 0;
 	}
+	return 1;
 }
 
 int rlc_type_qualifier_parse(
@@ -34,6 +48,8 @@ int rlc_type_qualifier_parse(
 {
 	RLC_DASSERT(parser != NULL);
 	RLC_DASSERT(out != NULL);
+
+	int ret = 0;
 
 	if(rlc_parser_data_consume(
 		parser,
@@ -51,7 +67,7 @@ int rlc_type_qualifier_parse(
 			*out = kRlcTypeQualifierConst | kRlcTypeQualifierVolatile;
 		else
 			*out = kRlcTypeQualifierConst;
-		return 1;
+		ret = 1;
 	} else if(rlc_parser_data_consume(
 		parser,
 		kRlcTokVolatile)
@@ -68,34 +84,42 @@ int rlc_type_qualifier_parse(
 			*out = kRlcTypeQualifierConst | kRlcTypeQualifierVolatile;
 		else
 			*out = kRlcTypeQualifierVolatile;
-		return 1;
+		ret = 1;
 	} else
 		*out = kRlcTypeQualifierNone;
 
-	if(rlc_parser_data_consume(
-		parser,
-		kRlcTokDynamic))
-	{
-		*out |= kRlcTypeQualifierDynamic;
-	}
-
-	return 0;
+	return ret;
 }
 
-void rlc_type_modifier_parse(
+int rlc_type_modifier_parse(
 	struct RlcTypeModifier * out,
 	struct RlcParserData * parser)
 {
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
 
+	size_t const start = parser->fIndex;
 	rlc_type_indirection_parse(
 		&out->fTypeIndirection,
 		parser);
 
-	rlc_type_qualifier_parse(
+	size_t const error_loc = parser->fIndex;
+	int qualifier = rlc_type_qualifier_parse(
 		&out->fTypeQualifier,
 		parser);
+
+	if(qualifier
+	&& (out->fTypeIndirection == kRlcTypeIndirectionExpectDynamic
+	|| out->fTypeIndirection == kRlcTypeIndirectionMaybeDynamic))
+	{
+		parser->fIndex = error_loc;
+		rlc_parser_data_add_error(
+			parser,
+			kRlcParseErrorForbiddenTypeQualifier);
+		parser->fIndex = start;
+		return 0;
+	}
+	return 1;
 }
 
 void rlc_parsed_type_name_destroy(
@@ -205,30 +229,35 @@ int rlc_parsed_type_name_parse(
 
 	struct RlcTypeModifier modifier;
 
-	int qualifier = 0;
+	int dynamic = 0;
 
 	for(;;)
 	{
-		if(rlc_type_indirection_parse(
-			&modifier.fTypeIndirection,
+		if(!rlc_type_modifier_parse(
+			&modifier,
 			parser))
 		{
-			qualifier = 0;
+			error_code = kRlcParseErrorExpectedTypeModifier;
+			goto failure;
 		}
 
-		if(!qualifier)
-		{
-			qualifier = rlc_type_qualifier_parse(
-				&modifier.fTypeQualifier,
-				parser);
-		} else break;
+		int old_dynamic = dynamic;
+		dynamic = modifier.fTypeIndirection == kRlcTypeIndirectionExpectDynamic
+			|| modifier.fTypeIndirection == kRlcTypeIndirectionMaybeDynamic;
 
-		if(modifier.fTypeIndirection != kRlcTypeIndirectionPlain || qualifier)
-			rlc_parsed_type_name_add_modifier(
-				out,
-				&modifier);
-		else
+		if(old_dynamic && dynamic)
+		{
+			error_code = kRlcParseErrorForbiddenDynamic;
+			goto failure;
+		}
+
+		if(modifier.fTypeIndirection == kRlcTypeIndirectionPlain
+		&& modifier.fTypeQualifier == kRlcTypeQualifierNone)
 			break;
+
+		rlc_parsed_type_name_add_modifier(
+			out,
+			&modifier);
 	}
 
 	return 1;
@@ -289,14 +318,24 @@ int rlc_parsed_function_signature_parse(
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
 
+	size_t const start = parser->fIndex;
+
+	int is_async = rlc_parser_data_consume(
+		parser,
+		kRlcTokAt);
+
 	if(!rlc_parser_data_consume(
 		parser,
 		kRlcTokParentheseOpen))
+	{
+		parser->fIndex = start;
 		return 0;
+	}
 
 	enum RlcParseError error_code = kRlcParseErrorExpectedSymbol;
 
 	rlc_parsed_function_signature_create(out);
+	out->fIsAsync = is_async;
 
 	if(!rlc_parser_data_consume(
 		parser,

@@ -51,7 +51,7 @@ int rlc_template_decl_parse(
 
 	if(!rlc_parser_data_consume(
 		parser,
-		kRlcTokBraceOpen))
+		kRlcTokBracketOpen))
 	{
 		return 1;
 	}
@@ -87,16 +87,22 @@ int rlc_template_decl_parse(
 			goto failure;
 		}
 
+		// Expect either `type`, `number`, or a type name.
 		if(rlc_parser_data_consume(
 			parser,
 			kRlcTokType))
 		{
-			child.fType = kRlcTemplateDeclTypeType;
+			child.fType.fNativeType = kRlcTemplateDeclTypeType;
 		} else if(rlc_parser_data_consume(
 			parser,
 			kRlcTokNumber))
 		{
-			child.fType = kRlcTemplateDeclTypeNumber;
+			child.fType.fNativeType = kRlcTemplateDeclTypeNumber;
+		} else if(rlc_parsed_type_name_parse(
+			&child.fType.fTypeName,
+			parser))
+		{
+			child.fIsTypeName = 1;
 		} else
 		{
 			error_code = kRlcParseErrorExpectedTemplateDeclType;
@@ -112,9 +118,9 @@ int rlc_template_decl_parse(
 
 	if(!rlc_parser_data_consume(
 		parser,
-		kRlcTokBraceClose))
+		kRlcTokBracketClose))
 	{
-		error_code = kRlcParseErrorExpectedBraceClose;
+		error_code = kRlcParseErrorExpectedBracketClose;
 		goto failure;
 	}
 
