@@ -9,6 +9,7 @@ void rlc_parsed_destructor_create(
 
 	RLC_BASE_CAST(this, RlcParsedMember)->fVisibility = kRlcVisibilityPublic;
 	rlc_parsed_block_statement_create(&this->fBody);
+	this->fIsInline = 0;
 }
 
 
@@ -45,27 +46,15 @@ int rlc_parsed_destructor_parse(
 
 	enum RlcParseError error_code;
 
-	if(!rlc_parser_data_consume(
+	out->fIsInline = rlc_parser_data_consume(
 		parser,
-		kRlcTokColonEqual))
-	{
-		error_code = kRlcParseErrorExpectedColonEqual;
-		goto failure;
-	}
+		kRlcTokInline);
 
 	if(!rlc_parsed_block_statement_parse(
 		&out->fBody,
 		parser))
 	{
 		error_code = kRlcParseErrorExpectedBlockStatement;
-		goto failure;
-	}
-
-	if(!rlc_parser_data_consume(
-		parser,
-		kRlcTokSemicolon))
-	{
-		error_code = kRlcParseErrorExpectedSemicolon;
 		goto failure;
 	}
 

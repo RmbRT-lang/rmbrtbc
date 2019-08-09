@@ -31,6 +31,15 @@ struct RlcParsedIfStatement
 		int fIsVariable;
 	} fCondition;
 
+	/** Whether the if has a label. */
+	int fHasIfLabel;
+	/** Whether the else has a label. */
+	int fHasElseLabel;
+	/** The if's label, if exists. */
+	size_t fIfLabel;
+	/** The else's label, if exists. */
+	size_t fElseLabel;
+
 	/** Statement to be executed if the condition evaluates to true. */
 	struct RlcParsedStatement * fIf;
 	/** Optional statement to be executed if the condition evaluates to false.*/

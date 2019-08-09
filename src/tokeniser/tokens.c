@@ -254,6 +254,8 @@ void rlc_token_end(
 		}
 
 	*column = this->fBegin + this->fLength - last_begin;
+	if(!*column)
+		*column = 1;
 }
 
 rlc_char_t * rlc_token_content(

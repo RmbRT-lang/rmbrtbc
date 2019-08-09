@@ -82,14 +82,6 @@ int rlc_parsed_class_parse(
 
 	if(!rlc_parser_data_consume(
 		parser,
-		kRlcTokColonEqual))
-	{
-		error_code = kRlcParseErrorExpectedColonEqual;
-		goto failure;
-	}
-
-	if(!rlc_parser_data_consume(
-		parser,
 		kRlcTokBraceOpen))
 	{
 		error_code = kRlcParseErrorExpectedBraceOpen;

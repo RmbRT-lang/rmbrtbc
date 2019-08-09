@@ -99,6 +99,10 @@ enum RlcParseError
 	kRlcParseErrorExpectedVariableStatement,
 	kRlcParseErrorExpectedReturnStatement,
 
+	kRlcParseErrorExpectedControlLabel,
+	kRlcParseErrorUnexpectedControlLabel,
+	kRlcParseErrorMismatchedControlLabelName,
+
 	kRlcParseErrorExpectedLoopInitial,
 	kRlcParseErrorExpectedForHead,
 	kRlcParseErrorExpectedWhileHead,
@@ -140,6 +144,8 @@ struct RlcParserData
 
 	/** The current token index. */
 	size_t fIndex;
+	/** The latest token index ever consumed. */
+	size_t fLatestIndex;
 };
 /** Creates a parser for a file.
 @memberof RlcParserData
@@ -168,6 +174,14 @@ int rlc_parser_data_next(
 	The parser data.
 	@dassert @nonnull */
 struct RlcToken const * rlc_parser_data_current(
+	struct RlcParserData const * this);
+
+/** Returns the address of the latest consumed token, if not at the end of the token stream.
+@memberof RlcParserData
+@param[in] this:
+	The parser data.
+	@dassert @nonnull */
+struct RlcToken const * rlc_parser_data_latest(
 	struct RlcParserData const * this);
 
 struct RlcToken const * rlc_parser_data_ahead(
@@ -244,6 +258,18 @@ size_t rlc_parser_data_matched_index(
 	The consumed token's index. */
 size_t rlc_parser_data_consumed_index(
 	struct RlcParserData * parser);
+
+/** Compare two tokens in a parser's token stream for equal contents.
+@param[in] parser:
+	The parser data.
+@param[in] lhs:
+	The left hand side token.
+@param[in] rhs:
+	The right hand side token. */
+int rlc_parser_data_equal_tokens(
+	struct RlcParserData const * parser,
+	size_t lhs,
+	size_t rhs);
 
 #ifdef __cplusplus
 }

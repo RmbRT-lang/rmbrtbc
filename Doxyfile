@@ -232,7 +232,8 @@ ALIASES                = "assert=@n <b>Assertion</b>:" \
                          "dassert=@n <b>Debug assertion</b>:" \
                          "nonnull=Shall not be `null`." \
                          "pass_pointer_ownership=<b>Pointer ownership is passed.</b> The memory must be allocated on the heap and will be freed by the recipient." \
-                         "pass_ownership=<b>Instance's content's ownership is moved.</b> The resources held by the instance will be moved to the recipient. The instance loses ownership of its contents."
+                         "pass_ownership=<b>Instance's content's ownership is moved.</b> The resources held by the instance will be moved to the recipient. The instance loses ownership of its contents." \
+                         "free_pointer=The pointer has to be freed manually."
 
 # This tag can be used to specify a number of word-keyword mappings (TCL only).
 # A mapping has the form "name=value". For example adding "class=itcl::class"

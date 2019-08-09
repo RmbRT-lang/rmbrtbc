@@ -15,20 +15,15 @@ void end_of_file_position(
 	size_t * line,
 	size_t * column)
 {
-	*line = 0;
-
-	size_t last_begin = 0;
-
-	rlc_char_t const * const content = file->fBaseFile->fContents;
-
-	for(size_t i = 0; i < file->fBaseFile->fContentLength; i++)
-		if(content[i] == '\n')
-		{
-			++*line;
-			last_begin = i+1;
-		}
-
-	*column = file->fBaseFile->fContentLength - last_begin;
+	if(file->fTokenCount == 0)
+	{
+		*line = 0;
+		*column = 0;
+	} else
+	{
+		struct RlcToken const * last = file->fTokens[file->fTokenCount-1];
+		rlc_token_end(last, line, column);
+	}
 }
 
 int compile(
@@ -83,27 +78,42 @@ int compile(
 			entry = rlc_parsed_scope_entry_parse(&parser);
 			if(!entry)
 			{
-				//printf("%zu parsing errors.\n", parser.fErrorCount);
+				printf("%zu parsing errors.\n", parser.fErrorCount);
 				if(!parser.fErrorCount)
 				{
 					size_t line, column;
-					rlc_token_position(rlc_parser_data_current(&parser), &line, &column);
-					printf("%s:%zu:%zu: error: unexpected token.\n",
-						parser.fFile->fBaseFile->fName,
-						line,
-						column);
+					struct RlcToken const * token = rlc_parser_data_latest(&parser);
+					if(token)
+					{
+						rlc_token_position(token, &line, &column);
+						rlc_char_t * token_content = rlc_token_content(token);
+						printf("%s:%zu:%zu: error: unexpected '%"PRINTF_RLC_STR"' (%s).\n",
+							parser.fFile->fBaseFile->fName,
+							line+1,
+							column+1,
+							token_content,
+							rlc_token_type_name(token->fType));
+						rlc_free((void**)&token_content);
+					} else
+					{
+						end_of_file_position(
+							parser.fFile,
+							&line,
+							&column);
+						printf("%s:%zu:%zu: error: unexpected end of file.\n",
+							parser.fFile->fBaseFile->fName,
+							line+1,
+							column+1);
+					}
 				} else for(size_t i = 0; i<parser.fErrorCount; i++)
 				{
 					size_t line, column;
 
 					struct RlcToken const * token;
-					if(!parser.fErrors[i].fLocation)
-					{
-						line = 1;
-						column = 1;
-					} else if(parser.fErrors[i].fLocation < parser.fFile->fTokenCount)
-						rlc_token_end(
-							parser.fFile->fTokens[parser.fErrors[i].fLocation-1],
+					struct RlcToken const * after_latest_token;
+					if(parser.fErrors[i].fLocation < parser.fFile->fTokenCount)
+						rlc_token_position(
+							parser.fFile->fTokens[parser.fErrors[i].fLocation],
 							&line,
 							&column);
 					else
@@ -112,13 +122,60 @@ int compile(
 							&line,
 							&column);
 
+
 					++line, ++column;
 
-					printf("%s:%zu:%zu: error: %s\n",
-						parser.fFile->fBaseFile->fName,
-						line,
-						column,
-						rlc_parse_error_msg(parser.fErrors[i].fError));
+					if(i == 0)
+					{
+						if(parser.fLatestIndex+1 >= parser.fFile->fTokenCount)
+						{
+							printf("%s:%zu:%zu: error: unexpected end of file: %s.\n",
+								parser.fFile->fBaseFile->fName,
+								line,
+								column,
+								rlc_parse_error_msg(parser.fErrors[i].fError));
+						} else
+						{
+							struct RlcToken const * latest = rlc_parser_data_latest(&parser);
+							rlc_char_t * next_token_contents = rlc_token_content(latest);
+							if(parser.fErrors[i].fLocation != parser.fLatestIndex)
+							{
+								size_t latest_line, latest_column;
+								rlc_token_position(
+									latest,
+									&latest_line,
+									&latest_column);
+								++latest_line;
+								++latest_column;
+
+								printf("%s:%zu:%zu: error: unexpected '%"PRINTF_RLC_STR"'.\n",
+									parser.fFile->fBaseFile->fName,
+									latest_line,
+									latest_column,
+									next_token_contents);
+								printf("%s:%zu:%zu: error: %s.\n",
+									parser.fFile->fBaseFile->fName,
+									line,
+									column,
+									rlc_parse_error_msg(parser.fErrors[i].fError));
+							} else
+							{
+								printf("%s:%zu:%zu: error: unexpected '%"PRINTF_RLC_STR"': %s.\n",
+									parser.fFile->fBaseFile->fName,
+									line,
+									column,
+									next_token_contents,
+									rlc_parse_error_msg(parser.fErrors[i].fError));
+							}
+							rlc_free((void**)&next_token_contents);
+						}
+					} else {
+						printf("%s:%zu:%zu: error: %s.\n",
+								parser.fFile->fBaseFile->fName,
+								line,
+								column,
+								rlc_parse_error_msg(parser.fErrors[i].fError));
+					}
 
 #if !RLC_CASCADE_ERRORS
 					break;

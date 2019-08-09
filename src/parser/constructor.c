@@ -52,6 +52,7 @@ void rlc_parsed_constructor_destroy(
 	}
 
 	rlc_parsed_block_statement_destroy(&this->fBody);
+	this->fIsInline = 0;
 }
 
 int rlc_parsed_constructor_parse(
@@ -146,6 +147,13 @@ int rlc_parsed_constructor_parse(
 
 	if(rlc_parser_data_consume(
 		parser,
+		kRlcTokInline))
+	{
+		out->fIsInline = 1;
+	}
+
+	if(rlc_parser_data_consume(
+		parser,
 		kRlcTokColon))
 	{
 		do {
@@ -166,33 +174,13 @@ int rlc_parsed_constructor_parse(
 			parser,
 			kRlcTokComma));
 
-		if(rlc_parser_data_consume(
-			parser,
-			kRlcTokInline))
-		{
-			out->fIsInline = 1;
-			if(!rlc_parser_data_consume(
-				parser,
-				kRlcTokSemicolon))
-			{
-				error_code = kRlcParseErrorExpectedSemicolon;
-				goto failure;
-			} else
-				goto success;
-		} else if(rlc_parser_data_consume(
-			parser,
-			kRlcTokSemicolon))
-		{
-			goto success;
-		}
 	}
 
-	if(!rlc_parser_data_consume(
+	if(rlc_parser_data_consume(
 		parser,
-		kRlcTokColonEqual))
+		kRlcTokSemicolon))
 	{
-		error_code = kRlcParseErrorExpectedColonEqual;
-		goto failure;
+		goto success;
 	}
 
 	if(!rlc_parsed_block_statement_parse(
@@ -200,14 +188,6 @@ int rlc_parsed_constructor_parse(
 		parser))
 	{
 		error_code = kRlcParseErrorExpectedBlockStatement;
-		goto failure;
-	}
-
-	if(!rlc_parser_data_consume(
-		parser,
-		kRlcTokSemicolon))
-	{
-		error_code = kRlcParseErrorExpectedSemicolon;
 		goto failure;
 	}
 

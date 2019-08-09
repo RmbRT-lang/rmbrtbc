@@ -80,6 +80,7 @@ RlcFileResult rlc_read_text_file(char const * filename, rlc_char_t ** out)
 		{
 			if(it[1] == '\n')
 			{
+				// Remove the \r character from the file.
 				for(rlc_utf8_t * jt = it; *jt; jt++)
 				{
 					jt[0] = jt[1];

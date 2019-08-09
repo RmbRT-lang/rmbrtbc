@@ -167,6 +167,8 @@ struct RlcParsedFunctionSignature
 {
 	/** Whether the function is asynchronous. */
 	int fIsAsync;
+	/** Whether the function is a closure. */
+	int fIsClosure;
 	/** The argument types. */
 	struct RlcParsedTypeName * fArguments;
 	/** The argument count. */

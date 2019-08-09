@@ -6,7 +6,7 @@ The RmbRT Language Compiler a work in progress implementation of a compiler for 
 
 ### Cloning
 
-	git clone https://github.com/RmbRT/rlc.git
+	git clone git@github.com:RmbRT/rlc.git
 
 ### Compiling
 
@@ -26,7 +26,7 @@ This generates a HTML documentation based on the comments in the code, and place
 
 ## License
 
-The RmbRT Language Compiler is free (as in freedom, or libre) software, and released under the GNU General Public License, version 3, which can be found in the file ```rlc/LICENSE```.
+The RmbRT Language Compiler is free (as in freedom, or libre) software, and released under the GNU Affero General Public License, version 3, which can be found in the file ```rlc/LICENSE```.
 
 ## The Project
 

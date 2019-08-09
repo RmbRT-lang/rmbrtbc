@@ -1,4 +1,5 @@
 #include "ifstatement.h"
+#include "controllabel.h"
 
 #include "../assert.h"
 #include "../malloc.h"
@@ -14,6 +15,9 @@ void rlc_parsed_if_statement_create(
 
 	this->fCondition.fIsVariable = 0;
 	this->fCondition.fExpression = NULL;
+
+	this->fHasIfLabel = 0;
+	this->fHasElseLabel = 0;
 
 	this->fIf = NULL;
 	this->fElse = NULL;
@@ -61,6 +65,15 @@ int rlc_parsed_if_statement_parse(
 	enum RlcParseError error_code;
 
 	rlc_parsed_if_statement_create(out);
+
+	if(!(out->fHasIfLabel = rlc_control_label_parse(
+		&out->fIfLabel,
+		parser))
+	&& parser->fErrorCount)
+	{
+		error_code = kRlcParseErrorExpectedControlLabel;
+		goto failure;
+	}
 
 	if(!rlc_parser_data_consume(
 		parser,
@@ -110,6 +123,33 @@ int rlc_parsed_if_statement_parse(
 		parser,
 		kRlcTokElse))
 	{
+		if(!(out->fHasElseLabel = rlc_control_label_parse(
+			&out->fElseLabel,
+			parser)))
+		{
+			if(parser->fErrorCount
+			|| out->fHasIfLabel)
+			{
+				error_code = kRlcParseErrorExpectedControlLabel;
+				goto failure;
+			}
+		} else if(!out->fHasIfLabel)
+		{
+			parser->fLatestIndex -= 2;
+			parser->fIndex = parser->fLatestIndex;
+			error_code = kRlcParseErrorUnexpectedControlLabel;
+			goto failure;
+		} else if(!rlc_parser_data_equal_tokens(
+			parser,
+			out->fIfLabel,
+			out->fElseLabel))
+		{
+			parser->fLatestIndex -= 2;
+			parser->fIndex = parser->fLatestIndex;
+			error_code = kRlcParseErrorMismatchedControlLabelName;
+			goto failure;
+		}
+
 		if(!(out->fElse = rlc_parsed_statement_parse(
 			parser,
 			RLC_FLAG(kRlcParsedExpressionStatement)

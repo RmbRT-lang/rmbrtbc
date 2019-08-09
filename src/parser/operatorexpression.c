@@ -394,13 +394,16 @@ static struct RlcParsedExpression * parse_binary(
 {
 	RLC_DASSERT(parser != NULL);
 
+	size_t const parser_start = parser->fIndex;
+
 	struct RlcParsedExpression * lhs = group
 		? parse_binary(parser, group-1)
 		: parse_prefix(parser);
 	if(!lhs)
 	{
-		if(parser->fErrorCount)
-			rlc_parser_data_add_error(parser, kRlcParseErrorExpectedExpression);
+		/*if(parser->fErrorCount)
+			rlc_parser_data_add_error(parser, kRlcParseErrorExpectedExpression);*/
+		parser->fIndex = parser_start;
 		return NULL;
 	}
 
@@ -482,9 +485,9 @@ struct RlcParsedExpression * rlc_parsed_operator_expression_parse(
 		struct RlcParsedExpression * other = rlc_parsed_operator_expression_parse(parser);
 		if(!other)
 		{
-			rlc_parser_data_add_error(
+			/*rlc_parser_data_add_error(
 				parser,
-				kRlcParseErrorExpectedExpression);
+				kRlcParseErrorExpectedExpression);*/
 			rlc_parsed_expression_destroy_virtual(then);
 			rlc_parsed_expression_destroy_virtual(left);
 			rlc_free((void**)&then);

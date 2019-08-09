@@ -276,6 +276,13 @@ void rlc_token_end(
 	size_t * line,
 	size_t * column);
 
+/** Returns the token's text content.
+@param[in] this:
+	The token whose contents to retrieve.
+	@dassert @nonnull
+@return
+	The token's text.
+	@free_pointer */
 rlc_char_t * rlc_token_content(
 	struct RlcToken const * this);
 

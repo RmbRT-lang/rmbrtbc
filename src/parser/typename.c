@@ -279,6 +279,7 @@ void rlc_parsed_function_signature_create(
 	this->fArguments = NULL;
 	this->fArgumentCount = 0;
 	rlc_parsed_type_name_create(&this->fResult);
+	this->fIsAsync = this->fIsClosure = 0;
 }
 
 void rlc_parsed_function_signature_destroy(
@@ -320,9 +321,14 @@ int rlc_parsed_function_signature_parse(
 
 	size_t const start = parser->fIndex;
 
-	int is_async = rlc_parser_data_consume(
+	int is_async, is_closure;
+
+	if(!(is_closure = rlc_parser_data_consume(
 		parser,
-		kRlcTokAt);
+		kRlcTokAnd)))
+		is_closure = is_async = rlc_parser_data_consume(
+			parser,
+			kRlcTokAt);
 
 	if(!rlc_parser_data_consume(
 		parser,
@@ -336,6 +342,7 @@ int rlc_parsed_function_signature_parse(
 
 	rlc_parsed_function_signature_create(out);
 	out->fIsAsync = is_async;
+	out->fIsClosure = is_closure;
 
 	if(!rlc_parser_data_consume(
 		parser,
@@ -345,8 +352,13 @@ int rlc_parsed_function_signature_parse(
 		goto failure;
 	}
 
+	if(rlc_parser_data_consume(
+		parser,
+		kRlcTokParentheseClose))
+	{
+		;
 	// explicit void arguments?
-	if(rlc_parser_data_match(
+	} else if(rlc_parser_data_match(
 		parser,
 		kRlcTokVoid)
 	&& rlc_parser_data_match_ahead(

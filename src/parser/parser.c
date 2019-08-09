@@ -68,6 +68,9 @@ char const * rlc_parse_error_msg(
 		"Expected Loop Statement",
 		"Expected Variable Statement",
 		"Expected Return Statement",
+		"Expected Control Label",
+		"Unexpected Control Label",
+		"Mismatched Control Label Name",
 		"Expected Loop Initial",
 		"Expected For Head",
 		"Expected While Head",
@@ -95,6 +98,7 @@ void rlc_parser_data_create(
 
 	this->fFile = file;
 	this->fIndex = 0;
+	this->fLatestIndex = 0;
 }
 
 int rlc_parser_data_next(
@@ -106,6 +110,8 @@ int rlc_parser_data_next(
 	if(this->fIndex < this->fFile->fTokenCount)
 	{
 		++ this->fIndex;
+		if(this->fLatestIndex < this->fIndex)
+			this->fLatestIndex = this->fIndex;
 		return 1;
 	} else
 		return 0;
@@ -119,6 +125,17 @@ struct RlcToken const * rlc_parser_data_current(
 
 	if(this->fIndex < this->fFile->fTokenCount)
 		return this->fFile->fTokens[this->fIndex];
+	else
+		return NULL;
+}
+
+struct RlcToken const * rlc_parser_data_latest(
+	struct RlcParserData const * this)
+{
+	RLC_DASSERT(this != NULL);
+
+	if(this->fLatestIndex < this->fFile->fTokenCount)
+		return this->fFile->fTokens[this->fLatestIndex];
 	else
 		return NULL;
 }
@@ -199,6 +216,7 @@ void rlc_parser_data_destroy(
 	}
 
 	this->fIndex = 0;
+	this->fLatestIndex = 0;
 }
 
 void rlc_parser_data_add_error(
@@ -241,4 +259,34 @@ size_t rlc_parser_data_consumed_index(
 	RLC_DASSERT(parser->fIndex > 0);
 
 	return parser->fIndex - 1;
+}
+
+int rlc_parser_data_equal_tokens(
+	struct RlcParserData const * parser,
+	size_t lhs,
+	size_t rhs)
+{
+	RLC_DASSERT(parser != NULL);
+	RLC_DASSERT(lhs < parser->fFile->fTokenCount);
+	RLC_DASSERT(rhs < parser->fFile->fTokenCount);
+
+	if(lhs == rhs)
+		return 1;
+
+	struct RlcToken const * lt, * rt;
+	lt = parser->fFile->fTokens[lhs];
+	rt = parser->fFile->fTokens[rhs];
+
+	if(lt->fType != rt->fType
+	|| lt->fLength != rt->fLength)
+	{
+		return 0;
+	} else
+	{
+		rlc_char_t * file = 0;
+		return 0 == rlc_strncmp(
+			lt->fFile->fContents+lt->fBegin,
+			rt->fFile->fContents+rt->fBegin,
+			lt->fLength);
+	}
 }
