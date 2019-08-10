@@ -236,7 +236,8 @@ static struct RlcParsedExpression * parse_postfix(
 					out,
 					rlc_parsed_expression_parse(
 						parser,
-						RLC_ALL_FLAGS(RlcParsedExpressionType)));
+						RLC_ALL_FLAGS(RlcParsedExpressionType)
+						&~RLC_FLAG(kRlcParsedTypeNameExpression)));
 			// index expression.
 			if(!(out = RLC_BASE_CAST(
 				binary,
@@ -286,7 +287,8 @@ static struct RlcParsedExpression * parse_postfix(
 				// parse the argument.
 				struct RlcParsedExpression * arg = rlc_parsed_expression_parse(
 					parser,
-					RLC_ALL_FLAGS(RlcParsedExpressionType));
+					RLC_ALL_FLAGS(RlcParsedExpressionType)
+					&~RLC_FLAG(kRlcParsedTypeNameExpression));
 
 				if(!arg)
 					goto delete_out_failure;

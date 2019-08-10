@@ -3,7 +3,7 @@
 #include "../assert.h"
 
 int rlc_control_label_parse(
-	size_t * out,
+	struct RlcControlLabel * out,
 	struct RlcParserData * parser)
 {
 	RLC_DASSERT(out != NULL);
@@ -11,12 +11,11 @@ int rlc_control_label_parse(
 	size_t const start = parser->fIndex;
 	enum RlcParseError error_code;
 
+	out->fExists = 0;
 	if(!rlc_parser_data_consume(
 		parser,
 		kRlcTokBracketOpen))
-	{
-		goto nonfatal_failure;
-	}
+		return 1;
 
 	if(!rlc_parser_data_consume(
 		parser,
@@ -29,7 +28,7 @@ int rlc_control_label_parse(
 		goto failure;
 	}
 
-	*out = rlc_parser_data_consumed_index(parser);
+	out->fLabel = rlc_parser_data_consumed_index(parser);
 
 	if(!rlc_parser_data_consume(
 		parser,
@@ -39,12 +38,13 @@ int rlc_control_label_parse(
 		goto failure;
 	}
 
+	out->fExists = 1;
 	return 1;
 failure:
 	rlc_parser_data_add_error(
 		parser,
 		error_code);
-nonfatal_failure:
 	parser->fIndex = start;
+	out->fExists = 0;
 	return 0;
 }

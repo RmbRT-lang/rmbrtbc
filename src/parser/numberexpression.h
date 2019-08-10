@@ -37,7 +37,7 @@ void rlc_parsed_number_expression_create(
 /** Destroys a number expression.
 @memberof RlcParsedNumberExpression
 
-@param[in] this:
+@param[in,out] this:
 	The number expression to destroy. */
 void rlc_parsed_number_expression_destroy(
 	struct RlcParsedNumberExpression * this);

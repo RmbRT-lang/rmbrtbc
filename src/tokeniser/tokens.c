@@ -142,6 +142,7 @@ char const * rlc_token_type_name(
 		"Return",
 		"Switch",
 		"Case",
+		"Default",
 		"Inline",
 		"Void",
 		"Namespace",
@@ -176,6 +177,24 @@ char const * rlc_token_type_name(
 
 	return names[type];
 };
+
+void rlc_file_destroy(
+	struct RlcFile * this)
+{
+	RLC_DASSERT(this != NULL);
+
+	if(this->fContents)
+	{
+		rlc_free((void**)&this->fContents);
+	}
+	this->fContentLength = 0;
+
+	if(this->fTokens)
+	{
+		rlc_free((void**)&this->fTokens);
+	}
+	this->fTokenCount = 0;
+}
 
 rlc_char_t * rlc_file_get_line_contents(
 	struct RlcFile const * this,

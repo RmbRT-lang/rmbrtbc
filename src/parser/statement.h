@@ -20,6 +20,8 @@ enum RlcParsedStatementType
 	kRlcParsedLoopStatement,
 	kRlcParsedVariableStatement,
 	kRlcParsedReturnStatement,
+	kRlcParsedSwitchStatement,
+	kRlcParsedCaseStatement,
 	RLC_ENUM_END(RlcParsedStatementType)
 };
 

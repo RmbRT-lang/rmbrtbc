@@ -68,6 +68,8 @@ char const * rlc_parse_error_msg(
 		"Expected Loop Statement",
 		"Expected Variable Statement",
 		"Expected Return Statement",
+		"Expected Switch Statement",
+		"Expected Case Statement",
 		"Expected Control Label",
 		"Unexpected Control Label",
 		"Mismatched Control Label Name",

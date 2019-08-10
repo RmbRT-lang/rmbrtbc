@@ -46,12 +46,16 @@ int rlc_parsed_expression_statement_parse(
 		RLC_ALL_FLAGS(RlcParsedExpressionType));
 
 
-	if(!out->fExpression && parser->fErrorCount)
+	if(!out->fExpression)
 	{
-		error_code = kRlcParseErrorExpectedExpression;
-		goto failure;
-	}
+		if(parser->fErrorCount)
+		{
+			error_code = kRlcParseErrorExpectedExpression;
+			goto failure;
+		}
 
+		goto nonfatal_failure;
+	}
 	if(!rlc_parser_data_consume(
 		parser,
 		kRlcTokSemicolon))
@@ -65,6 +69,7 @@ failure:
 	rlc_parser_data_add_error(
 		parser,
 		error_code);
+nonfatal_failure:
 	rlc_parsed_expression_statement_destroy(out);
 	return 0;
 }

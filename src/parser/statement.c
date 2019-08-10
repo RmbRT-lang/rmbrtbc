@@ -6,6 +6,7 @@
 #include "loopstatement.h"
 #include "variablestatement.h"
 #include "returnstatement.h"
+#include "switchstatement.h"
 
 #include "../assert.h"
 #include "../malloc.h"
@@ -59,6 +60,11 @@ void rlc_parsed_statement_destroy_virtual(
 		}, {
 			(thiscall_t)&rlc_parsed_return_statement_destroy,
 			RLC_DERIVE_OFFSET(RlcParsedStatement, struct RlcParsedReturnStatement)
+		}, {
+			(thiscall_t)&rlc_parsed_switch_statement_destroy,
+			RLC_DERIVE_OFFSET(RlcParsedStatement, struct RlcParsedSwitchStatement)
+		}, {
+			(thiscall_t)&rlc_parsed_case_statement_destroy, RLC_DERIVE_OFFSET(RlcParsedStatement, struct RlcParsedCaseStatement)
 		}
 	};
 
@@ -78,6 +84,8 @@ union RlcStatementStorage
 	struct RlcParsedLoopStatement fRlcParsedLoopStatement;
 	struct RlcParsedVariableStatement fRlcParsedVariableStatement;
 	struct RlcParsedReturnStatement fRlcParsedReturnStatement;
+	struct RlcParsedSwitchStatement fRlcParsedSwitchStatement;
+	struct RlcParsedCaseStatement fRlcParsedCaseStatement;
 };
 
 struct RlcParsedStatement * rlc_parsed_statement_parse(
@@ -112,6 +120,8 @@ struct RlcParsedStatement * rlc_parsed_statement_parse(
 		ENTRY(RlcParsedIfStatement, &rlc_parsed_if_statement_parse, kRlcParseErrorExpectedIfStatement),
 		ENTRY(RlcParsedLoopStatement, &rlc_parsed_loop_statement_parse, kRlcParseErrorExpectedLoopStatement),
 		ENTRY(RlcParsedVariableStatement, &rlc_parsed_variable_statement_parse, kRlcParseErrorExpectedVariableStatement),
+		ENTRY(RlcParsedSwitchStatement, &rlc_parsed_switch_statement_parse, kRlcParseErrorExpectedSwitchStatement),
+		ENTRY(RlcParsedCaseStatement, &rlc_parsed_case_statement_parse, kRlcParseErrorExpectedCaseStatement),
 		// expression has to come after variable.
 		ENTRY(RlcParsedExpressionStatement, &rlc_parsed_expression_statement_parse, kRlcParseErrorExpectedExpressionStatement),
 	};
@@ -123,7 +133,7 @@ struct RlcParsedStatement * rlc_parsed_statement_parse(
 
 	for(size_t i = 0; i < _countof(k_parse_lookup); i++)
 	{
-		if(flags & RLC_FLAG(k_parse_lookup[i].fType))
+		if(RLC_FLAG(k_parse_lookup[i].fType) & flags)
 		{
 			if(k_parse_lookup[i].fParseFn(
 				&storage,

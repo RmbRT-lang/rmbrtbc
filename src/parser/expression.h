@@ -79,6 +79,44 @@ struct RlcParsedExpression * rlc_parsed_expression_parse(
 	struct RlcParserData * parser,
 	int flags);
 
+/** A list of expressions. */
+struct RlcParsedExpressionList
+{
+	/** The expression list's values. */
+	struct RlcParsedExpression ** fValues;
+	/** The expression list's length.*/
+	size_t fCount;
+};
+
+/** Creates an expression list.
+@memberof RlcParsedExpressionList
+@param[out] this:
+	The expression list to create.
+	@dassert @nonnull */
+void rlc_parsed_expression_list_create(
+	struct RlcParsedExpressionList * this);
+
+/** Destroys an expression list.
+@memberof RlcParsedExpressionList
+@param[in,out] this:
+	The expression list to destroy.
+	@dassert @nonnull */
+void rlc_parsed_expression_list_destroy(
+	struct RlcParsedExpressionList * this);
+
+/** Appends an expression to an expression list.
+@memberof RlcParsedExpressionList
+@param[in,out] this:
+	The expression list to append an expression to.
+	@dassert @nonnull
+@param[in] expression:
+	The expression to append to the list.
+	@pass_pointer_ownership
+	@dassert @nonnull */
+void rlc_parsed_expression_list_append(
+	struct RlcParsedExpressionList * this,
+	struct RlcParsedExpression * expression);
+
 #ifdef __cplusplus
 }
 #endif

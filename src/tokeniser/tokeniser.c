@@ -24,6 +24,7 @@ struct {
 	{"return", kRlcTokReturn },
 	{"switch", kRlcTokSwitch },
 	{"case", kRlcTokCase },
+	{"default", kRlcTokDefault },
 	{"inline", kRlcTokInline },
 	{"void", kRlcTokVoid },
 	{"namespace", kRlcTokNamespace },

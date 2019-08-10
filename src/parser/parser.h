@@ -98,6 +98,8 @@ enum RlcParseError
 	kRlcParseErrorExpectedLoopStatement,
 	kRlcParseErrorExpectedVariableStatement,
 	kRlcParseErrorExpectedReturnStatement,
+	kRlcParseErrorExpectedSwitchStatement,
+	kRlcParseErrorExpectedCaseStatement,
 
 	kRlcParseErrorExpectedControlLabel,
 	kRlcParseErrorUnexpectedControlLabel,

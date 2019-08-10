@@ -152,7 +152,11 @@ void rlc_parsed_symbol_destroy(
 	RLC_DASSERT(this != NULL);
 
 	if(this->fChildren)
+	{
+		for(size_t i = 0; i < this->fChildCount; i++)
+			rlc_parsed_symbol_child_destroy(&this->fChildren[i]);
 		rlc_free((void**)&this->fChildren);
+	}
 
 	this->fChildCount = 0;
 	this->fIsRoot = 0;

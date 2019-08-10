@@ -3,6 +3,7 @@
 #ifndef __rlc_parser_ifstatement_h_defined
 #define __rlc_parser_ifstatement_h_defined
 
+#include "controllabel.h"
 #include "expression.h"
 #include "statement.h"
 #include "variable.h"
@@ -31,14 +32,10 @@ struct RlcParsedIfStatement
 		int fIsVariable;
 	} fCondition;
 
-	/** Whether the if has a label. */
-	int fHasIfLabel;
-	/** Whether the else has a label. */
-	int fHasElseLabel;
-	/** The if's label, if exists. */
-	size_t fIfLabel;
-	/** The else's label, if exists. */
-	size_t fElseLabel;
+	/** The if label. */
+	struct RlcControlLabel fIfLabel;
+	/** The else label. */
+	struct RlcControlLabel fElseLabel;
 
 	/** Statement to be executed if the condition evaluates to true. */
 	struct RlcParsedStatement * fIf;

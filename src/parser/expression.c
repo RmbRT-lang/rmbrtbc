@@ -185,3 +185,43 @@ failure:
 		error_code);
 	return NULL;
 }
+
+void rlc_parsed_expression_list_create(
+	struct RlcParsedExpressionList * this)
+{
+	RLC_DASSERT(this != NULL);
+
+	this->fValues = NULL;
+	this->fCount = 0;
+}
+
+void rlc_parsed_expression_list_destroy(
+	struct RlcParsedExpressionList * this)
+{
+	RLC_DASSERT(this != NULL);
+
+
+	if(this->fValues)
+	{
+		for(size_t i = 0; i < this->fCount; i++)
+		{
+			rlc_parsed_expression_destroy_virtual(this->fValues[i]);
+			rlc_free((void**)&this->fValues[i]);
+		}
+		rlc_free((void**)&this->fValues);
+	}
+	this->fCount = 0;
+}
+
+void rlc_parsed_expression_list_append(
+	struct RlcParsedExpressionList * this,
+	struct RlcParsedExpression * value)
+{
+	RLC_DASSERT(this != NULL);
+	RLC_DASSERT(value != NULL);
+
+	rlc_realloc(
+		(void**)&this->fValues,
+		sizeof(struct RlcParsedExpression *) * ++this->fCount);
+	this->fValues[this->fCount-1] = value;
+}

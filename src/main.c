@@ -183,6 +183,13 @@ int compile(
 				}
 				rlc_parsed_scope_entry_list_destroy(&parsed_list);
 				rlc_parser_data_destroy(&parser);
+				rlc_file_destroy(&tokfile);
+
+				size_t allocs;
+				if(allocs = rlc_allocations())
+				{
+					fprintf(stderr, "Warning: leaked allocations: %zu.\n", allocs);
+				}
 
 				return 0;
 			} else
@@ -195,8 +202,15 @@ int compile(
 	}
 	rlc_parsed_scope_entry_list_destroy(&parsed_list);
 
-	puts("success");
+	rlc_file_destroy(&tokfile);
 
+
+	fputs("success\n", stderr);
+	size_t allocs;
+	if(allocs = rlc_allocations())
+	{
+		fprintf(stderr, "Warning: leaked allocations: %zu.\n", allocs);
+	}
 	return 1;
 }
 #include "unicode.h"

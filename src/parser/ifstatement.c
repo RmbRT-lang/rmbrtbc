@@ -1,8 +1,12 @@
 #include "ifstatement.h"
-#include "controllabel.h"
 
 #include "../assert.h"
 #include "../malloc.h"
+
+static int const kBodyStatementFlags =
+	RLC_ALL_FLAGS(RlcParsedStatementType)
+^	RLC_FLAG(kRlcParsedCaseStatement)
+^	RLC_FLAG(kRlcParsedVariableStatement);
 
 void rlc_parsed_if_statement_create(
 	struct RlcParsedIfStatement * this)
@@ -16,8 +20,8 @@ void rlc_parsed_if_statement_create(
 	this->fCondition.fIsVariable = 0;
 	this->fCondition.fExpression = NULL;
 
-	this->fHasIfLabel = 0;
-	this->fHasElseLabel = 0;
+	rlc_control_label_create(&this->fIfLabel);
+	rlc_control_label_create(&this->fElseLabel);
 
 	this->fIf = NULL;
 	this->fElse = NULL;
@@ -66,10 +70,9 @@ int rlc_parsed_if_statement_parse(
 
 	rlc_parsed_if_statement_create(out);
 
-	if(!(out->fHasIfLabel = rlc_control_label_parse(
+	if(!rlc_control_label_parse(
 		&out->fIfLabel,
 		parser))
-	&& parser->fErrorCount)
 	{
 		error_code = kRlcParseErrorExpectedControlLabel;
 		goto failure;
@@ -93,7 +96,8 @@ int rlc_parsed_if_statement_parse(
 	{
 	} else if(!(out->fCondition.fExpression = rlc_parsed_expression_parse(
 		parser,
-		RLC_ALL_FLAGS(RlcParsedExpressionType))))
+		RLC_ALL_FLAGS(RlcParsedExpressionType)
+	&~	RLC_FLAG(kRlcParsedTypeNameExpression))))
 	{
 		error_code = kRlcParseErrorExpectedExpression;
 		goto failure;
@@ -109,11 +113,7 @@ int rlc_parsed_if_statement_parse(
 
 	if(!(out->fIf = rlc_parsed_statement_parse(
 		parser,
-		RLC_FLAG(kRlcParsedExpressionStatement)
-	|	RLC_FLAG(kRlcParsedBlockStatement)
-	|	RLC_FLAG(kRlcParsedIfStatement)
-	|	RLC_FLAG(kRlcParsedLoopStatement)
-	|	RLC_FLAG(kRlcParsedReturnStatement))))
+		kBodyStatementFlags)))
 	{
 		error_code = kRlcParseErrorExpectedBodyStatement;
 		goto failure;
@@ -123,26 +123,27 @@ int rlc_parsed_if_statement_parse(
 		parser,
 		kRlcTokElse))
 	{
-		if(!(out->fHasElseLabel = rlc_control_label_parse(
+		if(!rlc_control_label_parse(
 			&out->fElseLabel,
-			parser)))
+			parser))
 		{
-			if(parser->fErrorCount
-			|| out->fHasIfLabel)
-			{
-				error_code = kRlcParseErrorExpectedControlLabel;
-				goto failure;
-			}
-		} else if(!out->fHasIfLabel)
+			error_code = kRlcParseErrorExpectedControlLabel;
+			goto failure;
+		}
+		if(!out->fIfLabel.fExists
+		&& out->fElseLabel.fExists)
 		{
 			parser->fLatestIndex -= 2;
 			parser->fIndex = parser->fLatestIndex;
 			error_code = kRlcParseErrorUnexpectedControlLabel;
 			goto failure;
-		} else if(!rlc_parser_data_equal_tokens(
+		}
+
+		if(out->fElseLabel.fExists
+		&& !rlc_parser_data_equal_tokens(
 			parser,
-			out->fIfLabel,
-			out->fElseLabel))
+			out->fIfLabel.fLabel,
+			out->fElseLabel.fLabel))
 		{
 			parser->fLatestIndex -= 2;
 			parser->fIndex = parser->fLatestIndex;
@@ -152,11 +153,8 @@ int rlc_parsed_if_statement_parse(
 
 		if(!(out->fElse = rlc_parsed_statement_parse(
 			parser,
-			RLC_FLAG(kRlcParsedExpressionStatement)
-		|	RLC_FLAG(kRlcParsedBlockStatement)
-		|	RLC_FLAG(kRlcParsedIfStatement)
-		|	RLC_FLAG(kRlcParsedLoopStatement)
-		|	RLC_FLAG(kRlcParsedReturnStatement))))
+			kBodyStatementFlags))
+		&& parser->fErrorCount)
 		{
 			error_code = kRlcParseErrorExpectedBodyStatement;
 			goto failure;

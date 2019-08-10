@@ -123,6 +123,7 @@ enum RlcTokenType
 	kRlcTokReturn,
 	kRlcTokSwitch,
 	kRlcTokCase,
+	kRlcTokDefault,
 	kRlcTokInline,
 	kRlcTokVoid,
 	kRlcTokNamespace,

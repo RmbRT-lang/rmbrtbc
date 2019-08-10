@@ -43,6 +43,21 @@ int rlc_parsed_block_statement_parse(
 
 	rlc_parsed_block_statement_create(out);
 
+	// A block statement is either a single empty statement, or other statements.
+	if(rlc_parser_data_consume(
+		parser,
+		kRlcTokSemicolon))
+	{
+		if(!rlc_parser_data_consume(
+			parser,
+			kRlcTokBraceClose))
+		{
+			error_code = kRlcParseErrorExpectedBraceClose;
+			goto failure;
+		}
+		goto success;
+	}
+
 	while(!rlc_parser_data_consume(
 		parser,
 		kRlcTokBraceClose))

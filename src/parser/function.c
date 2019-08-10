@@ -59,6 +59,11 @@ void rlc_parsed_function_destroy(
 		}
 	}
 
+	rlc_template_decl_destroy(&this->fTemplates);
+
+	rlc_parsed_scope_entry_destroy_base(
+		RLC_BASE_CAST(this, RlcParsedScopeEntry));
+
 	this->fIsShortHandBody = 0;
 }
 
