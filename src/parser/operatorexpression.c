@@ -34,6 +34,7 @@ void rlc_parsed_operator_expression_destroy(
 	{
 		rlc_free((void**)&this->fExpressions);
 	}
+	this->fExpressionCount = 0;
 }
 
 enum OperatorType { kUnary, kBinary, kNary = kBinary };
@@ -210,10 +211,12 @@ static struct RlcParsedExpression * parse_postfix(
 					parser,
 					k_unary_postfix[i].fTok))
 				{
-					out = RLC_BASE_CAST(
+					struct RlcParsedOperatorExpression * temp =
 						make_unary_expression(
 							k_unary_postfix[i].fOp,
-							out),
+							out);
+					out = RLC_BASE_CAST(
+						temp,
 						RlcParsedExpression);
 
 					found = 1;
@@ -302,6 +305,7 @@ static struct RlcParsedExpression * parse_postfix(
 			}
 
 			++postfix;
+			continue;
 		}
 		// member access operator?
 		else
