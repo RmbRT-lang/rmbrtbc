@@ -28,6 +28,8 @@ enum RlcParsedExpressionType {
 	kRlcParsedTypeNameExpression,
 	/** RlcParsedOperatorExpression. */
 	kRlcParsedOperatorExpression,
+	/** RlcParsedThisExpression. */
+	kRlcThisExpression,
 
 	RLC_ENUM_END(RlcParsedExpressionType)
 };
@@ -49,10 +51,13 @@ struct RlcParsedExpression
 	The expression to create.
 	@dassert @nonnull
 @param[in] type:
-	The deriving type. */
+	The deriving type.
+@param[in] first:
+	The expression's first token. */
 void rlc_parsed_expression_create(
 	struct RlcParsedExpression * this,
-	enum RlcParsedExpressionType type);
+	enum RlcParsedExpressionType type,
+	size_t first);
 
 /** Destroys an expression.
 @memberof RlcParsedExpression

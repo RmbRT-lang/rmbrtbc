@@ -23,9 +23,12 @@ struct RlcParsedTypeNameExpression
 /** Creates a type name expression.
 @param[out] this:
 	The type name expression to create.
-	@dassert @nonnull */
+	@dassert @nonnull
+@param[in] first:
+	The expression's first token. */
 void rlc_parsed_type_name_expression_create(
-	struct RlcParsedTypeNameExpression * this);
+	struct RlcParsedTypeNameExpression * this,
+	size_t first);
 
 /** Destroys a parsed type name expression.
 @param[in,out] this:

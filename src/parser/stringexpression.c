@@ -3,15 +3,17 @@
 #include "../assert.h"
 
 void rlc_parsed_string_expression_create(
-	struct RlcParsedStringExpression * this)
+	struct RlcParsedStringExpression * this,
+	size_t first)
 {
 	RLC_DASSERT(this != NULL);
 
 	rlc_parsed_expression_create(
 		RLC_BASE_CAST(this, RlcParsedExpression),
-		kRlcParsedStringExpression);
+		kRlcParsedStringExpression,
+		first);
 
-	this->fStartToken = 0;
+	this->fStartToken = first;
 	this->fTokenCount = 0;
 }
 
@@ -58,13 +60,17 @@ int rlc_parsed_string_expression_parse(
 	if(!consume_string_literal(parser))
 		return 0;
 
-	rlc_parsed_string_expression_create(out);
+	rlc_parsed_string_expression_create(
+		out,
+		rlc_parser_data_consumed_index(parser));
 
-	out->fStartToken = rlc_parser_data_consumed_index(parser);
 	out->fTokenCount = 1;
 
 	while(consume_string_literal(parser))
 		++out->fTokenCount;
+
+	RLC_BASE_CAST(out, RlcParsedExpression)->fLast =
+		rlc_parser_data_consumed_index(parser);
 
 	return 1;
 }

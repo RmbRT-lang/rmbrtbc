@@ -23,9 +23,12 @@ struct RlcParsedSymbolExpression
 /** Initialises a symbol expression.
 @memberof RlcParsedSymbolExpression
 @param[in, out] this:
-	The symbol expression to create. */
+	The symbol expression to create.
+@param[in] first:
+	The expression's first token. */
 void rlc_parsed_symbol_expression_create(
-	struct RlcParsedSymbolExpression * this);
+	struct RlcParsedSymbolExpression * this,
+	size_t first);
 
 /** Destroys a symbol expression.
 @memberof RlcParsedSymbolExpression

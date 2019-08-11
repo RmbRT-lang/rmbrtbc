@@ -30,9 +30,12 @@ struct RlcParsedStringExpression
 
 @param[out] this:
 	The string expression to initialise.
-	@dassert @nonnull */
+	@dassert @nonnull
+@param[in] first:
+	The expression's first token. */
 void rlc_parsed_string_expression_create(
-	struct RlcParsedStringExpression * this);
+	struct RlcParsedStringExpression * this,
+	size_t first);
 
 /** Destroys a strin expression.
 @memberof RlcParsedStringExpression

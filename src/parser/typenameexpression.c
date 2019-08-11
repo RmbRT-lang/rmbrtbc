@@ -2,13 +2,15 @@
 #include "../assert.h"
 
 void rlc_parsed_type_name_expression_create(
-	struct RlcParsedTypeNameExpression * this)
+	struct RlcParsedTypeNameExpression * this,
+	size_t first)
 {
 	RLC_DASSERT(this != NULL);
 
 	rlc_parsed_expression_create(
 		RLC_BASE_CAST(this, RlcParsedExpression),
-		kRlcParsedTypeNameExpression);
+		kRlcParsedTypeNameExpression,
+		first);
 
 	rlc_parsed_type_name_create(
 		RLC_BASE_CAST(this, RlcParsedTypeName));
@@ -31,7 +33,9 @@ int rlc_parsed_type_name_expression_parse(
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
 
-	rlc_parsed_type_name_expression_create(out);
+	rlc_parsed_type_name_expression_create(
+		out,
+		parser->fIndex);
 
 	enum RlcParseError error_code;
 
@@ -49,6 +53,8 @@ int rlc_parsed_type_name_expression_parse(
 	}
 
 success:
+	RLC_BASE_CAST(out, RlcParsedExpression)->fLast =
+		rlc_parser_data_consumed_index(parser);
 	return 1;
 failure:
 	rlc_parser_data_add_error(

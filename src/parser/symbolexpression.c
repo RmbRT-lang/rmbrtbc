@@ -2,13 +2,15 @@
 #include "../assert.h"
 
 void rlc_parsed_symbol_expression_create(
-	struct RlcParsedSymbolExpression * this)
+	struct RlcParsedSymbolExpression * this,
+	size_t first)
 {
 	RLC_DASSERT(this != NULL);
 
 	rlc_parsed_expression_create(
 		RLC_BASE_CAST(this, RlcParsedExpression),
-		kRlcParsedSymbolExpression);
+		kRlcParsedSymbolExpression,
+		first);
 
 	rlc_parsed_symbol_create(&this->fSymbol);
 }
@@ -29,9 +31,20 @@ int rlc_parsed_symbol_expression_parse(
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
 
-	rlc_parsed_symbol_expression_create(out);
+	rlc_parsed_symbol_expression_create(
+		out,
+		parser->fIndex);
 
-	return rlc_parsed_symbol_parse(
+	if(!rlc_parsed_symbol_parse(
 		&out->fSymbol,
-		parser);
+		parser))
+	{
+		rlc_parsed_symbol_expression_destroy(out);
+		return 0;
+	}
+
+	RLC_BASE_CAST(out, RlcParsedExpression)->fLast =
+		rlc_parser_data_consumed_index(parser);
+
+	return 1;
 }

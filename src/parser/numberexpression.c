@@ -12,7 +12,8 @@ void rlc_parsed_number_expression_create(
 
 	rlc_parsed_expression_create(
 		RLC_BASE_CAST(this, RlcParsedExpression),
-		kRlcParsedNumberExpression);
+		kRlcParsedNumberExpression,
+		token_index);
 
 	this->fNumberToken = token_index;
 }

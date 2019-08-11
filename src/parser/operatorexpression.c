@@ -4,13 +4,15 @@
 #include "../malloc.h"
 
 void rlc_parsed_operator_expression_create(
-	struct RlcParsedOperatorExpression * this)
+	struct RlcParsedOperatorExpression * this,
+	size_t first)
 {
 	RLC_DASSERT(this != NULL);
 
 	rlc_parsed_expression_create(
 		RLC_BASE_CAST(this,RlcParsedExpression),
-		kRlcParsedOperatorExpression);
+		kRlcParsedOperatorExpression,
+		first);
 
 	this->fExpressions = NULL;
 	this->fExpressionCount = 0;
@@ -115,13 +117,14 @@ static size_t const k_binary_groups[] = {
 };
 
 static struct RlcParsedOperatorExpression * make_operator_expression(
-	enum RlcOperator type)
+	enum RlcOperator type,
+	size_t first)
 {
 	struct RlcParsedOperatorExpression * out = NULL;
 	rlc_malloc(
 		(void**)&out,
 		sizeof(struct RlcParsedOperatorExpression));
-	rlc_parsed_operator_expression_create(out);
+	rlc_parsed_operator_expression_create(out, first);
 	out->fOperator = type;
 
 	return out;
@@ -153,7 +156,7 @@ static struct RlcParsedOperatorExpression * make_binary_expression(
 		return NULL;
 	}
 
-	struct RlcParsedOperatorExpression * out = make_operator_expression(type);
+	struct RlcParsedOperatorExpression * out = make_operator_expression(type, lhs->fFirst);
 	rlc_parsed_operator_expression_add(out, lhs);
 	rlc_parsed_operator_expression_add(out, rhs);
 
@@ -162,12 +165,14 @@ static struct RlcParsedOperatorExpression * make_binary_expression(
 
 static struct RlcParsedOperatorExpression * make_unary_expression(
 	enum RlcOperator type,
-	struct RlcParsedExpression * operand)
+	struct RlcParsedExpression * operand,
+	size_t first,
+	size_t last)
 {
 	if(!operand)
 		return NULL;
 
-	struct RlcParsedOperatorExpression * out = make_operator_expression(type);
+	struct RlcParsedOperatorExpression * out = make_operator_expression(type, first);
 	rlc_parsed_operator_expression_add(out, operand);
 
 	return out;
@@ -214,7 +219,9 @@ static struct RlcParsedExpression * parse_postfix(
 					struct RlcParsedOperatorExpression * temp =
 						make_unary_expression(
 							k_unary_postfix[i].fOp,
-							out);
+							out,
+							out->fFirst,
+							rlc_parser_data_consumed_index(parser));
 					out = RLC_BASE_CAST(
 						temp,
 						RlcParsedExpression);
@@ -268,7 +275,9 @@ static struct RlcParsedExpression * parse_postfix(
 			struct RlcParsedOperatorExpression * temp =
 				make_unary_expression(
 					kCall,
-					out);
+					out,
+					out->fFirst,
+					0);
 
 			out = RLC_BASE_CAST(temp, RlcParsedExpression);
 
@@ -303,6 +312,8 @@ static struct RlcParsedExpression * parse_postfix(
 						struct RlcParsedOperatorExpression),
 					arg);
 			}
+
+			out->fLast = rlc_parser_data_consumed_index(parser);
 
 			++postfix;
 			continue;
@@ -365,7 +376,6 @@ static struct RlcParsedExpression * parse_prefix(
 	// track the beginning index of the expression.
 	size_t const first = rlc_parser_data_matched_index(parser);
 
-	struct RlcParsedExpression * out = NULL;
 	for(size_t i = _countof(k_unary); i--;)
 	{
 		if(rlc_parser_data_consume(
@@ -375,7 +385,9 @@ static struct RlcParsedExpression * parse_prefix(
 			struct RlcParsedOperatorExpression * unary = NULL;
 			if(!(unary = make_unary_expression(
 					k_unary[i].fOp,
-					parse_prefix(parser))))
+					parse_prefix(parser),
+					first,
+					0)))
 			{
 				rlc_parser_data_add_error(
 					parser,
@@ -383,9 +395,9 @@ static struct RlcParsedExpression * parse_prefix(
 				return NULL;
 			}
 
-			out = RLC_BASE_CAST(unary, RlcParsedExpression);
-			out->fFirst = first;
+			struct RlcParsedExpression * out = RLC_BASE_CAST(unary, RlcParsedExpression);
 			out->fLast = rlc_parser_data_consumed_index(parser);
+
 			return out;
 		}
 	}
@@ -525,4 +537,5 @@ void rlc_parsed_operator_expression_add(
 		sizeof(struct RlcParsedExpression*) * ++this->fExpressionCount);
 
 	this->fExpressions[this->fExpressionCount-1] = expression;
+	RLC_BASE_CAST(this, RlcParsedExpression)->fLast = expression->fLast;
 }

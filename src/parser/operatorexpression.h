@@ -54,9 +54,12 @@ struct RlcParsedOperatorExpression
 @memberof RlcParsedOperatorExpression
 @param[out] this:
 	The operator expression to create.
-	@dassert @nonnull */
+	@dassert @nonnull
+@param[in] first:
+	The first token of the expression. */
 void rlc_parsed_operator_expression_create(
-	struct RlcParsedOperatorExpression * this);
+	struct RlcParsedOperatorExpression * this,
+	size_t first);
 /** Destroys an operator expression.
 @memberof RlcParsedOperatorExpression
 @param[out] this:

@@ -61,6 +61,7 @@ enum RlcParseError
 	kRlcParseErrorExpectedSymbolChildExpression,
 	kRlcParseErrorExpectedTypeNameExpression,
 	kRlcParseErrorExpectedOperatorExpression,
+	kRlcParseErrorExpectedThisExpression,
 
 	kRlcParseErrorExpectedArgument,
 
@@ -100,6 +101,7 @@ enum RlcParseError
 	kRlcParseErrorExpectedReturnStatement,
 	kRlcParseErrorExpectedSwitchStatement,
 	kRlcParseErrorExpectedCaseStatement,
+	kRlcParseErrorExpectedBreakStatement,
 
 	kRlcParseErrorExpectedControlLabel,
 	kRlcParseErrorUnexpectedControlLabel,

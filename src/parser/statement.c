@@ -7,6 +7,7 @@
 #include "variablestatement.h"
 #include "returnstatement.h"
 #include "switchstatement.h"
+#include "breakstatement.h"
 
 #include "../assert.h"
 #include "../malloc.h"
@@ -64,7 +65,11 @@ void rlc_parsed_statement_destroy_virtual(
 			(thiscall_t)&rlc_parsed_switch_statement_destroy,
 			RLC_DERIVE_OFFSET(RlcParsedStatement, struct RlcParsedSwitchStatement)
 		}, {
-			(thiscall_t)&rlc_parsed_case_statement_destroy, RLC_DERIVE_OFFSET(RlcParsedStatement, struct RlcParsedCaseStatement)
+			(thiscall_t)&rlc_parsed_case_statement_destroy,
+			RLC_DERIVE_OFFSET(RlcParsedStatement, struct RlcParsedCaseStatement)
+		}, {
+			(thiscall_t)&rlc_parsed_break_statement_destroy,
+			RLC_DERIVE_OFFSET(RlcParsedStatement, struct RlcParsedBreakStatement)
 		}
 	};
 
@@ -86,6 +91,7 @@ union RlcStatementStorage
 	struct RlcParsedReturnStatement fRlcParsedReturnStatement;
 	struct RlcParsedSwitchStatement fRlcParsedSwitchStatement;
 	struct RlcParsedCaseStatement fRlcParsedCaseStatement;
+	struct RlcParsedBreakStatement fRlcParsedBreakStatement;
 };
 
 struct RlcParsedStatement * rlc_parsed_statement_parse(
@@ -122,6 +128,7 @@ struct RlcParsedStatement * rlc_parsed_statement_parse(
 		ENTRY(RlcParsedVariableStatement, &rlc_parsed_variable_statement_parse, kRlcParseErrorExpectedVariableStatement),
 		ENTRY(RlcParsedSwitchStatement, &rlc_parsed_switch_statement_parse, kRlcParseErrorExpectedSwitchStatement),
 		ENTRY(RlcParsedCaseStatement, &rlc_parsed_case_statement_parse, kRlcParseErrorExpectedCaseStatement),
+		ENTRY(RlcParsedBreakStatement, &rlc_parsed_break_statement_parse, kRlcParseErrorExpectedBreakStatement),
 		// expression has to come after variable.
 		ENTRY(RlcParsedExpressionStatement, &rlc_parsed_expression_statement_parse, kRlcParseErrorExpectedExpressionStatement),
 	};

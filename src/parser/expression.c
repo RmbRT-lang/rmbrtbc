@@ -5,6 +5,7 @@
 #include "stringexpression.h"
 #include "typenameexpression.h"
 #include "operatorexpression.h"
+#include "thisexpression.h"
 
 #include "../assert.h"
 #include "../malloc.h"
@@ -13,13 +14,14 @@
 
 void rlc_parsed_expression_create(
 	struct RlcParsedExpression * this,
-	enum RlcParsedExpressionType type)
+	enum RlcParsedExpressionType type,
+	size_t first)
 {
 	RLC_DASSERT(this != NULL);
 	RLC_DASSERT(RLC_IN_ENUM(type, RlcParsedExpressionType));
 
 	RLC_DERIVING_TYPE(this) = type;
-	this->fFirst = 0;
+	this->fFirst = first;
 	this->fLast = 0;
 }
 
@@ -37,7 +39,8 @@ void rlc_parsed_expression_destroy_virtual(
 		(destructor_t)&rlc_parsed_number_expression_destroy,
 		(destructor_t)&rlc_parsed_string_expression_destroy,
 		(destructor_t)&rlc_parsed_type_name_expression_destroy,
-		(destructor_t)&rlc_parsed_operator_expression_destroy
+		(destructor_t)&rlc_parsed_operator_expression_destroy,
+		(destructor_t)&rlc_this_expression_destroy
 	};
 
 	static_assert(RLC_COVERS_ENUM(k_vtable, RlcParsedExpressionType), "ill sized vtable.");
@@ -48,7 +51,8 @@ void rlc_parsed_expression_destroy_virtual(
 		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcParsedNumberExpression),
 		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcParsedStringExpression),
 		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcParsedTypeNameExpression),
-		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcParsedOperatorExpression)
+		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcParsedOperatorExpression),
+		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcThisExpression)
 	};
 
 	static_assert(RLC_COVERS_ENUM(k_offsets, RlcParsedExpressionType), "ill sized offset table.");
@@ -117,7 +121,8 @@ struct RlcParsedExpression * rlc_parsed_expression_parse(
 		ENTRY(RlcParsedStringExpression, &rlc_parsed_string_expression_parse, kRlcParseErrorExpectedStringExpression, 0),
 		ENTRY(RlcParsedTypeNameExpression, &rlc_parsed_type_name_expression_parse, kRlcParseErrorExpectedTypeNameExpression, 0),
 		ENTRY(RlcParsedSymbolExpression, &rlc_parsed_symbol_expression_parse, kRlcParseErrorExpectedSymbolExpression, 0),
-		ENTRY(RlcParsedSymbolChildExpression, &rlc_parsed_symbol_child_expression_parse, kRlcParseErrorExpectedSymbolChildExpression, 0)
+		ENTRY(RlcParsedSymbolChildExpression, &rlc_parsed_symbol_child_expression_parse, kRlcParseErrorExpectedSymbolChildExpression, 0),
+		ENTRY(RlcThisExpression, &rlc_this_expression_parse, kRlcParseErrorExpectedThisExpression, 0)
 	};
 
 	static_assert(RLC_COVERS_ENUM(k_parse_lookup, RlcParsedExpressionType), "ill-sized parse table.");
