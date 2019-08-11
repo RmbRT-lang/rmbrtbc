@@ -3,6 +3,7 @@
 #ifndef __rlc_parser_loopstatement_h_defined
 #define __rlc_parser_loopstatement_h_defined
 
+#include "controllabel.h"
 #include "statement.h"
 #include "parser.h"
 #include "variable.h"
@@ -20,10 +21,8 @@ struct RlcParsedLoopStatement
 {
 	RLC_DERIVE(struct,RlcParsedStatement);
 
-	/** The loop statement's label, if any. */
-	size_t fLabelToken;
-	/** Whether the loop statement has a label. */
-	int fHasLabel;
+	/** The loop's control label. */
+	struct RlcControlLabel fLabel;
 	/** Whether the condition is checked before or after the loop body. */
 	int fIsPostCondition;
 	/** Whether the condition is a variable declaration or an expression. */

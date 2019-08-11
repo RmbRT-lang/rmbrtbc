@@ -12,7 +12,7 @@ void rlc_parsed_loop_statement_create(
 		RLC_BASE_CAST(this, RlcParsedStatement),
 		kRlcParsedLoopStatement);
 
-	this->fHasLabel = 0;
+	rlc_control_label_create(&this->fLabel);
 	this->fIsVariableInitial = 0;
 	this->fIsVariableCondition = 0;
 	this->fCondition.fExpression = NULL;
@@ -116,18 +116,12 @@ static int parse_for_head(
 
 	if(!out->fIsPostCondition)
 	{
-		if(out->fHasLabel = rlc_parser_data_consume(
-			parser,
-			kRlcTokIdentifier))
+		if(!rlc_control_label_parse(
+			&out->fLabel,
+			parser))
 		{
-			out->fLabelToken = rlc_parser_data_consumed_index(parser);
-			if(!rlc_parser_data_consume(
-				parser,
-				kRlcTokColon))
-			{
-				error_code = kRlcParseErrorExpectedColon;
-				goto failure;
-			}
+			error_code = kRlcParseErrorExpectedControlLabel;
+			goto failure;
 		}
 	}
 
@@ -215,18 +209,12 @@ static int parse_while_head(
 
 	if(!out->fIsPostCondition)
 	{
-		if(out->fHasLabel = rlc_parser_data_consume(
-			parser,
-			kRlcTokIdentifier))
+		if(!rlc_control_label_parse(
+			&out->fLabel,
+			parser))
 		{
-			out->fLabelToken = rlc_parser_data_consumed_index(parser);
-			if(!rlc_parser_data_consume(
-				parser,
-				kRlcTokColon))
-			{
-				error_code = kRlcParseErrorExpectedColon;
-				goto failure;
-			}
+			error_code = kRlcParseErrorExpectedControlLabel;
+			goto failure;
 		}
 	}
 
@@ -302,15 +290,12 @@ int rlc_parsed_loop_statement_parse(
 		parser,
 		kRlcTokDo))
 	{
-		if(rlc_parser_data_match_ahead(
-			parser,
-			kRlcTokColon)
-		&& (out->fHasLabel = rlc_parser_data_consume(
-			parser,
-			kRlcTokIdentifier)))
+		if(!rlc_control_label_parse(
+			&out->fLabel,
+			parser))
 		{
-			out->fLabelToken = rlc_parser_data_consumed_index(parser);
-			rlc_parser_data_next(parser);
+			error_code = kRlcParseErrorExpectedControlLabel;
+			goto failure;
 		}
 
 		if(!rlc_parser_data_consume(
