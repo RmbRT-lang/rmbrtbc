@@ -10,7 +10,6 @@ char const * rlc_parse_error_msg(
 	static char * error_msg[] = {
 		"Expected Identifier",
 		"Expected Type Name",
-		"Forbidden Type Qualifier After Dynamic Indirection",
 		"Expected Type Modifier",
 		"Forbidden Dynamic Indirection",
 		"Expected Function Signature",
@@ -25,6 +24,7 @@ char const * rlc_parse_error_msg(
 		"Expected ']'",
 		"Expected ':='",
 		"Expected ':=' or ':'",
+		"Expected '::='",
 		"Forbidden '::='",
 		"Expected '('",
 		"Expected ')'",

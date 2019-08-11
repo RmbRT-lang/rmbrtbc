@@ -39,11 +39,14 @@ enum RlcTypeIndirection
 @param[in,out] parser:
 	The parser data.
 	@dassert @nonnull
+@param[in] allow_dynamic:
+	Whether to allow dynamic indirections.
 @return
 	Whether any tokens were consumed. */
 int rlc_type_indirection_parse(
 	enum RlcTypeIndirection * out,
-	struct RlcParserData * parser);
+	struct RlcParserData * parser,
+	int allow_dynamic);
 
 /** CV qualifier flag enum. */
 enum RlcTypeQualifier
@@ -83,10 +86,21 @@ struct RlcTypeModifier
 
 /** Parses a type modifier.
 @memberof RlcParserData
-@relates RlcTypeModifier */
+@relates RlcTypeModifier
+@param[out] out:
+	The type modifier to parse.
+	@dassert @nonnull
+@param[in,out] parser:
+	The parser data.
+	@dassert @nonnull
+@param[in] allow_dynamic:
+	Whether to allow dynamic indirections.
+@return
+	Whether it succeeded.*/
 int rlc_type_modifier_parse(
 	struct RlcTypeModifier * out,
-	struct RlcParserData * parser);
+	struct RlcParserData * parser,
+	int allow_dynamic);
 
 /** Controls what value the type name has. */
 enum RlcParsedTypeNameValue

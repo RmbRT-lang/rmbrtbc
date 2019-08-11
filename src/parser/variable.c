@@ -18,9 +18,7 @@ void rlc_parsed_variable_create(
 	rlc_template_decl_create(
 		&this->fTemplates);
 
-	rlc_parsed_type_name_create(
-		&this->fType);
-
+	this->fHasType = 0;
 	this->fInitArgs = NULL;
 	this->fInitArgCount = 0;
 }
@@ -34,7 +32,8 @@ void rlc_parsed_variable_destroy(
 		RLC_BASE_CAST(this, RlcParsedScopeEntry));
 
 	rlc_template_decl_destroy(&this->fTemplates);
-	rlc_parsed_type_name_destroy(&this->fType);
+	if(this->fHasType)
+		rlc_parsed_type_name_destroy(&this->fType);
 
 	if(this->fInitArgs)
 	{
@@ -88,46 +87,74 @@ int rlc_parsed_variable_parse(
 		goto failure;
 	}
 
+	int has_type = 1;
 	int has_name = 0;
-	int is_shortcut = 0;
+	size_t name = parser->fIndex;
 
-	// "name: type" style variable?
+	size_t const before_name = parser->fIndex;
 	if(rlc_parser_data_match(
 		parser,
-		kRlcTokIdentifier)
-	&& (rlc_parser_data_match_ahead(
-		parser,
-		kRlcTokColon)
-	|| (is_shortcut = 0 != rlc_parser_data_match_ahead(
-		parser,
-		kRlcTokDoubleColonEqual))))
+		kRlcTokIdentifier))
 	{
-		has_name = 1;
-
-		rlc_parsed_scope_entry_add_name(
-			RLC_BASE_CAST(out, RlcParsedScopeEntry),
-			rlc_parser_data_matched_index(parser));
-
-		rlc_parser_data_next(parser);
-		if(!allow_initialiser && is_shortcut)
+		// "name: type" style variable?
+		if(rlc_parser_data_match_ahead(
+			parser,
+			kRlcTokColon))
 		{
-			error_code = kRlcParseErrorForbiddenDoubleColonEqual;
-			goto failure;
+			has_name = 1;
+			rlc_parser_data_next(parser);
+			rlc_parser_data_next(parser);
+		} else if(allow_initialiser)
+		{
+			rlc_parser_data_next(parser);
+			enum RlcTypeQualifier qualifier;
+			int has_qualifier = rlc_type_qualifier_parse(
+				&qualifier,
+				parser);
+
+			if(parser->fErrorCount)
+			{
+				error_code = kRlcParseErrorExpectedTypeModifier;
+				goto failure;
+			}
+
+			// "name ::=" style variable?
+			if(rlc_parser_data_consume(
+				parser,
+				kRlcTokDoubleColonEqual))
+			{
+				has_name = 1;
+				has_type = 0;
+				out->fHasType = 0;
+				out->fTypeQualifier = qualifier;
+			} else if(has_qualifier)
+			{
+				error_code = kRlcParseErrorExpectedDoubleColonEqual;
+				goto failure;
+			} else
+			{
+				parser->fIndex = before_name;
+				parser->fLatestIndex = before_name;
+			}
 		}
-		rlc_parser_data_next(parser);
 	} // If !isArgument, "name: type" is expected.
-	else if(needs_name)
+	if(!has_name
+	&& needs_name)
 	{
 		goto nonfatal_failure;
 	}
 
-	out->fHasType = !is_shortcut;
+	if(has_name)
+		rlc_parsed_scope_entry_add_name(
+			RLC_BASE_CAST(out, RlcParsedScopeEntry),
+			name);
 
-	if(is_shortcut)
+	if(!has_type)
 	{
 		struct RlcParsedExpression * init = rlc_parsed_expression_parse(
 			parser,
-			RLC_ALL_FLAGS(RlcParsedExpressionType));
+			RLC_ALL_FLAGS(RlcParsedExpressionType)
+			&~RLC_FLAG(kRlcParsedTypeNameExpression));
 		if(!init)
 		{
 			error_code = kRlcParseErrorExpectedExpression;
@@ -149,6 +176,8 @@ int rlc_parsed_variable_parse(
 				goto nonfatal_failure;
 			}
 		}
+		out->fHasType = 1;
+
 		if(allow_initialiser)
 		{
 			int isParenthese = 0;
@@ -203,6 +232,7 @@ int rlc_parsed_variable_parse(
 	&& rlc_template_decl_exists(&out->fTemplates))
 	{
 		parser->fIndex = start_index;
+		parser->fLatestIndex = start_index;
 		error_code = kRlcParseErrorForbiddenTemplateDeclaration;
 		goto failure;
 	}

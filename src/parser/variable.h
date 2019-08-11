@@ -27,8 +27,12 @@ struct RlcParsedVariable
 	struct RlcTemplateDecl fTemplates;
 	/** Whether the variable has an explicit type. */
 	int fHasType;
-	/** The variable type. */
-	struct RlcParsedTypeName fType;
+	union {
+		/** The variable type. */
+		struct RlcParsedTypeName fType;
+		/** The type qualifier, if no explicit type. */
+		enum RlcTypeQualifier fTypeQualifier;
+	};
 	/** The initialising arguments, or null. */
 	struct RlcParsedExpression ** fInitArgs;
 	/** The initialising argument count. */

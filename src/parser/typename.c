@@ -4,7 +4,8 @@
 
 int rlc_type_indirection_parse(
 	enum RlcTypeIndirection * out,
-	struct RlcParserData * parser)
+	struct RlcParserData * parser,
+	int allow_dynamic)
 {
 	RLC_DASSERT(parser != NULL);
 	RLC_DASSERT(out != NULL);
@@ -24,15 +25,23 @@ int rlc_type_indirection_parse(
 		kRlcTokAt))
 	{
 		*out = kRlcTypeIndirectionFuture;
-	} else if(rlc_parser_data_consume(
+	} else if(rlc_parser_data_match(
 		parser,
 		kRlcTokTripleDotExclamationMark))
 	{
+		if(!allow_dynamic)
+			goto forbidden_dynamic;
+
+		rlc_parser_data_next(parser);
 		*out = kRlcTypeIndirectionExpectDynamic;
-	} else if(rlc_parser_data_consume(
+	} else if(rlc_parser_data_match(
 		parser,
 		kRlcTokTripleDot))
 	{
+		if(!allow_dynamic)
+			goto forbidden_dynamic;
+
+		rlc_parser_data_next(parser);
 		*out = kRlcTypeIndirectionMaybeDynamic;
 	} else
 	{
@@ -40,6 +49,10 @@ int rlc_type_indirection_parse(
 		return 0;
 	}
 	return 1;
+
+forbidden_dynamic:
+	rlc_parser_data_add_error(parser, kRlcParseErrorForbiddenDynamic);
+	return 0;
 }
 
 int rlc_type_qualifier_parse(
@@ -93,7 +106,8 @@ int rlc_type_qualifier_parse(
 
 int rlc_type_modifier_parse(
 	struct RlcTypeModifier * out,
-	struct RlcParserData * parser)
+	struct RlcParserData * parser,
+	int allow_dynamic)
 {
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
@@ -101,25 +115,19 @@ int rlc_type_modifier_parse(
 	size_t const start = parser->fIndex;
 	rlc_type_indirection_parse(
 		&out->fTypeIndirection,
-		parser);
+		parser,
+		allow_dynamic);
 
-	size_t const error_loc = parser->fIndex;
-	int qualifier = rlc_type_qualifier_parse(
+	if(parser->fErrorCount)
+	{
+		return 0;
+	}
+
+	rlc_type_qualifier_parse(
 		&out->fTypeQualifier,
 		parser);
 
-	if(qualifier
-	&& (out->fTypeIndirection == kRlcTypeIndirectionExpectDynamic
-	|| out->fTypeIndirection == kRlcTypeIndirectionMaybeDynamic))
-	{
-		parser->fIndex = error_loc;
-		rlc_parser_data_add_error(
-			parser,
-			kRlcParseErrorForbiddenTypeQualifier);
-		parser->fIndex = start;
-		return 0;
-	}
-	return 1;
+	return !parser->fErrorCount;
 }
 
 void rlc_parsed_type_name_destroy(
@@ -229,26 +237,30 @@ int rlc_parsed_type_name_parse(
 
 	struct RlcTypeModifier modifier;
 
-	int dynamic = 0;
+	int allow_dynamic = 1;
 
 	for(;;)
 	{
 		if(!rlc_type_modifier_parse(
 			&modifier,
-			parser))
+			parser,
+			allow_dynamic))
 		{
 			error_code = kRlcParseErrorExpectedTypeModifier;
 			goto failure;
 		}
 
-		int old_dynamic = dynamic;
-		dynamic = modifier.fTypeIndirection == kRlcTypeIndirectionExpectDynamic
-			|| modifier.fTypeIndirection == kRlcTypeIndirectionMaybeDynamic;
-
-		if(old_dynamic && dynamic)
+		switch(modifier.fTypeIndirection)
 		{
-			error_code = kRlcParseErrorForbiddenDynamic;
-			goto failure;
+		case kRlcTypeIndirectionExpectDynamic:
+		case kRlcTypeIndirectionMaybeDynamic:
+			allow_dynamic = 0;
+			break;
+		case kRlcTypeIndirectionPlain:
+			{ ; } break;
+		default:
+			allow_dynamic = 1;
+			break;
 		}
 
 		if(modifier.fTypeIndirection == kRlcTypeIndirectionPlain
