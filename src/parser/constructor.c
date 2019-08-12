@@ -15,7 +15,7 @@ void rlc_parsed_constructor_create(
 		visibility,
 		index);
 
-	rlc_template_decl_create(&this->fTemplates);
+	rlc_parsed_template_decl_create(&this->fTemplates);
 
 	this->fArguments = NULL;
 	this->fArgumentCount = 0;
@@ -33,7 +33,7 @@ void rlc_parsed_constructor_destroy(
 
 	rlc_parsed_member_destroy_base(RLC_BASE_CAST(this, RlcParsedMember));
 
-	rlc_template_decl_destroy(&this->fTemplates);
+	rlc_parsed_template_decl_destroy(&this->fTemplates);
 
 	if(this->fArguments)
 	{
@@ -85,7 +85,7 @@ int rlc_parsed_constructor_parse(
 
 	enum RlcParseError error_code;
 
-	if(!rlc_template_decl_parse(
+	if(!rlc_parsed_template_decl_parse(
 		&out->fTemplates,
 		parser))
 	{

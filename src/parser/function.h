@@ -34,7 +34,7 @@ struct RlcParsedFunction
 	size_t fArgumentCount;
 
 	/** The template arguments. */
-	struct RlcTemplateDecl fTemplates;
+	struct RlcParsedTemplateDecl fTemplates;
 
 	/** Whether the function is inline. */
 	int fIsInline;

@@ -59,7 +59,7 @@ void rlc_parsed_function_destroy(
 		}
 	}
 
-	rlc_template_decl_destroy(&this->fTemplates);
+	rlc_parsed_template_decl_destroy(&this->fTemplates);
 
 	rlc_parsed_scope_entry_destroy_base(
 		RLC_BASE_CAST(this, RlcParsedScopeEntry));
@@ -101,7 +101,7 @@ int rlc_parsed_function_parse(
 		out,
 		parser->fIndex);
 
-	if(!rlc_template_decl_parse(
+	if(!rlc_parsed_template_decl_parse(
 		&out->fTemplates,
 		parser))
 	{

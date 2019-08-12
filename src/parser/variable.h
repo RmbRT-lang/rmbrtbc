@@ -24,7 +24,7 @@ struct RlcParsedVariable
 	RLC_DERIVE(struct, RlcParsedScopeEntry);
 
 	/** The template declaration. */
-	struct RlcTemplateDecl fTemplates;
+	struct RlcParsedTemplateDecl fTemplates;
 	/** Whether the variable has an explicit type. */
 	int fHasType;
 	union {

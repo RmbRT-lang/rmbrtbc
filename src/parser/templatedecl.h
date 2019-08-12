@@ -13,77 +13,86 @@ extern "C" {
 #endif
 
 /** The type of a template argument. */
-enum RlcTemplateDeclType
+enum RlcParsedTemplateDeclType
 {
 	/** Argument is a type. */
-	kRlcTemplateDeclTypeType,
+	kRlcParsedTemplateDeclTypeType,
 	/** Argument is a number. */
-	kRlcTemplateDeclTypeNumber
+	kRlcParsedTemplateDeclTypeNumber,
+	/** Argument is a value. */
+	kRlcParsedTemplateDeclTypeValue,
+
+	RLC_ENUM_END(RlcParsedTemplateDeclType)
 };
 
 /** Single template argument declaration. */
-struct RlcTemplateDeclChild
+struct RlcParsedTemplateDeclChild
 {
-	/** Whether this template declaration's type is a type expression. */
-	int fIsTypeName;
-	/** Argument type. */
-	union {
-		struct RlcParsedTypeName fTypeName;
-		enum RlcTemplateDeclType fNativeType;
-	} fType;
+	/** The template argument's type. */
+	enum RlcParsedTemplateDeclType fType;
+	/** If the template argument is a value, then this is the value's type. */
+	struct RlcParsedTypeName fValueType;
 	/** The name of the argument. */
 	size_t fNameToken;
 };
 
 /** Multiple template arguemnt declaration. */
-struct RlcTemplateDecl
+struct RlcParsedTemplateDecl
 {
 	/** The arguments. */
-	struct RlcTemplateDeclChild * fChildren;
+	struct RlcParsedTemplateDeclChild * fChildren;
 	/** The argument count. */
 	size_t fChildCount;
 };
 
 /** Initialises a template argument declaraion to be empty.
-@memberof RlcTemplateDecl
+@memberof RlcParsedTemplateDecl
 
 @param[in] this:
 	The template argument declaration to initialise. */
-void rlc_template_decl_create(
-	struct RlcTemplateDecl * this);
+void rlc_parsed_template_decl_create(
+	struct RlcParsedTemplateDecl * this);
 
 /** Adds an argument to a template argument declaration.
-@memberof RlcTemplateDecl
+@memberof RlcParsedTemplateDecl
 
 @param[in] this:
 	The template argument declaration to add an argument to.
 @param[in] child:
 	The template argument to add. */
-void rlc_template_decl_add_child(
-	struct RlcTemplateDecl * this,
-	struct RlcTemplateDeclChild const * child);
+void rlc_parsed_template_decl_add_child(
+	struct RlcParsedTemplateDecl * this,
+	struct RlcParsedTemplateDeclChild const * child);
 
 /** Destroys a template argument declaration.
-@memberof RlcTemplateDecl
+@memberof RlcParsedTemplateDecl
 
 @param[in] this:
 	The template argument declaration to destroy. */
-void rlc_template_decl_destroy(
-	struct RlcTemplateDecl * this);
+void rlc_parsed_template_decl_destroy(
+	struct RlcParsedTemplateDecl * this);
 
 /** Parses a template declaration. */
-int rlc_template_decl_parse(
-	struct RlcTemplateDecl * decl,
+int rlc_parsed_template_decl_parse(
+	struct RlcParsedTemplateDecl * decl,
 	struct RlcParserData * parser);
 
 /** Checks whether a template declaration has entries.
-@memberof RlcTemplateDecl
+@memberof RlcParsedTemplateDecl
 @param[in] this:
 	The template declaration to check.
 @return
 	Whether the template declaration is empty. */
-static inline int rlc_template_decl_exists(
-	struct RlcTemplateDecl const * this);
+static inline int rlc_parsed_template_decl_exists(
+	struct RlcParsedTemplateDecl const * this);
+
+/** Destroys a template argument declaration child.
+@memberof RlcParsedTemplateDeclChild
+
+@param[in] this:
+	The template argument declaration child to destroy. */
+void rlc_parsed_template_decl_child_destroy(
+	struct RlcParsedTemplateDeclChild * this);
 
 #include "templatedecl.inl"
 

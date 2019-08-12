@@ -24,7 +24,7 @@ struct RlcParsedRawtype
 	struct RlcParsedExpression * fSize;
 
 	/** The rawtype's template arguments. */
-	struct RlcTemplateDecl fTemplates;
+	struct RlcParsedTemplateDecl fTemplates;
 
 	/** The rawtype's member list. */
 	struct RlcParsedMemberList fMembers;

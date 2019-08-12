@@ -34,7 +34,7 @@ int rlc_parsed_typedef_parse(
 		goto failure;
 	}
 
-	if(!rlc_template_decl_parse(
+	if(!rlc_parsed_template_decl_parse(
 		&out->fTemplates,
 		parser))
 	{
@@ -86,7 +86,7 @@ void rlc_parsed_typedef_create(
 		kRlcParsedTypedef,
 		start_index);
 
-	rlc_template_decl_create(
+	rlc_parsed_template_decl_create(
 		&this->fTemplates);
 
 	rlc_parsed_type_name_create(
@@ -101,7 +101,7 @@ void rlc_parsed_typedef_destroy(
 	rlc_parsed_type_name_destroy(
 		&this->fType);
 
-	rlc_template_decl_destroy(
+	rlc_parsed_template_decl_destroy(
 		&this->fTemplates);
 
 	rlc_parsed_scope_entry_destroy_base(

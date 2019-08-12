@@ -13,7 +13,7 @@ void rlc_parsed_class_create(
 		kRlcParsedClass,
 		start_index);
 
-	rlc_template_decl_create(&this->fTemplateDecl);
+	rlc_parsed_template_decl_create(&this->fTemplateDecl);
 
 	rlc_parsed_member_list_create(&this->fMembers);
 
@@ -27,7 +27,7 @@ void rlc_parsed_class_destroy(
 
 	rlc_parsed_scope_entry_destroy_base(RLC_BASE_CAST(this, RlcParsedScopeEntry));
 
-	rlc_template_decl_destroy(&this->fTemplateDecl);
+	rlc_parsed_template_decl_destroy(&this->fTemplateDecl);
 
 	rlc_parsed_member_list_destroy(&this->fMembers);
 
@@ -52,7 +52,7 @@ int rlc_parsed_class_parse(
 		out,
 		start_index);
 
-	if(!rlc_template_decl_parse(
+	if(!rlc_parsed_template_decl_parse(
 		&out->fTemplateDecl,
 		parser))
 	{

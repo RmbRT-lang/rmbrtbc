@@ -24,7 +24,7 @@ struct RlcParsedStruct
 	RLC_DERIVE(struct,RlcParsedScopeEntry);
 
 	/** The template declaration. */
-	struct RlcTemplateDecl fTemplates;
+	struct RlcParsedTemplateDecl fTemplates;
 
 	/** The struct's members. */
 	struct RlcParsedMemberList fMembers;

@@ -21,7 +21,7 @@ struct RlcParsedTypedef
 	RLC_DERIVE(struct,RlcParsedScopeEntry);
 
 	/** The template declaration. */
-	struct RlcTemplateDecl fTemplates;
+	struct RlcParsedTemplateDecl fTemplates;
 	/** The type name that has been aliased. */
 	struct RlcParsedTypeName fType;
 };

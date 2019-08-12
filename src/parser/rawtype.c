@@ -16,7 +16,7 @@ void rlc_parsed_rawtype_create(
 
 	this->fSize = NULL;
 
-	rlc_template_decl_create(
+	rlc_parsed_template_decl_create(
 		&this->fTemplates);
 }
 
@@ -36,7 +36,7 @@ void rlc_parsed_rawtype_destroy(
 	rlc_parsed_scope_entry_destroy_base(
 		RLC_BASE_CAST(this, RlcParsedScopeEntry));
 
-	rlc_template_decl_destroy(
+	rlc_parsed_template_decl_destroy(
 		&this->fTemplates);
 }
 
@@ -54,7 +54,7 @@ int rlc_parsed_rawtype_parse(
 		out,
 		start_index);
 
-	if(!rlc_template_decl_parse(
+	if(!rlc_parsed_template_decl_parse(
 		&out->fTemplates,
 		parser))
 	{

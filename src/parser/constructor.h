@@ -21,7 +21,7 @@ struct RlcParsedConstructor
 	RLC_DERIVE(struct,RlcParsedMember);
 
 	/** The template parameters. */
-	struct RlcTemplateDecl fTemplates;
+	struct RlcParsedTemplateDecl fTemplates;
 
 	/** The arguments. */
 	struct RlcParsedVariable * fArguments;

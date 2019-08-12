@@ -15,7 +15,7 @@ void rlc_parsed_variable_create(
 		kRlcParsedVariable,
 		start_index);
 
-	rlc_template_decl_create(
+	rlc_parsed_template_decl_create(
 		&this->fTemplates);
 
 	this->fHasType = 0;
@@ -31,7 +31,7 @@ void rlc_parsed_variable_destroy(
 	rlc_parsed_scope_entry_destroy_base(
 		RLC_BASE_CAST(this, RlcParsedScopeEntry));
 
-	rlc_template_decl_destroy(&this->fTemplates);
+	rlc_parsed_template_decl_destroy(&this->fTemplates);
 	if(this->fHasType)
 		rlc_parsed_type_name_destroy(&this->fType);
 
@@ -79,7 +79,7 @@ int rlc_parsed_variable_parse(
 		out,
 		start_index);
 
-	if(!rlc_template_decl_parse(
+	if(!rlc_parsed_template_decl_parse(
 		&out->fTemplates,
 		parser))
 	{
@@ -229,7 +229,7 @@ int rlc_parsed_variable_parse(
 	}
 
 	if(!allow_templates
-	&& rlc_template_decl_exists(&out->fTemplates))
+	&& rlc_parsed_template_decl_exists(&out->fTemplates))
 	{
 		parser->fIndex = start_index;
 		parser->fLatestIndex = start_index;

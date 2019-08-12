@@ -3,8 +3,8 @@
 #include "../malloc.h"
 #include "../assert.h"
 
-void rlc_template_decl_create(
-	struct RlcTemplateDecl * this)
+void rlc_parsed_template_decl_create(
+	struct RlcParsedTemplateDecl * this)
 {
 	RLC_DASSERT(this != NULL);
 
@@ -12,34 +12,36 @@ void rlc_template_decl_create(
 	this->fChildCount = 0;
 }
 
-void rlc_template_decl_add_child(
-	struct RlcTemplateDecl * this,
-	struct RlcTemplateDeclChild const * child)
+void rlc_parsed_template_decl_add_child(
+	struct RlcParsedTemplateDecl * this,
+	struct RlcParsedTemplateDeclChild const * child)
 {
 	RLC_DASSERT(this != NULL);
 	RLC_DASSERT(child != NULL);
 
 	rlc_realloc(
 		(void**)&this->fChildren,
-		sizeof(struct RlcTemplateDeclChild) * ++ this->fChildCount);
+		sizeof(struct RlcParsedTemplateDeclChild) * ++ this->fChildCount);
 
 	this->fChildren[this->fChildCount-1] = *child;
 }
 
-void rlc_template_decl_destroy(
-	struct RlcTemplateDecl * this)
+void rlc_parsed_template_decl_destroy(
+	struct RlcParsedTemplateDecl * this)
 {
 	RLC_DASSERT(this != NULL);
 
 	if(this->fChildren)
 	{
+		for(size_t i = 0; i < this->fChildCount; i++)
+			rlc_parsed_template_decl_child_destroy(&this->fChildren[i]);
 		rlc_free((void**)&this->fChildren);
 		this->fChildCount = 0;
 	}
 }
 
-int rlc_template_decl_parse(
-	struct RlcTemplateDecl * decl,
+int rlc_parsed_template_decl_parse(
+	struct RlcParsedTemplateDecl * decl,
 	struct RlcParserData * parser)
 {
 	RLC_DASSERT(decl != NULL);
@@ -47,7 +49,7 @@ int rlc_template_decl_parse(
 
 	enum RlcParseError error_code;
 
-	rlc_template_decl_create(decl);
+	rlc_parsed_template_decl_create(decl);
 
 	if(!rlc_parser_data_consume(
 		parser,
@@ -59,7 +61,7 @@ int rlc_template_decl_parse(
 	int first = 1;
 	do
 	{
-		struct RlcTemplateDeclChild child;
+		struct RlcParsedTemplateDeclChild child;
 
 		if(!rlc_parser_data_consume(
 			parser,
@@ -92,24 +94,24 @@ int rlc_template_decl_parse(
 			parser,
 			kRlcTokType))
 		{
-			child.fType.fNativeType = kRlcTemplateDeclTypeType;
+			child.fType = kRlcParsedTemplateDeclTypeType;
 		} else if(rlc_parser_data_consume(
 			parser,
 			kRlcTokNumber))
 		{
-			child.fType.fNativeType = kRlcTemplateDeclTypeNumber;
+			child.fType = kRlcParsedTemplateDeclTypeNumber;
 		} else if(rlc_parsed_type_name_parse(
-			&child.fType.fTypeName,
+			&child.fValueType,
 			parser))
 		{
-			child.fIsTypeName = 1;
+			child.fType = kRlcParsedTemplateDeclTypeValue;
 		} else
 		{
 			error_code = kRlcParseErrorExpectedTemplateDeclType;
 			goto failure;
 		}
 
-		rlc_template_decl_add_child(
+		rlc_parsed_template_decl_add_child(
 			decl,
 			&child);
 	} while(rlc_parser_data_consume(
@@ -127,9 +129,22 @@ int rlc_template_decl_parse(
 success:
 	return 1;
 failure:
-	rlc_template_decl_destroy(decl);
+	rlc_parsed_template_decl_destroy(decl);
 	rlc_parser_data_add_error(
 		parser,
 		error_code);
 	return 0;
+}
+
+void rlc_parsed_template_decl_child_destroy(
+	struct RlcParsedTemplateDeclChild * this)
+{
+	RLC_DASSERT(this != NULL);
+	RLC_DASSERT(RLC_IN_ENUM(this->fType, RlcParsedTemplateDeclType));
+
+	if(this->fType == kRlcParsedTemplateDeclTypeValue)
+	{
+		rlc_parsed_type_name_destroy(&this->fValueType);
+		this->fType = kRlcParsedTemplateDeclTypeNumber;
+	}
 }

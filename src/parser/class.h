@@ -20,7 +20,7 @@ struct RlcParsedClass
 	RLC_DERIVE(struct,RlcParsedScopeEntry);
 
 	/** The template declarations of the class. */
-	struct RlcTemplateDecl fTemplateDecl;
+	struct RlcParsedTemplateDecl fTemplateDecl;
 
 	/** The list of members. */
 	struct RlcParsedMemberList fMembers;

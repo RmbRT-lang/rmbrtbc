@@ -63,7 +63,7 @@ int rlc_parsed_struct_parse(
 			rlc_parser_data_consumed_index(parser));
 	}
 
-	if(!rlc_template_decl_parse(
+	if(!rlc_parsed_template_decl_parse(
 		&out->fTemplates,
 		parser))
 	{
