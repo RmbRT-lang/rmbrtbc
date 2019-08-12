@@ -43,7 +43,8 @@ int rlc_parsed_expression_statement_parse(
 
 	out->fExpression = rlc_parsed_expression_parse(
 		parser,
-		RLC_ALL_FLAGS(RlcParsedExpressionType));
+		RLC_ALL_FLAGS(RlcParsedExpressionType)
+		&~RLC_FLAG(kRlcParsedTypeNameExpression));
 
 
 	if(!out->fExpression)
