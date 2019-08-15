@@ -140,7 +140,8 @@ int rlc_parsed_function_parse(
 			0,
 			0,
 			0,
-			0))
+			0,
+			1))
 		{
 			rlc_parsed_function_add_argument(
 				out,

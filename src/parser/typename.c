@@ -283,6 +283,22 @@ nonfatal_failure:
 	return 0;
 }
 
+struct RlcTypeModifier const * rlc_parsed_type_name_top_modifier(
+	struct RlcParsedTypeName const * this)
+{
+	RLC_DASSERT(this != NULL);
+	static struct RlcTypeModifier const kDefault = {
+		kRlcTypeIndirectionPlain, kRlcTypeQualifierNone
+	};
+
+	if(!this->fTypeModifierCount)
+	{
+		return &kDefault;
+	} else {
+		return &this->fTypeModifiers[this->fTypeModifierCount-1];
+	}
+}
+
 void rlc_parsed_function_signature_create(
 	struct RlcParsedFunctionSignature * this)
 {

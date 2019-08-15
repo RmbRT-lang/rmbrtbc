@@ -20,6 +20,7 @@ char const * rlc_parse_error_msg(
 		"Expected '{'",
 		"Expected Enum Constant",
 		"Expected '}'",
+
 		"Expected '['",
 		"Expected ']'",
 		"Expected ':='",

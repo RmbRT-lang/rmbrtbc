@@ -92,6 +92,7 @@ int rlc_parsed_if_statement_parse(
 		1,
 		1,
 		1,
+		0,
 		0))
 	{
 	} else if(!(out->fCondition.fExpression = rlc_parsed_expression_parse(

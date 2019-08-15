@@ -17,6 +17,17 @@
 extern "C" {
 #endif
 
+/** Reference types. */
+enum RlcReferenceType
+{
+	/** Not a reference. */
+	kRlcReferenceTypeNone,
+	/** A normal const reference. */
+	kRlcReferenceTypeReference,
+	/** A temporary object reference. */
+	kRlcReferenceTypeTempReference
+};
+
 /** Variables as used in the parser.
 @extends RlcParsedScopeEntry */
 struct RlcParsedVariable
@@ -33,6 +44,8 @@ struct RlcParsedVariable
 		/** The type qualifier, if no explicit type. */
 		enum RlcTypeQualifier fTypeQualifier;
 	};
+	/** The variable's reference type. */
+	enum RlcReferenceType fReferenceType;
 	/** The initialising arguments, or null. */
 	struct RlcParsedExpression ** fInitArgs;
 	/** The initialising argument count. */
@@ -76,6 +89,8 @@ void rlc_parsed_variable_destroy(
 	Whether an initialiser is expected.
 @param[in] allow_templates:
 	Whether to allow a template declaration.
+@param[in] allow_reference:
+	Whether to allow the variable to be a reference.
 @return
 	Nonzero on success. */
 int rlc_parsed_variable_parse(
@@ -84,7 +99,8 @@ int rlc_parsed_variable_parse(
 	int needs_name,
 	int allow_initialiser,
 	int force_initialiser,
-	int allow_templates);
+	int allow_templates,
+	int allow_reference);
 
 /** Member variable type.
 @extends RlcParsedMember

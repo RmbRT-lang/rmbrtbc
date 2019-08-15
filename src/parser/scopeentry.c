@@ -103,7 +103,7 @@ static int dummy_rlc_parsed_variable_parse(
 	RLC_DASSERT(variable != NULL);
 	RLC_DASSERT(parser != NULL);
 
-	if(rlc_parsed_variable_parse(variable, parser, 1, 0, 0, 1))
+	if(rlc_parsed_variable_parse(variable, parser, 1, 0, 0, 1, 0))
 	{
 		if(!rlc_parser_data_consume(
 			parser,

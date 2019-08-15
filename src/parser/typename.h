@@ -129,6 +129,8 @@ struct RlcParsedTypeName
 	struct RlcTypeModifier * fTypeModifiers;
 	/** The type modifier count. */
 	size_t fTypeModifierCount;
+	/** Whether the type is a reference. */
+	int fIsReference;
 };
 
 
@@ -174,6 +176,14 @@ int rlc_parsed_type_name_parse(
 	struct RlcParsedTypeName * out,
 	struct RlcParserData * parser);
 
+/** Retrieves a type name's top level modifier.
+@param[in] this:
+	The type name to inspect.
+	@dassert @nonnull
+@return
+	The type's top level modifier (does not resolve types). */
+struct RlcTypeModifier const * rlc_parsed_type_name_top_modifier(
+	struct RlcParsedTypeName const * this);
 
 
 /** A function signature. */

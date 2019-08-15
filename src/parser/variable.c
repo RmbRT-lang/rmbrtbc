@@ -21,6 +21,7 @@ void rlc_parsed_variable_create(
 	this->fHasType = 0;
 	this->fInitArgs = NULL;
 	this->fInitArgCount = 0;
+	this->fReferenceType = kRlcReferenceTypeNone;
 }
 
 void rlc_parsed_variable_destroy(
@@ -67,7 +68,8 @@ int rlc_parsed_variable_parse(
 	int needs_name,
 	int allow_initialiser,
 	int force_initialiser,
-	int allow_templates)
+	int allow_templates,
+	int allow_reference)
 {
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
@@ -151,6 +153,7 @@ int rlc_parsed_variable_parse(
 
 	if(!has_type)
 	{
+		out->fReferenceType = kRlcReferenceTypeNone;
 		struct RlcParsedExpression * init = rlc_parsed_expression_parse(
 			parser,
 			RLC_ALL_FLAGS(RlcParsedExpressionType)
@@ -177,6 +180,23 @@ int rlc_parsed_variable_parse(
 			}
 		}
 		out->fHasType = 1;
+
+		out->fReferenceType = kRlcReferenceTypeNone;
+		if(allow_reference)
+		{
+			if(rlc_parser_data_consume(
+				parser,
+				kRlcTokAnd))
+			{
+				out->fReferenceType = kRlcReferenceTypeReference;
+			} else if(rlc_parser_data_consume(
+				parser,
+				kRlcTokDoubleAnd))
+			{
+				rlc_parser_data_next(parser);
+				out->fReferenceType = kRlcReferenceTypeTempReference;
+			}
+		}
 
 		if(allow_initialiser)
 		{
@@ -312,7 +332,8 @@ int rlc_parsed_member_variable_parse(
 		is_static, // needs name
 		is_static, // allow initialiser
 		0, // if static, force name and allow initialiser.
-		is_static)) // if static, allow template declarations.
+		is_static, // if static, allow template declarations.
+		0)) // forbid references.
 	{
 		// something was parsed already?
 		if(parser->fErrorCount)
