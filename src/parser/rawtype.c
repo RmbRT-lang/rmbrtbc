@@ -16,6 +16,8 @@ void rlc_parsed_rawtype_create(
 
 	this->fSize = NULL;
 
+	rlc_parsed_member_list_create(
+		&this->fMembers);
 	rlc_parsed_template_decl_create(
 		&this->fTemplates);
 }
