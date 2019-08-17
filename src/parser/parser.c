@@ -8,6 +8,7 @@ char const * rlc_parse_error_msg(
 {
 	RLC_DASSERT(RLC_IN_ENUM(error, RlcParseError));
 	static char * error_msg[] = {
+		"Expected Include Statement",
 		"Expected Identifier",
 		"Expected Type Name",
 		"Expected Type Modifier",
@@ -59,6 +60,7 @@ char const * rlc_parse_error_msg(
 		"Expected Struct",
 		"Expected Rawtype",
 		"Expected Typedef",
+		"Expected External Symbol",
 		"Expected Namespace",
 		"Expected Enum",
 		"Expected Scope Entry",

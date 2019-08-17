@@ -19,11 +19,9 @@ void rlc_parsed_constructor_create(
 
 	this->fArguments = NULL;
 	this->fArgumentCount = 0;
-
+	this->fIsDefinition = 0;
 	this->fInitialisers = NULL;
 	this->fInitialiserCount = 0;
-
-	rlc_parsed_block_statement_create(&this->fBody);
 }
 
 void rlc_parsed_constructor_destroy(
@@ -51,7 +49,8 @@ void rlc_parsed_constructor_destroy(
 		this->fInitialiserCount = 0;
 	}
 
-	rlc_parsed_block_statement_destroy(&this->fBody);
+	if(this->fIsDefinition)
+		rlc_parsed_block_statement_destroy(&this->fBody);
 	this->fIsInline = 0;
 }
 
@@ -155,6 +154,14 @@ int rlc_parsed_constructor_parse(
 
 	if(rlc_parser_data_consume(
 		parser,
+		kRlcTokSemicolon))
+	{
+		out->fIsDefinition = 0;
+		goto success;
+	}
+
+	if(rlc_parser_data_consume(
+		parser,
 		kRlcTokColon))
 	{
 		do {
@@ -191,6 +198,8 @@ int rlc_parsed_constructor_parse(
 		error_code = kRlcParseErrorExpectedBlockStatement;
 		goto failure;
 	}
+
+	out->fIsDefinition = 1;
 
 success:
 	RLC_BASE_CAST(out, RlcParsedMember)->fLocation.fEnd = parser->fIndex;

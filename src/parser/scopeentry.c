@@ -9,6 +9,7 @@
 #include "variable.h"
 #include "enum.h"
 #include "typedef.h"
+#include "externalsymbol.h"
 
 #include "../macros.h"
 #include "../assert.h"
@@ -47,7 +48,8 @@ void rlc_parsed_scope_entry_destroy_virtual(
 		(destructor_t)&rlc_parsed_function_destroy,
 		(destructor_t)&rlc_parsed_variable_destroy,
 		(destructor_t)&rlc_parsed_enum_destroy,
-		(destructor_t)&rlc_parsed_typedef_destroy
+		(destructor_t)&rlc_parsed_typedef_destroy,
+		(destructor_t)&rlc_parsed_external_symbol_destroy
 	};
 
 	static_assert(RLC_COVERS_ENUM(k_vtable, RlcParsedScopeEntryType), "ill-sized vtable.");
@@ -62,6 +64,7 @@ void rlc_parsed_scope_entry_destroy_virtual(
 		RLC_DERIVE_OFFSET(RlcParsedScopeEntry, struct RlcParsedVariable),
 		RLC_DERIVE_OFFSET(RlcParsedScopeEntry, struct RlcParsedEnum),
 		RLC_DERIVE_OFFSET(RlcParsedScopeEntry, struct RlcParsedTypedef),
+		RLC_DERIVE_OFFSET(RlcParsedScopeEntry, struct RlcParsedExternalSymbol)
 	};
 
 	static_assert(RLC_COVERS_ENUM(k_offsets, RlcParsedScopeEntryType), "ill-sized offset table.");
@@ -167,7 +170,8 @@ struct RlcParsedScopeEntry * rlc_parsed_scope_entry_parse(
 		ENTRY(RlcParsedRawtype, &rlc_parsed_rawtype_parse, kRlcParseErrorExpectedRawtype),
 		ENTRY(RlcParsedTypedef, &rlc_parsed_typedef_parse, kRlcParseErrorExpectedTypedef),
 		ENTRY(RlcParsedNamespace, &rlc_parsed_namespace_parse, kRlcParseErrorExpectedNamespace),
-		ENTRY(RlcParsedEnum, &rlc_parsed_enum_parse, kRlcParseErrorExpectedEnum)
+		ENTRY(RlcParsedEnum, &rlc_parsed_enum_parse, kRlcParseErrorExpectedEnum),
+		ENTRY(RlcParsedExternalSymbol, &rlc_parsed_external_symbol_parse, kRlcParseErrorExpectedExternalSymbol)
 	};
 
 	static_assert(RLC_COVERS_ENUM(k_parse_lookup, RlcParsedScopeEntryType), "ill-sized parse table.");
@@ -232,6 +236,7 @@ void rlc_parsed_scope_entry_list_destroy(
 			this->fEntries[i]);
 		rlc_free((void**)&this->fEntries[i]);
 	}
+	this->fEntryCount = 0;
 	if(this->fEntries)
 		rlc_free((void**)&this->fEntries);
 }

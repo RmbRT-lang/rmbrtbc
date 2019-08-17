@@ -161,6 +161,8 @@ char const * rlc_token_type_name(
 		"Volatile",
 		"Isolated",
 		"This",
+		"Extern",
+		"Include",
 
 		"Constructor",
 		"Destructor",
@@ -231,7 +233,7 @@ void rlc_token_position(
 	RLC_DASSERT(this != NULL);
 	RLC_DASSERT(line != NULL);
 	RLC_DASSERT(column != NULL);
-	RLC_DASSERT(this->fBegin < this->fFile->fContentLength);
+	RLC_DASSERT(this->fBegin <= this->fFile->fContentLength);
 
 	*line = 0;
 
@@ -257,7 +259,7 @@ void rlc_token_end(
 	RLC_DASSERT(this != NULL);
 	RLC_DASSERT(line != NULL);
 	RLC_DASSERT(column != NULL);
-	RLC_DASSERT(this->fBegin + this->fLength < this->fFile->fContentLength);
+	RLC_DASSERT(this->fBegin + this->fLength <= this->fFile->fContentLength);
 
 	*line = 0;
 

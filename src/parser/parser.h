@@ -14,6 +14,7 @@ extern "C"
 /** The error codes for parsing errors. */
 enum RlcParseError
 {
+	kRlcParseErrorExpectedIncludeStatement,
 	/** Expected an identifier. */
 	kRlcParseErrorExpectedIdentifier,
 	/** Expected a type name. */
@@ -85,6 +86,7 @@ enum RlcParseError
 	kRlcParseErrorExpectedStruct,
 	kRlcParseErrorExpectedRawtype,
 	kRlcParseErrorExpectedTypedef,
+	kRlcParseErrorExpectedExternalSymbol,
 	kRlcParseErrorExpectedNamespace,
 	kRlcParseErrorExpectedEnum,
 

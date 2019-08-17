@@ -47,7 +47,9 @@ struct {
 	{"destructor", kRlcTokDestructor },
 	{"type", kRlcTokType },
 	{"number", kRlcTokNumber },
-	{"operator", kRlcTokOperator }
+	{"operator", kRlcTokOperator },
+	{"extern", kRlcTokExtern },
+	{"include", kRlcTokInclude }
 }, s_operators [] = {
 	// operators
 	{ "+=", kRlcTokPlusEqual },

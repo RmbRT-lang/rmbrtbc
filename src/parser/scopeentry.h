@@ -36,6 +36,8 @@ enum RlcParsedScopeEntryType
 	kRlcParsedEnum,
 	/** RlcParsedTypedef */
 	kRlcParsedTypedef,
+	/** RlcParsedExternalSymbol */
+	kRlcParsedExternalSymbol,
 
 	RLC_ENUM_END(RlcParsedScopeEntryType)
 };

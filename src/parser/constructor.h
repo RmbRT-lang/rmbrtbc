@@ -28,6 +28,9 @@ struct RlcParsedConstructor
 	/** The argument count. */
 	size_t fArgumentCount;
 
+	/** Whether the constructor is a definition. */
+	int fIsDefinition;
+
 	/** The initialisers. */
 	struct RlcParsedInitialiser * fInitialisers;
 	/** The initialiser count. */

@@ -41,6 +41,9 @@ struct RlcParsedFunction
 	/** Whether the function is asynchronous. */
 	int fIsAsync;
 
+	/** Whether the function has a body (i.e., declarations). */
+	int fHasBody;
+
 	union {
 		/** The function's return value expression. */
 		struct RlcParsedExpression * fReturnValue;

@@ -142,6 +142,8 @@ enum RlcTokenType
 	kRlcTokVolatile,
 	kRlcTokIsolated,
 	kRlcTokThis,
+	kRlcTokExtern,
+	kRlcTokInclude,
 
 	kRlcTokConstructor,
 	kRlcTokDestructor,

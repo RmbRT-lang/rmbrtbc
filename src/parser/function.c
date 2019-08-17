@@ -22,7 +22,7 @@ void rlc_parsed_function_create(
 	this->fIsInline = 0;
 	this->fIsAsync = 0;
 
-	rlc_parsed_block_statement_create(&this->fBodyStatement);
+	this->fHasBody = 0;
 	this->fIsShortHandBody = 0;
 }
 
@@ -45,18 +45,22 @@ void rlc_parsed_function_destroy(
 
 	this->fIsInline = 0;
 
-	if(!this->fIsShortHandBody)
+	if(this->fHasBody)
 	{
-		rlc_parsed_block_statement_destroy(&this->fBodyStatement);
-	} else
-	{
-		if(this->fReturnValue)
+		if(!this->fIsShortHandBody)
 		{
-			rlc_parsed_expression_destroy_virtual(
-				this->fReturnValue);
+			rlc_parsed_block_statement_destroy(&this->fBodyStatement);
+		} else
+		{
+			if(this->fReturnValue)
+			{
+				rlc_parsed_expression_destroy_virtual(
+					this->fReturnValue);
 
-			rlc_free((void**)&this->fReturnValue);
+				rlc_free((void**)&this->fReturnValue);
+			}
 		}
+		this->fHasBody = 0;
 	}
 
 	rlc_parsed_template_decl_destroy(&this->fTemplates);
@@ -168,6 +172,10 @@ int rlc_parsed_function_parse(
 	int accept_expression = 0;
 	int expect_semicolon = 1;
 
+	out->fIsAsync = rlc_parser_data_consume(
+		parser,
+		kRlcTokAt);
+
 	if((out->fHasReturnType = rlc_parser_data_consume(
 		parser,
 		kRlcTokColon)))
@@ -180,6 +188,14 @@ int rlc_parsed_function_parse(
 		{
 			error_code = kRlcParseErrorExpectedTypeName;
 			goto failure;
+		}
+
+		if(rlc_parser_data_consume(
+			parser,
+			kRlcTokSemicolon))
+		{
+			out->fHasBody = 0;
+			goto success;
 		}
 
 		if(!rlc_parser_data_consume(
@@ -202,13 +218,10 @@ int rlc_parsed_function_parse(
 		accept_block_statement = 0;
 	} else expect_semicolon = 0;
 
-	out->fIsAsync = rlc_parser_data_consume(
-		parser,
-		kRlcTokAt);
-
 	out->fIsInline = rlc_parser_data_consume(
 		parser,
 		kRlcTokInline);
+
 
 	// parse function body.
 
@@ -217,6 +230,7 @@ int rlc_parsed_function_parse(
 		&out->fBodyStatement,
 		parser))
 	{
+		out->fHasBody = 1;
 		out->fIsShortHandBody = 0;
 	} else if(parser->fErrorCount)
 	{
@@ -232,6 +246,7 @@ int rlc_parsed_function_parse(
 		RLC_ALL_FLAGS(RlcParsedExpressionType)
 		&~RLC_FLAG(kRlcParsedTypeNameExpression))))
 	{
+		out->fHasBody = 1;
 		out->fIsShortHandBody = 1;
 	} else
 	{

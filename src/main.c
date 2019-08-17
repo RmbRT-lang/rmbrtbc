@@ -1,36 +1,16 @@
 #include "file.h"
 #include "tokeniser/tokeniser.h"
 #include "error.h"
-#include "parser/scopeentry.h"
+#include "parser/file.h"
 #include <time.h>
 
 #include <stdio.h>
 
 #include "malloc.h"
 
-#define RLC_CASCADE_ERRORS 1
-
-void end_of_file_position(
-	struct RlcPreprocessedFile const * file,
-	size_t * line,
-	size_t * column)
-{
-	if(file->fTokenCount == 0)
-	{
-		*line = 0;
-		*column = 0;
-	} else
-	{
-		struct RlcToken const * last = file->fTokens[file->fTokenCount-1];
-		rlc_token_end(last, line, column);
-	}
-}
-
 int compile(
 	char const * file)
 {
-
-
 	struct RlcFile tokfile;
 	{
 		enum RlcFileResult result = rlc_read_text_file(file, &tokfile.fContents);
@@ -57,9 +37,8 @@ int compile(
 			return 0;
 	}
 
-
-	struct RlcParsedScopeEntryList parsed_list;
-	rlc_parsed_scope_entry_list_create(&parsed_list);
+	struct RlcParsedFile * parsed_file = NULL;
+	rlc_malloc((void**)&parsed_file, sizeof(struct RlcParsedFile));
 	{
 		struct RlcPreprocessedFile * pfile = NULL;
 		rlc_malloc((void**)&pfile,
@@ -67,150 +46,20 @@ int compile(
 		rlc_preprocessed_file_create_from_rlc_file(
 			pfile,
 			&tokfile);
-		struct RlcParserData parser;
-		rlc_parser_data_create(
-			&parser,
-			pfile);
 
-		struct RlcParsedScopeEntry * entry;
-		while(rlc_parser_data_current(&parser))
+		if(!rlc_parsed_file_create(parsed_file, pfile))
 		{
-			entry = rlc_parsed_scope_entry_parse(&parser);
-			if(!entry)
-			{
-				printf("%zu parsing errors.\n", parser.fErrorCount);
-				if(!parser.fErrorCount)
-				{
-					size_t line, column;
-					struct RlcToken const * token = rlc_parser_data_latest(&parser);
-					if(token)
-					{
-						rlc_token_position(token, &line, &column);
-						rlc_char_t * token_content = rlc_token_content(token);
-						printf("%s:%zu:%zu: error: unexpected '%"PRINTF_RLC_STR"' (%s).\n",
-							parser.fFile->fBaseFile->fName,
-							line+1,
-							column+1,
-							token_content,
-							rlc_token_type_name(token->fType));
-						rlc_free((void**)&token_content);
-					} else
-					{
-						end_of_file_position(
-							parser.fFile,
-							&line,
-							&column);
-						printf("%s:%zu:%zu: error: unexpected end of file.\n",
-							parser.fFile->fBaseFile->fName,
-							line+1,
-							column+1);
-					}
-				} else for(size_t i = 0; i<parser.fErrorCount; i++)
-				{
-					size_t line, column;
-
-					struct RlcToken const * token;
-					struct RlcToken const * after_latest_token;
-					if(parser.fErrors[i].fLocation < parser.fFile->fTokenCount)
-						rlc_token_position(
-							parser.fFile->fTokens[parser.fErrors[i].fLocation],
-							&line,
-							&column);
-					else
-						end_of_file_position(
-							parser.fFile,
-							&line,
-							&column);
-
-
-					++line, ++column;
-
-					if(i == 0)
-					{
-						if(parser.fLatestIndex+1 >= parser.fFile->fTokenCount)
-						{
-							printf("%s:%zu:%zu: error: unexpected end of file: %s.\n",
-								parser.fFile->fBaseFile->fName,
-								line,
-								column,
-								rlc_parse_error_msg(parser.fErrors[i].fError));
-						} else
-						{
-							struct RlcToken const * latest = rlc_parser_data_latest(&parser);
-							rlc_char_t * next_token_contents = rlc_token_content(latest);
-							if(parser.fErrors[i].fLocation != parser.fLatestIndex)
-							{
-								size_t latest_line, latest_column;
-								rlc_token_position(
-									latest,
-									&latest_line,
-									&latest_column);
-								++latest_line;
-								++latest_column;
-
-								printf("%s:%zu:%zu: error: unexpected '%"PRINTF_RLC_STR"'.\n",
-									parser.fFile->fBaseFile->fName,
-									latest_line,
-									latest_column,
-									next_token_contents);
-								printf("%s:%zu:%zu: error: %s.\n",
-									parser.fFile->fBaseFile->fName,
-									line,
-									column,
-									rlc_parse_error_msg(parser.fErrors[i].fError));
-							} else
-							{
-								printf("%s:%zu:%zu: error: unexpected '%"PRINTF_RLC_STR"': %s.\n",
-									parser.fFile->fBaseFile->fName,
-									line,
-									column,
-									next_token_contents,
-									rlc_parse_error_msg(parser.fErrors[i].fError));
-							}
-							rlc_free((void**)&next_token_contents);
-						}
-					} else {
-						printf("%s:%zu:%zu: error: %s.\n",
-								parser.fFile->fBaseFile->fName,
-								line,
-								column,
-								rlc_parse_error_msg(parser.fErrors[i].fError));
-					}
-
-#if !RLC_CASCADE_ERRORS
-					break;
-#endif
-				}
-				rlc_parsed_scope_entry_list_destroy(&parsed_list);
-				rlc_parser_data_destroy(&parser);
-				rlc_file_destroy(&tokfile);
-
-				size_t allocs;
-				if(allocs = rlc_allocations())
-				{
-					fprintf(stderr, "Warning: leaked allocations: %zu.\n", allocs);
-				}
-
-				return 0;
-			} else
-				rlc_parsed_scope_entry_list_add(
-					&parsed_list,
-					entry);
+			rlc_free((void**)&parsed_file);
+			rlc_file_destroy(&tokfile);
+			return 0;
 		}
-
-		rlc_parser_data_destroy(&parser);
 	}
-	rlc_parsed_scope_entry_list_destroy(&parsed_list);
 
+	rlc_parsed_file_destroy(parsed_file);
+	rlc_free((void**)&parsed_file);
 	rlc_file_destroy(&tokfile);
 
-
 	fputs("success\n", stderr);
-	size_t allocs;
-	if(allocs = rlc_allocations())
-	{
-		fprintf(stderr, "Warning: leaked allocations: %zu.\n", allocs);
-	}
 	return 1;
 }
 #include "unicode.h"
@@ -241,6 +90,13 @@ int main(
 	char ** argv)
 {
 	rlc_register_lexical_error_function(_rlc_report_lexical_error);
-	compile(argv[1]) ? 0: 1;
-	return 0;
+	int status = compile(argv[1]);
+
+	size_t allocs;
+	if(allocs = rlc_allocations())
+	{
+		fprintf(stderr, "Warning: leaked allocations: %zu.\n", allocs);
+	}
+
+	return status ? 0 : 1;
 }
