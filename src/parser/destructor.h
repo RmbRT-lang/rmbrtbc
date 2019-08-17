@@ -17,6 +17,8 @@ struct RlcParsedDestructor
 {
 	RLC_DERIVE(struct,RlcParsedMember);
 
+	/** Whether the destructor is a definition. */
+	int fIsDefinition;
 	/** Whether the destructor is inline. */
 	int fIsInline;
 	/** The destructor's function body. */

@@ -8,7 +8,7 @@ void rlc_parsed_destructor_create(
 	RLC_DASSERT(this != NULL);
 
 	RLC_BASE_CAST(this, RlcParsedMember)->fVisibility = kRlcVisibilityPublic;
-	rlc_parsed_block_statement_create(&this->fBody);
+	this->fIsDefinition = 0;
 	this->fIsInline = 0;
 }
 
@@ -18,7 +18,11 @@ void rlc_parsed_destructor_destroy(
 {
 	RLC_DASSERT(this != NULL);
 
-	rlc_parsed_block_statement_destroy(&this->fBody);
+	if(this->fIsDefinition)
+	{
+		rlc_parsed_block_statement_destroy(&this->fBody);
+		this->fIsDefinition = 0;
+	}
 }
 
 int rlc_parsed_destructor_parse(
@@ -50,6 +54,13 @@ int rlc_parsed_destructor_parse(
 		parser,
 		kRlcTokInline);
 
+	if(rlc_parser_data_consume(
+		parser,
+		kRlcTokSemicolon))
+	{
+		return 1;
+	}
+
 	if(!rlc_parsed_block_statement_parse(
 		&out->fBody,
 		parser))
@@ -57,6 +68,8 @@ int rlc_parsed_destructor_parse(
 		error_code = kRlcParseErrorExpectedBlockStatement;
 		goto failure;
 	}
+
+	out->fIsDefinition = 1;
 
 	return 1;
 failure:
