@@ -105,6 +105,7 @@ char const * rlc_file_result_message(
 {
 	static char const * s_messages[] = {
 		"success",
+		"could not open",
 		"could not read",
 		"invalid encoding"
 	};

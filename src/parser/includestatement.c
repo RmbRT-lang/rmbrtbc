@@ -1,8 +1,8 @@
 #include "includestatement.h"
 #include "../assert.h"
 
-int rlc_include_statement_parse(
-	struct RlcIncludeStatement * out,
+int rlc_parsed_include_statement_parse(
+	struct RlcParsedIncludeStatement * out,
 	struct RlcParserData * parser)
 {
 	RLC_DASSERT(out != NULL);

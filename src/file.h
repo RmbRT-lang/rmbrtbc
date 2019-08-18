@@ -12,6 +12,7 @@ extern "C" {
 typedef enum RlcFileResult
 {
 	kRlcFileSuccess,
+	kRlcFileFailOpen,
 	kRlcFileFailRead,
 	kRlcFileFailEncoding
 } RlcFileResult;
@@ -28,7 +29,8 @@ char const * rlc_file_result_message(
 	If successful, will hold a copy of the file contents.
 @return
 	* kRlcFileSuccess, if the file was loaded and converted successfully.
-	* kRlcFileFailRead, if the file could not be opened or read.
+	* kRlcFileFailOpen, if the file could not be opened.
+	* kRlcFileFailRead, if the file could not be read.
 	* kRlcFileFailEncoding, if the file was not encoded in UTF-8. */
 RlcFileResult rlc_read_text_file(char const * filename, rlc_char_t ** content);
 

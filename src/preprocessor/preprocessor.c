@@ -42,5 +42,9 @@ void rlc_preprocessed_file_destroy(
 		rlc_free((void**)&this->fTokens);
 	}
 	this->fTokenCount = 0;
-	this->fBaseFile = NULL;
+	if(this->fBaseFile)
+	{
+		rlc_file_destroy((struct RlcFile *)this->fBaseFile);
+		rlc_free((void**)&this->fBaseFile);
+	}
 }

@@ -14,10 +14,10 @@ extern "C" {
 struct RlcParsedFile
 {
 	/** The file's include statements. */
-	struct RlcIncludeStatement * fIncludes;
+	struct RlcParsedIncludeStatement * fIncludes;
 	/** The file's include statement count.*/
 	size_t fIncludeCount;
-	/** The file's scope parsed entries. */
+	/** The file's parsed scope entries. */
 	struct RlcParsedScopeEntryList fScopeEntries;
 
 	/** The file's parser and tokens. */
@@ -46,6 +46,16 @@ int rlc_parsed_file_create(
 	@dassert @nonnull */
 void rlc_parsed_file_destroy(
 	struct RlcParsedFile * this);
+
+/** Retrieves a parsed file's name.
+@memberof RlcParsedFile
+@param[in] this:
+	The parsed file whose name to retrieve.
+	@dassert @nonnull
+@return
+	The file's name. */
+char const * rlc_parsed_file_name(
+	struct RlcParsedFile const * this);
 
 #ifdef __cplusplus
 }

@@ -18,14 +18,14 @@ int rlc_parsed_file_create(
 	rlc_parsed_scope_entry_list_create(&this->fScopeEntries);
 	rlc_parser_data_create(&this->fParser, file);
 
-	struct RlcIncludeStatement include;
-	while(rlc_include_statement_parse(
+	struct RlcParsedIncludeStatement include;
+	while(rlc_parsed_include_statement_parse(
 		&include,
 		&this->fParser))
 	{
 		rlc_realloc(
 			(void**)&this->fIncludes,
-			sizeof(struct RlcIncludeStatement) * ++this->fIncludeCount);
+			sizeof(struct RlcParsedIncludeStatement) * ++this->fIncludeCount);
 		this->fIncludes[this->fIncludeCount-1] = include;
 	}
 
@@ -68,6 +68,14 @@ void rlc_parsed_file_destroy(
 	rlc_parser_data_destroy(&this->fParser);
 }
 
+char const * rlc_parsed_file_name(
+	struct RlcParsedFile const * this)
+{
+	RLC_DASSERT(this != NULL);
+
+	return this->fParser.fFile->fBaseFile->fName;
+}
+
 static void end_of_file_position(
 	struct RlcPreprocessedFile const * file,
 	size_t * line,
@@ -79,11 +87,17 @@ static void rlc_parsed_file_report_unexpected_token(
 static void rlc_parsed_file_report_errors(
 	struct RlcParsedFile * this)
 {
-	printf("%zu parsing errors.\n", this->fParser.fErrorCount);
+	printf("%s: %zu parsing errors.\n",
+		rlc_parsed_file_name(this),
+		this->fParser.fErrorCount);
+
 	rlc_parsed_file_report_unexpected_token(this);
 
 	for(size_t i = 0; i < this->fParser.fErrorCount; i++)
 	{
+		if(i > 2)
+			break;
+
 		size_t line, column;
 
 		struct RlcToken const * token;

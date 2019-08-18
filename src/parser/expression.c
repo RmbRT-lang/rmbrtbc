@@ -169,6 +169,12 @@ struct RlcParsedExpression * rlc_parsed_expression_parse(
 			RLC_ALL_FLAGS(RlcParsedExpressionType)
 			&~RLC_FLAG(kRlcParsedTypeNameExpression));
 
+		if(!ret)
+		{
+			error_code = kRlcParseErrorExpectedExpression;
+			goto failure;
+		}
+
 		if(rlc_parser_data_consume(
 			parser,
 			kRlcTokParentheseClose))

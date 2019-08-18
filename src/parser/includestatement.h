@@ -1,3 +1,5 @@
+/** @file includestatement.h
+	Contains the include statement type as used by the parser. */
 #ifndef __rlc_parser_includestatment_h_defined
 #define __rlc_parser_includestatment_h_defined
 
@@ -7,8 +9,8 @@
 extern "C" {
 #endif
 
-/** Include statement. */
-struct RlcIncludeStatement
+/** Include statement as used by the parser. */
+struct RlcParsedIncludeStatement
 {
 	/** Whether the filepath is relative to the current file. */
 	size_t fIsRelative;
@@ -26,8 +28,8 @@ struct RlcIncludeStatement
 	@dassert @nonnull
 @return
 	Whether the parsing succeeded. */
-int rlc_include_statement_parse(
-	struct RlcIncludeStatement * out,
+int rlc_parsed_include_statement_parse(
+	struct RlcParsedIncludeStatement * out,
 	struct RlcParserData * parser);
 
 #ifdef __cplusplus
