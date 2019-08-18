@@ -97,8 +97,7 @@ int rlc_parsed_if_statement_parse(
 	{
 	} else if(!(out->fCondition.fExpression = rlc_parsed_expression_parse(
 		parser,
-		RLC_ALL_FLAGS(RlcParsedExpressionType)
-	&~	RLC_FLAG(kRlcParsedTypeNameExpression))))
+		RLC_ALL_FLAGS(RlcParsedExpressionType))))
 	{
 		error_code = kRlcParseErrorExpectedExpression;
 		goto failure;

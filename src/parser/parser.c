@@ -24,6 +24,7 @@ char const * rlc_parse_error_msg(
 
 		"Expected '['",
 		"Expected ']'",
+		"Expected '>'",
 		"Expected ':='",
 		"Expected ':=' or ':'",
 		"Expected '::='",
@@ -40,6 +41,8 @@ char const * rlc_parse_error_msg(
 		"Expected Type Name Expression",
 		"Expected Operator Expression",
 		"Expected 'this' Expression",
+		"Expected Cast Expression",
+		"Expected Sizeof Expression",
 		"Expected Argument",
 		"Expected Member Variable",
 		"Expected Member Function",

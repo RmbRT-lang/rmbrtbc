@@ -1,4 +1,5 @@
 #include "symbol.h"
+#include "typename.h"
 
 #include "../malloc.h"
 #include "../assert.h"
@@ -54,21 +55,19 @@ int rlc_parsed_symbol_child_parse(
 			goto failure;
 		}
 
-		struct RlcParsedExpression * expression;
+		struct RlcParsedSymbolChildTemplate template;
 		do {
-			if(rlc_parser_data_consume(
+			if((template.fIsExpression = rlc_parser_data_consume(
 				parser,
-				kRlcTokHash))
+				kRlcTokHash)))
 			{
-
-				if(expression = rlc_parsed_expression_parse(
+				if(template.fExpression = rlc_parsed_expression_parse(
 					parser,
-					RLC_ALL_FLAGS(RlcParsedExpressionType)
-					& ~RLC_FLAG(kRlcParsedTypeNameExpression)))
+					RLC_ALL_FLAGS(RlcParsedExpressionType)))
 				{
 					rlc_parsed_symbol_child_add_template(
 						out,
-						expression);
+						&template);
 				} else
 				{
 					error_code = kRlcParseErrorExpectedExpression;
@@ -76,15 +75,21 @@ int rlc_parsed_symbol_child_parse(
 				}
 			} else
 			{
-				if(expression = rlc_parsed_expression_parse(
-					parser,
-					RLC_FLAG(kRlcParsedTypeNameExpression)))
+				template.fTypeName = NULL;
+				rlc_malloc(
+					(void**)&template.fTypeName,
+					sizeof(struct RlcParsedTypeName));
+
+				if(rlc_parsed_type_name_parse(
+					template.fTypeName,
+					parser))
 				{
 					rlc_parsed_symbol_child_add_template(
 						out,
-						expression);
+						&template);
 				} else
 				{
+					rlc_free((void**)&template.fTypeName);
 					error_code = kRlcParseErrorExpectedTypeNameExpression;
 					goto failure;
 				}
@@ -116,16 +121,16 @@ nonfatal_failure:
 
 void rlc_parsed_symbol_child_add_template(
 	struct RlcParsedSymbolChild * this,
-	struct RlcParsedExpression * template_argument)
+	struct RlcParsedSymbolChildTemplate * template_argument)
 {
 	RLC_DASSERT(this != NULL);
 	RLC_DASSERT(template_argument != NULL);
 
 	rlc_realloc(
 		(void**)&this->fTemplates,
-		sizeof(struct RlcParsedExpression *) * ++ this->fTemplateCount);
+		sizeof(struct RlcParsedSymbolChildTemplate) * ++ this->fTemplateCount);
 
-	this->fTemplates[this->fTemplateCount-1] = template_argument;
+	this->fTemplates[this->fTemplateCount-1] = *template_argument;
 }
 
 void rlc_parsed_symbol_child_destroy(
@@ -138,8 +143,22 @@ void rlc_parsed_symbol_child_destroy(
 	{
 		for(size_t i = 0; i < this->fTemplateCount; i++)
 		{
-			rlc_parsed_expression_destroy_virtual(this->fTemplates[i]);
-			rlc_free((void**)&this->fTemplates[i]);
+			if(this->fTemplates[i].fIsExpression)
+			{
+				if(this->fTemplates[i].fExpression)
+				{
+					rlc_parsed_expression_destroy_virtual(this->fTemplates[i].fExpression);
+					rlc_free((void**)&this->fTemplates[i].fExpression);
+				}
+			}
+			else
+			{
+				if(this->fTemplates[i].fTypeName)
+				{
+					rlc_parsed_type_name_destroy(this->fTemplates[i].fTypeName);
+					rlc_free((void**)&this->fTemplates[i].fTypeName);
+				}
+			}
 		}
 		rlc_free((void**)&this->fTemplates);
 	}

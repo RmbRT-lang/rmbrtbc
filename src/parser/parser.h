@@ -39,6 +39,7 @@ enum RlcParseError
 
 	kRlcParseErrorExpectedBracketOpen,
 	kRlcParseErrorExpectedBracketClose,
+	kRlcParseErrorExpectedGreater,
 
 	kRlcParseErrorExpectedColonEqual,
 	kRlcParseErrorExpectedColonEqualOrColon,
@@ -62,6 +63,8 @@ enum RlcParseError
 	kRlcParseErrorExpectedTypeNameExpression,
 	kRlcParseErrorExpectedOperatorExpression,
 	kRlcParseErrorExpectedThisExpression,
+	kRlcParseErrorExpectedCastExpression,
+	kRlcParseErrorExpectedSizeofExpression,
 
 	kRlcParseErrorExpectedArgument,
 

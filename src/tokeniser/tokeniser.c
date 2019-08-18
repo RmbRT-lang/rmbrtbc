@@ -49,7 +49,8 @@ struct {
 	{"number", kRlcTokNumber },
 	{"operator", kRlcTokOperator },
 	{"extern", kRlcTokExtern },
-	{"include", kRlcTokInclude }
+	{"include", kRlcTokInclude },
+	{"sizeof", kRlcTokSizeof }
 }, s_operators [] = {
 	// operators
 	{ "+=", kRlcTokPlusEqual },

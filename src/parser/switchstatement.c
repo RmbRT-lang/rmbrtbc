@@ -74,8 +74,7 @@ int rlc_parsed_switch_statement_parse(
 
 	if(!(out->fSwitchValue = rlc_parsed_expression_parse(
 		parser,
-		RLC_ALL_FLAGS(RlcParsedExpressionType)
-	&~	RLC_FLAG(kRlcParsedTypeNameExpression))))
+		RLC_ALL_FLAGS(RlcParsedExpressionType))))
 	{
 		error_code = kRlcParseErrorExpectedExpression;
 		goto failure;

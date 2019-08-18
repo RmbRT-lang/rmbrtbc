@@ -144,6 +144,7 @@ enum RlcTokenType
 	kRlcTokThis,
 	kRlcTokExtern,
 	kRlcTokInclude,
+	kRlcTokSizeof,
 
 	kRlcTokConstructor,
 	kRlcTokDestructor,

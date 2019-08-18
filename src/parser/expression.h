@@ -24,12 +24,14 @@ enum RlcParsedExpressionType {
 	kRlcParsedNumberExpression,
 	/** RlcParsedStringExpression. */
 	kRlcParsedStringExpression,
-	/** RlcParsedTypeNameExpression. */
-	kRlcParsedTypeNameExpression,
 	/** RlcParsedOperatorExpression. */
 	kRlcParsedOperatorExpression,
 	/** RlcParsedThisExpression. */
 	kRlcThisExpression,
+	/** RlcParsedCastExpression. */
+	kRlcParsedCastExpression,
+	/** RlcParsedSizeofExpression. */
+	kRlcParsedSizeofExpression,
 
 	RLC_ENUM_END(RlcParsedExpressionType)
 };

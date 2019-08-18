@@ -3,9 +3,10 @@
 #include "symbolchildexpression.h"
 #include "numberexpression.h"
 #include "stringexpression.h"
-#include "typenameexpression.h"
 #include "operatorexpression.h"
 #include "thisexpression.h"
+#include "castexpression.h"
+#include "sizeofexpression.h"
 
 #include "../assert.h"
 #include "../malloc.h"
@@ -38,9 +39,10 @@ void rlc_parsed_expression_destroy_virtual(
 		(destructor_t)&rlc_parsed_symbol_child_expression_destroy,
 		(destructor_t)&rlc_parsed_number_expression_destroy,
 		(destructor_t)&rlc_parsed_string_expression_destroy,
-		(destructor_t)&rlc_parsed_type_name_expression_destroy,
 		(destructor_t)&rlc_parsed_operator_expression_destroy,
-		(destructor_t)&rlc_this_expression_destroy
+		(destructor_t)&rlc_this_expression_destroy,
+		(destructor_t)&rlc_parsed_cast_expression_destroy,
+		(destructor_t)&rlc_parsed_sizeof_expression_destroy
 	};
 
 	static_assert(RLC_COVERS_ENUM(k_vtable, RlcParsedExpressionType), "ill sized vtable.");
@@ -50,9 +52,10 @@ void rlc_parsed_expression_destroy_virtual(
 		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcParsedSymbolChildExpression),
 		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcParsedNumberExpression),
 		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcParsedStringExpression),
-		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcParsedTypeNameExpression),
 		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcParsedOperatorExpression),
-		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcThisExpression)
+		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcThisExpression),
+		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcParsedCastExpression),
+		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcParsedSizeofExpression),
 	};
 
 	static_assert(RLC_COVERS_ENUM(k_offsets, RlcParsedExpressionType), "ill sized offset table.");
@@ -72,8 +75,10 @@ union RlcExpressionStorage
 	struct RlcParsedNumberExpression fRlcParsedNumberExpression;
 	struct RlcParsedSymbolExpression fRlcParsedSymbolExpression;
 	struct RlcParsedSymbolChildExpression fRlcParsedSymbolChildExpression;
-	struct RlcParsedTypeNameExpression fRlcParsedTypeNameExpression;
 	struct RlcParsedOperatorExpression fRlcParsedOperatorExpression;
+	struct RlcThisExpression fRlcThisExpression;
+	struct RlcParsedCastExpression fRlcParsedCastExpression;
+	struct RlcParsedSizeofExpression fRlcParsedSizeofExpression;
 };
 
 static int dummy_rlc_parsed_operator_expression_parse(
@@ -119,10 +124,11 @@ struct RlcParsedExpression * rlc_parsed_expression_parse(
 		ENTRY(RlcParsedOperatorExpression, &dummy_rlc_parsed_operator_expression_parse, kRlcParseErrorExpectedOperatorExpression, 1),
 		ENTRY(RlcParsedNumberExpression, &rlc_parsed_number_expression_parse, kRlcParseErrorExpectedNumberExpression, 0),
 		ENTRY(RlcParsedStringExpression, &rlc_parsed_string_expression_parse, kRlcParseErrorExpectedStringExpression, 0),
-		ENTRY(RlcParsedTypeNameExpression, &rlc_parsed_type_name_expression_parse, kRlcParseErrorExpectedTypeNameExpression, 0),
 		ENTRY(RlcParsedSymbolExpression, &rlc_parsed_symbol_expression_parse, kRlcParseErrorExpectedSymbolExpression, 0),
 		ENTRY(RlcParsedSymbolChildExpression, &rlc_parsed_symbol_child_expression_parse, kRlcParseErrorExpectedSymbolChildExpression, 0),
-		ENTRY(RlcThisExpression, &rlc_this_expression_parse, kRlcParseErrorExpectedThisExpression, 0)
+		ENTRY(RlcThisExpression, &rlc_this_expression_parse, kRlcParseErrorExpectedThisExpression, 0),
+		ENTRY(RlcParsedCastExpression, &rlc_parsed_cast_expression_parse, kRlcParseErrorExpectedCastExpression, 0),
+		ENTRY(RlcParsedSizeofExpression, &rlc_parsed_sizeof_expression_parse, kRlcParseErrorExpectedSizeofExpression, 0)
 	};
 
 	static_assert(RLC_COVERS_ENUM(k_parse_lookup, RlcParsedExpressionType), "ill-sized parse table.");
@@ -158,16 +164,13 @@ struct RlcParsedExpression * rlc_parsed_expression_parse(
 		}
 	}
 
-	// For type name expressions, do not 
-	if(flags != RLC_FLAG(kRlcParsedTypeNameExpression)
-	&& rlc_parser_data_consume(
+	if(rlc_parser_data_consume(
 		parser,
 		kRlcTokParentheseOpen))
 	{
 		ret = rlc_parsed_expression_parse(
 			parser,
-			RLC_ALL_FLAGS(RlcParsedExpressionType)
-			&~RLC_FLAG(kRlcParsedTypeNameExpression));
+			RLC_ALL_FLAGS(RlcParsedExpressionType));
 
 		if(!ret)
 		{

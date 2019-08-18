@@ -243,8 +243,7 @@ int rlc_parsed_function_parse(
 	} else if(accept_expression
 	&& (out->fReturnValue = rlc_parsed_expression_parse(
 		parser,
-		RLC_ALL_FLAGS(RlcParsedExpressionType)
-		&~RLC_FLAG(kRlcParsedTypeNameExpression))))
+		RLC_ALL_FLAGS(RlcParsedExpressionType))))
 	{
 		out->fHasBody = 1;
 		out->fIsShortHandBody = 1;

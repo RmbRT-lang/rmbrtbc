@@ -156,8 +156,7 @@ int rlc_parsed_variable_parse(
 		out->fReferenceType = kRlcReferenceTypeNone;
 		struct RlcParsedExpression * init = rlc_parsed_expression_parse(
 			parser,
-			RLC_ALL_FLAGS(RlcParsedExpressionType)
-			&~RLC_FLAG(kRlcParsedTypeNameExpression));
+			RLC_ALL_FLAGS(RlcParsedExpressionType));
 		if(!init)
 		{
 			error_code = kRlcParseErrorExpectedExpression;

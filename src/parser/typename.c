@@ -1,4 +1,5 @@
 #include "typename.h"
+#include "expression.h"
 #include "../malloc.h"
 #include "../assert.h"
 
@@ -156,6 +157,13 @@ void rlc_parsed_type_name_destroy(
 			rlc_parsed_function_signature_destroy(this->fFunction);
 			rlc_free((void**)&this->fFunction);
 		}
+	} else if(this->fValue == kRlcParsedTypeNameValueExpression)
+	{
+		if(this->fExpression)
+		{
+			rlc_parsed_expression_destroy_virtual(this->fExpression);
+			rlc_free((void**)&this->fExpression);
+		}
 	} else RLC_DASSERT(this->fValue == kRlcParsedTypeNameValueVoid);
 }
 
@@ -210,6 +218,35 @@ int rlc_parsed_type_name_parse(
 		parser,
 		kRlcTokVoid))
 	{
+	} else if(rlc_parser_data_consume(
+		parser,
+		kRlcTokType))
+	{
+		if(!rlc_parser_data_consume(
+			parser,
+			kRlcTokParentheseOpen))
+		{
+			error_code = kRlcParseErrorExpectedParentheseOpen;
+			goto failure;
+		}
+
+		if(!(out->fExpression = rlc_parsed_expression_parse(
+			parser,
+			RLC_ALL_FLAGS(RlcParsedExpressionType))))
+		{
+			error_code = kRlcParseErrorExpectedParentheseClose;
+			goto failure;
+		}
+
+		out->fValue = kRlcParsedTypeNameValueExpression;
+
+		if(!rlc_parser_data_consume(
+			parser,
+			kRlcTokParentheseClose))
+		{
+			error_code = kRlcParseErrorExpectedParentheseClose;
+			goto failure;
+		}
 	} else if(rlc_parsed_symbol_parse(
 		&parse.fSymbol,
 		parser))
@@ -280,6 +317,7 @@ failure:
 		error_code);
 nonfatal_failure:
 	rlc_parsed_type_name_destroy(out);
+	parser->fIndex = start;
 	return 0;
 }
 

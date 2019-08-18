@@ -110,7 +110,9 @@ enum RlcParsedTypeNameValue
 	/** The type name is a name. */
 	kRlcParsedTypeNameValueName,
 	/** The type name is a function signature. */
-	kRlcParsedTypeNameValueFunction
+	kRlcParsedTypeNameValueFunction,
+	/** The type name is the type of an expression. */
+	kRlcParsedTypeNameValueExpression
 };
 
 /** A (possibly) scope-qualified identifier, or void, and type qualifiers. */
@@ -123,6 +125,8 @@ struct RlcParsedTypeName
 		struct RlcParsedSymbol * fName;
 		/** The function signature type. */
 		struct RlcParsedFunctionSignature * fFunction;
+		/** The expression (for type-of). */
+		struct RlcParsedExpression * fExpression;
 	};
 
 	/** The type modifiers list. */

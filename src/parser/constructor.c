@@ -298,8 +298,7 @@ int rlc_parsed_initialiser_parse(
 	{
 		if(!(argument = rlc_parsed_expression_parse(
 			parser,
-			RLC_ALL_FLAGS(RlcParsedExpressionType)
-			&~RLC_FLAG(kRlcParsedTypeNameExpression))))
+			RLC_ALL_FLAGS(RlcParsedExpressionType))))
 		{
 			error_code = kRlcParseErrorExpectedExpression;
 			goto failure;
@@ -319,8 +318,7 @@ int rlc_parsed_initialiser_parse(
 		do {
 			if(!(argument = rlc_parsed_expression_parse(
 				parser,
-				RLC_ALL_FLAGS(RlcParsedExpressionType)
-				&~RLC_FLAG(kRlcParsedTypeNameExpression))))
+				RLC_ALL_FLAGS(RlcParsedExpressionType))))
 			{
 				error_code = kRlcParseErrorExpectedExpression;
 				goto failure;

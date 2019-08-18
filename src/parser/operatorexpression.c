@@ -189,8 +189,7 @@ static struct RlcParsedExpression * parse_postfix(
 	out = rlc_parsed_expression_parse(
 		parser,
 		RLC_ALL_FLAGS(RlcParsedExpressionType)
-		&~RLC_FLAG(kRlcParsedOperatorExpression)
-		&~RLC_FLAG(kRlcParsedTypeNameExpression));
+		&~RLC_FLAG(kRlcParsedOperatorExpression));
 
 	// without an elementary expression, fail.
 	if(!out)
@@ -246,13 +245,13 @@ static struct RlcParsedExpression * parse_postfix(
 					out,
 					rlc_parsed_expression_parse(
 						parser,
-						RLC_ALL_FLAGS(RlcParsedExpressionType)
-						&~RLC_FLAG(kRlcParsedTypeNameExpression)));
+						RLC_ALL_FLAGS(RlcParsedExpressionType)));
 			// index expression.
 			if(!(out = RLC_BASE_CAST(
 				binary,
 				RlcParsedExpression)))
 			{
+				error_code = kRlcParseErrorExpectedExpression;
 				goto failure;
 			}
 
@@ -299,8 +298,7 @@ static struct RlcParsedExpression * parse_postfix(
 				// parse the argument.
 				struct RlcParsedExpression * arg = rlc_parsed_expression_parse(
 					parser,
-					RLC_ALL_FLAGS(RlcParsedExpressionType)
-					&~RLC_FLAG(kRlcParsedTypeNameExpression));
+					RLC_ALL_FLAGS(RlcParsedExpressionType));
 
 				if(!arg)
 					goto delete_out_failure;

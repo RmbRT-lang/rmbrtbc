@@ -9,6 +9,7 @@
 #include "parser.h"
 #include "expression.h"
 
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -20,6 +21,16 @@ enum RlcParsedSymbolChildType
 	kRlcParsedSymbolChildTypeDestructor
 };
 
+struct RlcParsedSymbolChildTemplate
+{
+	int fIsExpression;
+	union
+	{
+		struct RlcParsedExpression * fExpression;
+		struct RlcParsedTypeName * fTypeName;
+	};
+};
+
 /** A single identifier, possibly templated.
 @relates RlcParsedSymbol */
 struct RlcParsedSymbolChild
@@ -29,7 +40,7 @@ struct RlcParsedSymbolChild
 	/** The name token's index. */
 	size_t fNameToken;
 	/** The template arguments. */
-	struct RlcParsedExpression ** fTemplates;
+	struct RlcParsedSymbolChildTemplate * fTemplates;
 	/** The template arguments' count. */
 	size_t fTemplateCount;
 };
@@ -60,7 +71,7 @@ void rlc_parsed_symbol_child_destroy(
 	@dassert @nonnull */
 void rlc_parsed_symbol_child_add_template(
 	struct RlcParsedSymbolChild * this,
-	struct RlcParsedExpression * template_argument);
+	struct RlcParsedSymbolChildTemplate * template_argument);
 
 int rlc_parsed_symbol_child_parse(
 	struct RlcParsedSymbolChild * out,
