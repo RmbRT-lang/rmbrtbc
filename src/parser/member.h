@@ -4,7 +4,6 @@
 #define __rlc_parser_member_h_defined
 
 #include "parser.h"
-#include "location.h"
 
 #include "../macros.h"
 
@@ -71,7 +70,7 @@ enum RlcMemberAttribute
 @return
 	The parsed member attribute. */
 enum RlcMemberAttribute rlc_member_attribute_parse(
-	struct RlcParserData * parser);
+	struct RlcParser * parser);
 
 /** Contains information of member declarations. */
 struct RlcParsedMember
@@ -80,15 +79,12 @@ struct RlcParsedMember
 
 	/** The visibility level of the member. */
 	enum RlcVisibility fVisibility;
-	/** The member's location.
-		Note that deriving types may contain a location of their own, but this location should also contain the visibility modifier, if exists. */
-	struct RlcParseLocation fLocation;
 };
 
 /** Parses a visibility modifier. */
 enum RlcVisibility rlc_visibility_parse(
 	enum RlcVisibility * default_visibility,
-	struct RlcParserData * parser);
+	struct RlcParser * parser);
 
 /** Creates a member.
 @memberof RlcParsedMember
@@ -98,14 +94,11 @@ enum RlcVisibility rlc_visibility_parse(
 @param[in] type:
 	The deriving type.
 @param[in] visibility:
-	The visibility level of the member.
-@param[in] isStatic:
-	Whether the member is static. */
+	The visibility level of the member. */
 void rlc_parsed_member_create(
 	struct RlcParsedMember * this,
 	enum RlcParsedMemberType type,
-	enum RlcVisibility visibility,
-	size_t start_index);
+	enum RlcVisibility visibility);
 
 /** Destroys a parsed member.
 @memberof RlcParsedMember
@@ -124,6 +117,16 @@ void rlc_parsed_member_destroy_virtual(
 void rlc_parsed_member_destroy_base(
 	struct RlcParsedMember * this);
 
+/** Returns the name of a parsed member.
+@memberof RlcParsedMember
+@param[in] this:
+	The member whose name to retrieve.
+	@dassert @nonnull
+@return
+	The member's name. `NULL` if the member has no name (i.e., constructors or destructors). */
+struct RlcSrcString const * rlc_parsed_member_name(
+	struct RlcParsedMember * this);
+
 /** Parses a member declaration.
 	Goes through all member types and tries to parse them.
 @memberof RlcParsedMember
@@ -137,7 +140,7 @@ void rlc_parsed_member_destroy_base(
 	`NULL` if no member declaration could be parsed, otherwise a pointer to a dynamically allocated instance of the deriving type. */
 struct RlcParsedMember * rlc_parsed_member_parse(
 	enum RlcVisibility * default_visibility,
-	struct RlcParserData * parser,
+	struct RlcParser * parser,
 	int flags);
 
 /** A list of parsed members. */

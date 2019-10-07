@@ -1,283 +1,170 @@
 /** @file parser.h
 	Contains consants used by the parser. */
-#ifndef __rlc_parser_data_parser_h_defined
-#define __rlc_parser_data_parser_h_defined
+#ifndef __rlc_parser_parser_h_defined
+#define __rlc_parser_parser_h_defined
 
 #include <stddef.h>
-#include "../preprocessor/preprocessor.h"
+
+#include "../tokeniser/tokeniser.h"
 
 #ifdef __cplusplus
 extern "C"
 #endif
 
-
-/** The error codes for parsing errors. */
-enum RlcParseError
+/** Tracks the context in which the parser currently is. */
+struct RlcParserTracer
 {
-	kRlcParseErrorExpectedIncludeStatement,
-	/** Expected an identifier. */
-	kRlcParseErrorExpectedIdentifier,
-	/** Expected a type name. */
-	kRlcParseErrorExpectedTypeName,
-	kRlcParseErrorExpectedTypeModifier,
-	kRlcParseErrorForbiddenDynamic,
-	/** Expected a function signature. */
-	kRlcParseErrorExpectedFunctionSignature,
-	/** Expected a semicolon. */
-	kRlcParseErrorExpectedSemicolon,
-	kRlcParseErrorExpectedColon,
-	/** Expected a ','. */
-	kRlcParseErrorExpectedComma,
-	/** Expected a symbol. */
-	kRlcParseErrorExpectedSymbol,
-	/** Expected a '{'. */
-	kRlcParseErrorExpectedBraceOpen,
-	/** Expected an enum constant. */
-	kRlcParseErrorExpectedEnumConstant,
-	/** Expected a '}'. */
-	kRlcParseErrorExpectedBraceClose,
-
-	kRlcParseErrorExpectedBracketOpen,
-	kRlcParseErrorExpectedBracketClose,
-	kRlcParseErrorExpectedGreater,
-
-	kRlcParseErrorExpectedColonEqual,
-	kRlcParseErrorExpectedColonEqualOrColon,
-	kRlcParseErrorExpectedDoubleColonEqual,
-	kRlcParseErrorForbiddenDoubleColonEqual,
-
-	kRlcParseErrorExpectedParentheseOpen,
-	/** Expected a ')'. */
-	kRlcParseErrorExpectedParentheseClose,
-
-	kRlcParseErrorExpectedTemplateDeclaration,
-	kRlcParseErrorForbiddenTemplateDeclaration,
-
-	/** Expected an expression. */
-	kRlcParseErrorExpectedExpression,
-
-	kRlcParseErrorExpectedNumberExpression,
-	kRlcParseErrorExpectedStringExpression,
-	kRlcParseErrorExpectedSymbolExpression,
-	kRlcParseErrorExpectedSymbolChildExpression,
-	kRlcParseErrorExpectedTypeNameExpression,
-	kRlcParseErrorExpectedOperatorExpression,
-	kRlcParseErrorExpectedThisExpression,
-	kRlcParseErrorExpectedCastExpression,
-	kRlcParseErrorExpectedSizeofExpression,
-
-	kRlcParseErrorExpectedArgument,
-
-	kRlcParseErrorExpectedMemberVariable,
-	kRlcParseErrorExpectedMemberFunction,
-	kRlcParseErrorExpectedMemberClass,
-	kRlcParseErrorExpectedMemberUnion,
-	kRlcParseErrorExpectedMemberStruct,
-	kRlcParseErrorExpectedMemberRawtype,
-	kRlcParseErrorExpectedMemberTypedef,
-	kRlcParseErrorExpectedConstructor,
-	kRlcParseErrorExpectedDestructor,
-
-	kRlcParseErrorExpectedClassMember,
-	kRlcParseErrorExpectedStructMember,
-
-	kRlcParseErrorExpectedExpressionOrVariable,
-	kRlcParseErrorExpectedVariable,
-	kRlcParseErrorExpectedFunction,
-	kRlcParseErrorExpectedClass,
-	kRlcParseErrorExpectedUnion,
-	kRlcParseErrorExpectedStruct,
-	kRlcParseErrorExpectedRawtype,
-	kRlcParseErrorExpectedTypedef,
-	kRlcParseErrorExpectedExternalSymbol,
-	kRlcParseErrorExpectedNamespace,
-	kRlcParseErrorExpectedEnum,
-
-	kRlcParseErrorExpectedScopeEntry,
-
-	kRlcParseErrorExpectedStatement,
-	kRlcParseErrorExpectedTemplateDeclType,
-	kRlcParseErrorExpectedExpressionStatement,
-	kRlcParseErrorExpectedBlockStatement,
-	kRlcParseErrorExpectedIfStatement,
-	kRlcParseErrorExpectedLoopStatement,
-	kRlcParseErrorExpectedVariableStatement,
-	kRlcParseErrorExpectedReturnStatement,
-	kRlcParseErrorExpectedSwitchStatement,
-	kRlcParseErrorExpectedCaseStatement,
-	kRlcParseErrorExpectedBreakStatement,
-
-	kRlcParseErrorExpectedControlLabel,
-	kRlcParseErrorUnexpectedControlLabel,
-	kRlcParseErrorMismatchedControlLabelName,
-
-	kRlcParseErrorExpectedLoopInitial,
-	kRlcParseErrorExpectedForHead,
-	kRlcParseErrorExpectedWhileHead,
-	kRlcParseErrorExpectedLoopHead,
-
-	/** If/else body. */
-	kRlcParseErrorExpectedBodyStatement,
-
-	kRlcParseErrorExpectedInitialiser,
-
-	kRlcParseErrorDoubleDestructor,
-	kRlcParseErrorDestructorTemplate,
-
-	RLC_ENUM_END(RlcParseError)
-};
-
-char const * rlc_parse_error_msg(
-	enum RlcParseError error);
-
-/** An error message used by the parser. */
-struct RlcParseErrorMessage
-{
-	/** The error code. */
-	enum RlcParseError fError;
-	/** The error location (token index). */
-	size_t fLocation;
+	/** The parser's previous context. */
+	struct RlcParserTracer * fPrevious;
+	/** The context's name. */
+	char const * fContext;
 };
 
 /** The parser state. */
-struct RlcParserData
+struct RlcParser
 {
-	/** The error messages. */
-	struct RlcParseErrorMessage * fErrors;
-	/** The error count. */
-	size_t fErrorCount;
-
-	/** The preprocessed source file. */
-	struct RlcPreprocessedFile * fFile;
-
-	/** The current token index. */
-	size_t fIndex;
-	/** The latest token index ever consumed. */
-	size_t fLatestIndex;
+	/** The token stream. */
+	struct RlcTokeniser fTokeniser;
+	/** The LL(2) token buffer. */
+	struct RlcToken fLookahead[2];
+	/** The amount of tokens in the buffer. */
+	uint8_t fLookaheadSize;
+	/** The current index in the buffer.*/
+	uint8_t fToken;
+	/** Whether the end of the token stream has been reached. */
+	uint8_t fEnd;
+	/** The parser's tracer. */
+	struct RlcParserTracer * fTracer;
 };
+
 /** Creates a parser for a file.
-@memberof RlcParserData
+@memberof RlcParser
 @param[out] this:
 	The parser to create.
 	@dassert @nonnull
 @param[in] file:
 	The file to parse.
 	@dassert @nonnull */
-void rlc_parser_data_create(
-	struct RlcParserData * this,
-	struct RlcPreprocessedFile * file);
+void rlc_parser_create(
+	struct RlcParser * this,
+	struct RlcSrcFile const * file);
 
-/** Goes to the next token.
-@memberof RlcParserData
-@param[in,out] this:
-	The parser data.
-@return
-	Whether there is a next token. */
-int rlc_parser_data_next(
-	struct RlcParserData * this);
+/** Destroys parser data.
+@memberof RlcParser
+@param[in] this:
+	The parser data to destroy.
+	@dassert @nonnull */
+void rlc_parser_destroy(
+	struct RlcParser * this);
+
+/** Makes the parser enter a context.
+@memberof RlcParserTracer */
+void rlc_parser_trace(
+	struct RlcParser * this,
+	char const * context,
+	struct RlcParserTracer * tracer);
+
+/** Destroys the parser's current context.
+@memberof RlcParserTracer */
+void rlc_parser_untrace(
+	struct RlcParser * this);
+
+/** Retrieves a parser's current context.
+@memberof RlcParser */
+char const * rlc_parser_context(
+	struct RlcParser const * this);
+
+/** Whether the end of the file is reached.
+@memberof RlcParser */
+inline int rlc_parser_eof(
+	struct RlcParser const * this);
+
+/** Whether the end of the file is directly after the current token.
+@memberof RlcParser */
+inline int rlc_parser_ahead_eof(
+	struct RlcParser const * this);
 
 /** Returns the address of the current token, if not at the end of the token stream.
-@memberof RlcParserData
+@memberof RlcParser
 @param[in] this:
 	The parser data.
 	@dassert @nonnull */
-struct RlcToken const * rlc_parser_data_current(
-	struct RlcParserData const * this);
+inline struct RlcToken const * rlc_parser_current(
+	struct RlcParser const * this);
 
-/** Returns the address of the latest consumed token, if not at the end of the token stream.
-@memberof RlcParserData
-@param[in] this:
-	The parser data.
-	@dassert @nonnull */
-struct RlcToken const * rlc_parser_data_latest(
-	struct RlcParserData const * this);
+/** Retrieves the parser's next token.
+@memberof RlcParser */
+inline struct RlcToken const * rlc_parser_ahead(
+	struct RlcParser const * this);
 
-struct RlcToken const * rlc_parser_data_ahead(
-	struct RlcParserData const * this);
+/** Retrieves the parser's current source index.
+@memberof RlcParser */
+RlcSrcIndex rlc_parser_index(
+	struct RlcParser const * this);
 
 /** Matches a token.
-@memberof RlcParserData
+@memberof RlcParser
 @param[in] this:
 	The parser data.
 @param[in] type:
 	The token type to match.
 @return
 	Nonzero if matched. */
-int rlc_parser_data_match(
-	struct RlcParserData const * this,
+int rlc_parser_is_current(
+	struct RlcParser const * this,
 	enum RlcTokenType type);
 
-struct RlcToken const * rlc_parser_data_match_ahead(
-	struct RlcParserData const * this,
+struct RlcToken const * rlc_parser_is_ahead(
+	struct RlcParser const * this,
 	enum RlcTokenType type);
+
+/** Terminates with an error message.
+@memberof RlcParser */
+_Noreturn void rlc_parser_fail(
+	struct RlcParser * parser,
+	char const * reason);
 
 /** Tries to match a token of the given type, and on success, consumes it.
-@memberof RlcParserData
+@memberof RlcParser
 @param[in,out] this:
 	The parser data.
+	@dassert @nonnull
+@param[out] token:
+	If nonnull, saves the matched token in `token`.
 @param[in] type:
 	The token type to match.
 @return
 	Nonzero if a token was matched. */
-int rlc_parser_data_consume(
-	struct RlcParserData * this,
+int rlc_parser_consume(
+	struct RlcParser * this,
+	struct RlcToken * token,
 	enum RlcTokenType type);
 
-/** Destroys parser data.
-@memberof RlcParserData
-@param[in] this:
-	The parser data to destroy.
-	@dassert @nonnull */
-void rlc_parser_data_destroy(
-	struct RlcParserData * this);
-
-/** Adds an error to a parser data.
-@memberof RlcParserData
+/** Tries to match a token of any of the given types, and on success, consumes it.
+	On failure, displays an error message and aborts the program.
+@memberof RlcParser
 @param[in,out] this:
-	The parser data to add an error to.
-@param[in] error_message:
-	The error message to add. */
-void rlc_parser_data_add_error(
-	struct RlcParserData * this,
-	enum RlcParseError error_message);
-
-/** Clears all errors from the parser.
-@param[in,out] this:
-	The parser data whose errors to clear. */
-void rlc_parser_data_clear_errors(
-	struct RlcParserData * this);
-
-/** Returns the index of the matched token.
-@memberof RlcParserData
-@param[in] parser:
-	The parser that matched a token.
-	@dassert @nonnull
-@return
-	The matched token's index. */
-size_t rlc_parser_data_matched_index(
-	struct RlcParserData * parser);
-
-/** Returns the index of the consumed token.
-@memberof RlcParserData
-@param[in] parser:
-	The parser that consumed a token.
-	@dassert @nonnull
-@return
-	The consumed token's index. */
-size_t rlc_parser_data_consumed_index(
-	struct RlcParserData * parser);
-
-/** Compare two tokens in a parser's token stream for equal contents.
-@param[in] parser:
 	The parser data.
-@param[in] lhs:
-	The left hand side token.
-@param[in] rhs:
-	The right hand side token. */
-int rlc_parser_data_equal_tokens(
-	struct RlcParserData const * parser,
-	size_t lhs,
-	size_t rhs);
+	@dassert @nonnull
+@param[out] token:
+	If nonnull, saves the matched token in `token`.
+@return
+	The matched token type. */
+enum RlcTokenType rlc_parser_expect(
+	struct RlcParser * this,
+	struct RlcToken * token,
+	size_t count,
+	enum RlcTokenType types, ...);
+
+/** Skips the parser's current token.
+@memberof RlcParser
+@param[in,out] this:
+	The parser data.
+	@dassert @nonnull */
+void rlc_parser_skip(
+	struct RlcParser * this);
+
+#include "parser.inl"
 
 #ifdef __cplusplus
 }

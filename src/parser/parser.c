@@ -3,116 +3,54 @@
 #include "../malloc.h"
 #include "../assert.h"
 
-char const * rlc_parse_error_msg(
-	enum RlcParseError error)
-{
-	RLC_DASSERT(RLC_IN_ENUM(error, RlcParseError));
-	static char * error_msg[] = {
-		"Expected Include Statement",
-		"Expected Identifier",
-		"Expected Type Name",
-		"Expected Type Modifier",
-		"Forbidden Dynamic Indirection",
-		"Expected Function Signature",
-		"Expected ';'",
-		"Expected ':'",
-		"Expected ','",
-		"Expected Symbol",
-		"Expected '{'",
-		"Expected Enum Constant",
-		"Expected '}'",
-
-		"Expected '['",
-		"Expected ']'",
-		"Expected '>'",
-		"Expected ':='",
-		"Expected ':=' or ':'",
-		"Expected '::='",
-		"Forbidden '::='",
-		"Expected '('",
-		"Expected ')'",
-		"Expected Template Declaration",
-		"Forbidden Template Declaration",
-		"Expected Expression",
-		"Expected Number Expression",
-		"Expected String Expression",
-		"Expected Symbol Expression",
-		"Expected Symbol Child Expression",
-		"Expected Type Name Expression",
-		"Expected Operator Expression",
-		"Expected 'this' Expression",
-		"Expected Cast Expression",
-		"Expected Sizeof Expression",
-		"Expected Argument",
-		"Expected Member Variable",
-		"Expected Member Function",
-		"Expected Member Class",
-		"Expected Member Union",
-		"Expected Member Struct",
-		"Expected Member Rawtype",
-		"Expected Member Typedef",
-		"Expected Constructor",
-		"Expected Destructor",
-		"Expected Class Member",
-		"Expected Struct Member",
-		"Expected Expression Or Variable",
-		"Expected Variable",
-		"Expected Function",
-		"Expected Class",
-		"Expected Union",
-		"Expected Struct",
-		"Expected Rawtype",
-		"Expected Typedef",
-		"Expected External Symbol",
-		"Expected Namespace",
-		"Expected Enum",
-		"Expected Scope Entry",
-		"Expected Statement",
-		"Expected Template Decl Type",
-		"Expected Expression Statement",
-		"Expected Block Statement",
-		"Expected If Statement",
-		"Expected Loop Statement",
-		"Expected Variable Statement",
-		"Expected Return Statement",
-		"Expected Switch Statement",
-		"Expected Case Statement",
-		"Expected Break Statement",
-		"Expected Control Label",
-		"Unexpected Control Label",
-		"Mismatched Control Label Name",
-		"Expected Loop Initial",
-		"Expected For Head",
-		"Expected While Head",
-		"Expected For/While Head",
-		"Expected Body Statement",
-		"Expected Initialiser",
-		"Redefined Destructor",
-		"Destructor Template Arguments"
-	};
-
-	static_assert(RLC_COVERS_ENUM(error_msg, RlcParseError), "lookup table");
-
-	return error_msg[error];
-}
-
-void rlc_parser_data_create(
-	struct RlcParserData * this,
-	struct RlcPreprocessedFile * file)
+void rlc_parser_create(
+	struct RlcParser * this,
+	struct RlcSrcFile * file)
 {
 	RLC_DASSERT(this != NULL);
 	RLC_DASSERT(file != NULL);
 
-	this->fErrors = NULL;
-	this->fErrorCount = 0;
+	rlc_tokeniser_create(
+		&this->fTokeniser,
+		file);
 
-	this->fFile = file;
-	this->fIndex = 0;
-	this->fLatestIndex = 0;
+	this->fTracer = NULL;
+
+	if(rlc_tokeniser_read(&this->fTokeniser, &this->fLookahead[0]))
+	{
+		this->fEnd = !rlc_tokeniser_read(&this->fTokeniser, &this->fLookahead[1]);
+		this->fLookaheadSize = 2;
+	} else
+	{
+		this->fEnd = 1;
+		this->fLookaheadSize = 1;
+	}
 }
 
-int rlc_parser_data_next(
-	struct RlcParserData * this)
+void rlc_parser_destroy(
+	struct RlcParser * this)
+{
+	RLC_DASSERT(this != NULL);
+
+	if(!rlc_parser_eof(this))
+	{
+		struct RlcSrcPosition pos;
+		rlc_src_file_position(
+			this->fTokeniser.fSource,
+			pos,
+			rlc_parser_current(this)->content.start);
+
+		fprintf(stderr, "%s:%u:%u: error: unexpected '%s'.\n",
+			this->fTokeniser.fSource->fName,
+			pos.line,
+			pos.column,
+			rlc_src_string_cstr(&rlc_parser_current(this)->content));
+		exit(1);
+	}
+}
+
+int rlc_parser_next(
+	struct RlcParser * this)
 {
 	RLC_DASSERT(this != NULL);
 	RLC_DASSERT(this->fFile != NULL);
@@ -128,8 +66,8 @@ int rlc_parser_data_next(
 }
 
 
-struct RlcToken const * rlc_parser_data_current(
-	struct RlcParserData const * this)
+struct RlcToken const * rlc_parser_current(
+	struct RlcParser const * this)
 {
 	RLC_DASSERT(this != NULL);
 
@@ -139,8 +77,8 @@ struct RlcToken const * rlc_parser_data_current(
 		return NULL;
 }
 
-struct RlcToken const * rlc_parser_data_latest(
-	struct RlcParserData const * this)
+struct RlcToken const * rlc_parser_latest(
+	struct RlcParser const * this)
 {
 	RLC_DASSERT(this != NULL);
 
@@ -150,8 +88,8 @@ struct RlcToken const * rlc_parser_data_latest(
 		return NULL;
 }
 
-struct RlcToken const * rlc_parser_data_ahead(
-	struct RlcParserData const * this)
+struct RlcToken const * rlc_parser_ahead(
+	struct RlcParser const * this)
 {
 	RLC_DASSERT(this != NULL);
 
@@ -174,50 +112,50 @@ static struct RlcToken const * static_match_token(
 		return NULL;
 }
 
-int rlc_parser_data_match(
-	struct RlcParserData const * this,
+int rlc_parser_match(
+	struct RlcParser const * this,
 	enum RlcTokenType type)
 {
 	RLC_DASSERT(this != NULL);
 
 	return NULL != static_match_token(
-		rlc_parser_data_current(this),
+		rlc_parser_current(this),
 		type);
 }
 
-struct RlcToken const * rlc_parser_data_match_ahead(
-	struct RlcParserData const * this,
+struct RlcToken const * rlc_parser_match_ahead(
+	struct RlcParser const * this,
 	enum RlcTokenType type)
 {
 	RLC_DASSERT(this != NULL);
 
 	return static_match_token(
-		rlc_parser_data_ahead(this),
+		rlc_parser_ahead(this),
 		type);
 }
 
-int rlc_parser_data_consume(
-	struct RlcParserData * this,
+int rlc_parser_consume(
+	struct RlcParser * this,
 	enum RlcTokenType type)
 {
 	RLC_DASSERT(this != NULL);
 
-	int ret = rlc_parser_data_match(
+	int ret = rlc_parser_match(
 		this,
 		type);
 
 	if(ret)
-		rlc_parser_data_next(this);
+		rlc_parser_next(this);
 
 	return ret;
 }
 
-void rlc_parser_data_destroy(
-	struct RlcParserData * this)
+void rlc_parser_destroy(
+	struct RlcParser * this)
 {
 	RLC_DASSERT(this != NULL);
 
-	rlc_parser_data_clear_errors(this);
+	rlc_parser_clear_errors(this);
 
 	if(this->fFile)
 	{
@@ -229,8 +167,8 @@ void rlc_parser_data_destroy(
 	this->fLatestIndex = 0;
 }
 
-void rlc_parser_data_add_error(
-	struct RlcParserData * this,
+void rlc_parser_add_error(
+	struct RlcParser * this,
 	enum RlcParseError error_message)
 {
 	RLC_DASSERT(this != NULL);
@@ -246,24 +184,24 @@ void rlc_parser_data_add_error(
 	msg->fLocation = this->fIndex;
 }
 
-void rlc_parser_data_clear_errors(
-	struct RlcParserData * this)
+void rlc_parser_clear_errors(
+	struct RlcParser * this)
 {
 	if(this->fErrors)
 		rlc_free((void**)&this->fErrors);
 	this->fErrorCount = 0;
 }
 
-size_t rlc_parser_data_matched_index(
-	struct RlcParserData * parser)
+size_t rlc_parser_matched_index(
+	struct RlcParser * parser)
 {
 	RLC_DASSERT(parser != NULL);
 
 	return parser->fIndex;
 }
 
-size_t rlc_parser_data_consumed_index(
-	struct RlcParserData * parser)
+size_t rlc_parser_consumed_index(
+	struct RlcParser * parser)
 {
 	RLC_DASSERT(parser != NULL);
 	RLC_DASSERT(parser->fIndex > 0);
@@ -271,8 +209,8 @@ size_t rlc_parser_data_consumed_index(
 	return parser->fIndex - 1;
 }
 
-int rlc_parser_data_equal_tokens(
-	struct RlcParserData const * parser,
+int rlc_parser_equal_tokens(
+	struct RlcParser const * parser,
 	size_t lhs,
 	size_t rhs)
 {

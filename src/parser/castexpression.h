@@ -57,7 +57,7 @@ void rlc_parsed_cast_expression_destroy(
 	Whether the expression was successfully parsed. */
 int rlc_parsed_cast_expression_parse(
 	struct RlcParsedCastExpression * out,
-	struct RlcParserData * parser);
+	struct RlcParser * parser);
 
 #ifdef __cplusplus
 }

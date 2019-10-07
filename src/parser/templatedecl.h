@@ -75,7 +75,7 @@ void rlc_parsed_template_decl_destroy(
 /** Parses a template declaration. */
 int rlc_parsed_template_decl_parse(
 	struct RlcParsedTemplateDecl * decl,
-	struct RlcParserData * parser);
+	struct RlcParser * parser);
 
 /** Checks whether a template declaration has entries.
 @memberof RlcParsedTemplateDecl

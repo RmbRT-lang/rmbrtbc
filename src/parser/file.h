@@ -6,6 +6,8 @@
 #include "scopeentry.h"
 #include "includestatement.h"
 
+#include <stdio.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -19,9 +21,6 @@ struct RlcParsedFile
 	size_t fIncludeCount;
 	/** The file's parsed scope entries. */
 	struct RlcParsedScopeEntryList fScopeEntries;
-
-	/** The file's parser and tokens. */
-	struct RlcParserData fParser;
 };
 
 /** Creates a parsed file from a preprocessed file.
@@ -37,7 +36,7 @@ struct RlcParsedFile
 	Whether there were any parsing errors. */
 int rlc_parsed_file_create(
 	struct RlcParsedFile * this,
-	struct RlcPreprocessedFile * file);
+	char const * filename);
 
 /** Destroys a parsed file.
 @memberof RlcParsedFile

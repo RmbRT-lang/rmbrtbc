@@ -75,28 +75,15 @@ void rlc_parsed_scope_entry_destroy_virtual(
 void rlc_parsed_scope_entry_create(
 	struct RlcParsedScopeEntry * this,
 	enum RlcParsedScopeEntryType derivingType,
-	size_t start_index)
+	struct RlcSrcString const * name)
 {
 	RLC_DASSERT(this != NULL);
 
 	this->fLocation.fBegin = start_index;
 	this->fLocation.fEnd = 0;
-	this->fNames = NULL;
-	this->fNameCount = 0;
+	this->fName = *name;
 
 	RLC_DERIVING_TYPE(this) = derivingType;
-}
-
-void rlc_parsed_scope_entry_add_name(
-	struct RlcParsedScopeEntry * this,
-	size_t name)
-{
-	RLC_DASSERT(this != NULL);
-
-	rlc_realloc(
-		(void**)&this->fNames,
-		sizeof(size_t) * ++this->fNameCount);
-	this->fNames[this->fNameCount-1] = name;
 }
 
 static int dummy_rlc_parsed_variable_parse(

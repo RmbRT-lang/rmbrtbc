@@ -27,43 +27,28 @@ void rlc_parsed_break_statement_destroy(
 
 int rlc_parsed_break_statement_parse(
 	struct RlcParsedBreakStatement * out,
-	struct RlcParserData * parser)
+	struct RlcParser * parser)
 {
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
 
-	size_t const start = parser->fIndex;
-	enum RlcParseError error_code;
-
-	if(!rlc_parser_data_consume(
+	if(!rlc_parser_consume(
 		parser,
+		NULL,
 		kRlcTokBreak))
 		return 0;
 
 	rlc_parsed_break_statement_create(out);
 
-	if(!rlc_control_label_parse(
+	rlc_control_label_parse(
 		&out->fLabel,
-		parser))
-	{
-		error_code = kRlcParseErrorExpectedControlLabel;
-		goto failure;
-	}
+		parser);
 
-	if(!rlc_parser_data_consume(
+	rlc_parser_expect(
 		parser,
-		kRlcTokSemicolon))
-	{
-		error_code = kRlcParseErrorExpectedSemicolon;
-		goto failure;
-	}
+		NULL,
+		1,
+		kRlcTokSemicolon);
 
 	return 1;
-failure:
-	rlc_parser_data_add_error(
-		parser,
-		error_code);
-	parser->fIndex = start;
-	rlc_parsed_break_statement_destroy(out);
-	return 0;
 }

@@ -54,7 +54,7 @@ void rlc_parsed_destructor_destroy(
 int rlc_parsed_destructor_parse(
 	struct RlcParsedDestructor * out,
 	enum RlcVisibility * default_visibility,
-	struct RlcParserData * parser);
+	struct RlcParser * parser);
 
 #ifdef __cplusplus
 }

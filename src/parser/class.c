@@ -4,14 +4,14 @@
 
 void rlc_parsed_class_create(
 	struct RlcParsedClass * this,
-	size_t start_index)
+	struct RlcSrcString const * name)
 {
 	RLC_DASSERT(this != NULL);
 
 	rlc_parsed_scope_entry_create(
 		RLC_BASE_CAST(this, RlcParsedScopeEntry),
 		kRlcParsedClass,
-		start_index);
+		name);
 
 	rlc_parsed_template_decl_create(&this->fTemplateDecl);
 
@@ -40,59 +40,37 @@ void rlc_parsed_class_destroy(
 
 int rlc_parsed_class_parse(
 	struct RlcParsedClass * out,
-	struct RlcParserData * parser)
+	struct RlcParser * parser)
 {
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
 
-	enum RlcParseError error_code;
-	size_t const start_index = parser->fIndex;
-
-	rlc_parsed_class_create(
-		out,
-		start_index);
-
-	if(!rlc_parsed_template_decl_parse(
-		&out->fTemplateDecl,
-		parser))
+	struct RlcToken name;
+	if((!rlc_parser_is_ahead(parser, kRlcTokBraceOpen)
+		&& !rlc_parser_is_ahead(parser, kRlcTokMinusGreater))
+	|| !rlc_parser_consume(parser, &name, kRlcTokIdentifier))
 	{
-		error_code = kRlcParseErrorExpectedTemplateDeclaration;
-		goto failure;
+		return 0;
 	}
 
-	if(!rlc_parser_data_consume(
+	rlc_parsed_class_create(out, &name.content);
+
+	struct RlcParserTracer tracer;
+	rlc_parser_trace(parser, "class", &tracer);
+
+	rlc_parser_expect(
 		parser,
-		kRlcTokClass))
-	{
-		goto nonfatal_failure;
-	}
-
-
-	if(!rlc_parser_data_consume(
-		parser,
-		kRlcTokIdentifier))
-	{
-		error_code = kRlcParseErrorExpectedIdentifier;
-		goto failure;
-	}
-
-	rlc_parsed_scope_entry_add_name(
-		RLC_BASE_CAST(out,RlcParsedScopeEntry),
-		rlc_parser_data_consumed_index(parser));
-
-	if(!rlc_parser_data_consume(
-		parser,
-		kRlcTokBraceOpen))
-	{
-		error_code = kRlcParseErrorExpectedBraceOpen;
-		goto failure;
-	}
+		NULL,
+		1,
+		kRlcTokBraceOpen);
 
 	// default visibility is private.
 	enum RlcVisibility visibility = kRlcVisibilityPrivate;
-	struct RlcParsedMember * member = NULL;
 	struct RlcParsedDestructor destructor;
-	for(;;)
+	while(!rlc_parser_consume(
+		parser,
+		NULL,
+		kRlcTokBraceClose))
 	{
 		if(rlc_parsed_destructor_parse(
 			&destructor,
@@ -100,82 +78,36 @@ int rlc_parsed_class_parse(
 			parser))
 		{
 			if(out->fHasDestructor)
-			{
-				rlc_parsed_destructor_destroy(&destructor);
-				error_code = kRlcParseErrorDoubleDestructor;
-				goto failure;
-			} else
-			{
-				out->fHasDestructor = 1;
-				out->fDestructor = destructor;
-			}
-		} else if(parser->fErrorCount)
-		{
-			error_code = kRlcParseErrorExpectedDestructor;
-			goto failure;
-		} else if(member = rlc_parsed_member_parse(
-			&visibility,
-			parser,
-			RLC_ALL_FLAGS(RlcParsedMemberType)
-			&~RLC_FLAG(kRlcParsedDestructor))) // any kind of member is allowed inside classes.
+				rlc_parser_fail(parser, "duplicate destructor");
+
+			out->fHasDestructor = 1;
+			out->fDestructor = destructor;
+		} else
 		{
 			// add the member to the members list.
 			rlc_parsed_member_list_add(
 				&out->fMembers,
-				member);
-		} else if(parser->fErrorCount) // was there a parsing error?
-		{
-			error_code = kRlcParseErrorExpectedClassMember;
-			goto failure;
-		} else break; // or was there just no member at all?
+				rlc_parsed_member_parse(
+					&visibility,
+					parser,
+					RLC_ALL_FLAGS(RlcParsedMemberType)
+					&~RLC_FLAG(kRlcParsedDestructor)));
+		}
 	}
 
-	// finishing sequence of the class definition.
-	if(!rlc_parser_data_consume(
-		parser,
-		kRlcTokBraceClose))
-	{
-		error_code = kRlcParseErrorExpectedBraceClose;
-		goto failure;
-	}
-
-	if(!rlc_parser_data_consume(
-		parser,
-		kRlcTokSemicolon))
-	{
-		error_code = kRlcParseErrorExpectedSemicolon;
-		goto failure;
-	}
-
-success:
-	RLC_BASE_CAST(out, RlcParsedScopeEntry)->fLocation.fEnd = parser->fIndex;
 	return 1;
-failure:
-	rlc_parser_data_add_error(
-		parser,
-		error_code);
-nonfatal_failure:
-	rlc_parsed_class_destroy(out);
-	parser->fIndex = start_index;
-	return 0;
 }
 
 void rlc_parsed_member_class_create(
 	struct RlcParsedMemberClass * this,
-	size_t start_index,
 	enum RlcVisibility visibility)
 {
 	RLC_DASSERT(this != NULL);
 
-	rlc_parsed_class_create(
-		RLC_BASE_CAST(this, RlcParsedClass),
-		0);
-
 	rlc_parsed_member_create(
 		RLC_BASE_CAST(this, RlcParsedMember),
 		kRlcParsedMemberClass,
-		visibility,
-		start_index);
+		visibility);
 }
 
 void rlc_parsed_member_class_destroy(
@@ -192,14 +124,11 @@ void rlc_parsed_member_class_destroy(
 int rlc_parsed_member_class_parse(
 	struct RlcParsedMemberClass * out,
 	enum RlcVisibility * default_visibility,
-	struct RlcParserData * parser)
+	struct RlcParser * parser)
 {
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
 	RLC_DASSERT(default_visibility != NULL);
-
-	size_t const start_index = parser->fIndex;
-	enum RlcParseError error_code;
 
 	enum RlcVisibility visibility = rlc_visibility_parse(
 		default_visibility,
@@ -207,29 +136,15 @@ int rlc_parsed_member_class_parse(
 
 	rlc_parsed_member_class_create(
 		out,
-		start_index,
 		visibility);
 
 	if(!rlc_parsed_class_parse(
 		RLC_BASE_CAST(out, RlcParsedClass),
 		parser))
 	{
-		if(parser->fErrorCount)
-		{
-			error_code = kRlcParseErrorExpectedMemberClass;
-			goto fatal_failure;
-		} else goto nonfatal_failure;
+		return 0;
 	}
 
-success:
 	RLC_BASE_CAST(out, RlcParsedMember)->fLocation.fEnd = parser->fIndex;
 	return 1;
-fatal_failure:
-	rlc_parser_data_add_error(
-		parser,
-		error_code);
-	rlc_parsed_member_class_destroy(out);
-nonfatal_failure:
-	parser->fIndex = start_index;
-	return 0;
 }

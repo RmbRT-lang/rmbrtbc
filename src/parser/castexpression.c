@@ -37,68 +37,46 @@ void rlc_parsed_cast_expression_destroy(
 
 int rlc_parsed_cast_expression_parse(
 	struct RlcParsedCastExpression * out,
-	struct RlcParserData * parser)
+	struct RlcParser * parser)
 {
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
 
-	size_t const start = parser->fIndex;
-	enum RlcParseError error_code;
 
-	if(!rlc_parser_data_consume(
+	rlc_parsed_cast_expression_create(out, rlc_parser_index(parser));
+
+	if(!rlc_parser_consume(
 		parser,
+		NULL,
 		kRlcTokLess))
 		return 0;
 
-	rlc_parsed_cast_expression_create(out, start);
-
-	if(!rlc_parsed_type_name_parse(
+	rlc_parsed_type_name_parse(
 		&out->fType,
-		parser))
-	{
-		error_code = kRlcParseErrorExpectedTypeName;
-		goto failure;
-	}
+		parser);
 
-	if(!rlc_parser_data_consume(
+	rlc_parser_expect(
 		parser,
-		kRlcTokGreater))
-	{
-		error_code = kRlcParseErrorExpectedGreater;
-		goto failure;
-	}
+		NULL,
+		1,
+		kRlcTokGreater);
 
-	if(!rlc_parser_data_consume(
+	rlc_parser_expect(
 		parser,
-		kRlcTokParentheseOpen))
-	{
-		error_code = kRlcParseErrorExpectedParentheseOpen;
-		goto failure;
-	}
+		NULL,
+		1,
+		kRlcTokParentheseOpen);
 
-	if(!(out->fValue = rlc_parsed_expression_parse(
+	out->fValue = rlc_parsed_expression_parse(
 		parser,
-		RLC_ALL_FLAGS(RlcParsedExpressionType))))
-	{
-		error_code = kRlcParseErrorExpectedExpression;
-		goto failure;
-	}
+		RLC_ALL_FLAGS(RlcParsedExpressionType));
 
-	if(!rlc_parser_data_consume(
+	rlc_parser_expect(
 		parser,
-		kRlcTokParentheseClose))
-	{
-		error_code = kRlcParseErrorExpectedParentheseClose;
-		goto failure;
-	}
+		NULL,
+		1,
+		kRlcTokParentheseClose);
 
 	return 1;
-failure:
-	rlc_parser_data_add_error(
-		parser,
-		error_code);
-	parser->fIndex = start;
-	rlc_parsed_cast_expression_destroy(out);
-	return 0;
 }
 

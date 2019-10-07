@@ -28,62 +28,46 @@ void rlc_parsed_block_statement_destroy(
 
 int rlc_parsed_block_statement_parse(
 	struct RlcParsedBlockStatement * out,
-	struct RlcParserData * parser)
+	struct RlcParser * parser)
 {
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
 
 
-	if(!rlc_parser_data_consume(
+	if(!rlc_parser_consume(
 		parser,
+		NULL,
 		kRlcTokBraceOpen))
 		return 0;
-
-	enum RlcParseError error_code;
 
 	rlc_parsed_block_statement_create(out);
 
 	// A block statement is either a single empty statement, or other statements.
-	if(rlc_parser_data_consume(
+	if(rlc_parser_consume(
 		parser,
+		NULL,
 		kRlcTokSemicolon))
 	{
-		if(!rlc_parser_data_consume(
+		rlc_parser_expect(
 			parser,
-			kRlcTokBraceClose))
-		{
-			error_code = kRlcParseErrorExpectedBraceClose;
-			goto failure;
-		}
-		goto success;
+			NULL,
+			1,
+			kRlcTokBraceClose);
+
+		return 1;
 	}
 
-	while(!rlc_parser_data_consume(
+	while(!rlc_parser_consume(
 		parser,
+		NULL,
 		kRlcTokBraceClose))
 	{
-		struct RlcParsedStatement * statement =
-			rlc_parsed_statement_parse(
-				parser,
-				RLC_ALL_FLAGS(RlcParsedStatementType));
-
-		if(!statement)
-		{
-			error_code = kRlcParseErrorExpectedStatement;
-			goto failure;
-		}
-
 		rlc_parsed_statement_list_add(
 			&out->fList,
-			statement);
+			rlc_parsed_statement_parse(
+				parser,
+				RLC_ALL_FLAGS(RlcParsedStatementType)));
 	}
 
-success:
 	return 1;
-failure:
-	rlc_parser_data_add_error(
-		parser,
-		error_code);
-	rlc_parsed_block_statement_destroy(out);
-	return 0;
 }

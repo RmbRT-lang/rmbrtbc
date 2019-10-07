@@ -83,7 +83,7 @@ void rlc_parsed_expression_destroy_base(
 @return
 	A pointer to the parsed expression. */
 struct RlcParsedExpression * rlc_parsed_expression_parse(
-	struct RlcParserData * parser,
+	struct RlcParser * parser,
 	int flags);
 
 /** A list of expressions. */

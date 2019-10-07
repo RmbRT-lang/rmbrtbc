@@ -27,8 +27,8 @@ struct RlcParsedCaseStatement
 		Only exists if it is not the default case. */
 	struct RlcParsedExpressionList fValues;
 
-	/** The case's statements. */
-	struct RlcParsedStatementList fStatements;
+	/** The case's body statement. */
+	struct RlcParsedStatement * fBody;
 };
 
 /** Initialises a parsed case statement.
@@ -59,7 +59,7 @@ void rlc_parsed_case_statement_destroy(
 	Whether the case statement was successfully parsed. */
 int rlc_parsed_case_statement_parse(
 	struct RlcParsedCaseStatement * out,
-	struct RlcParserData * parser);
+	struct RlcParser * parser);
 
 
 #ifdef __cplusplus

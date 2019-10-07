@@ -1,6 +1,9 @@
 #ifndef __rlc_error_h_defined
 #define __rlc_error_h_defined
+#pragma once
 
+#include "src/file.h"
+#include "src/string.h"
 #include "tokeniser/tokens.h"
 
 #ifdef __cplusplus
@@ -38,30 +41,26 @@ void rlc_register_internal_error_function(
 @param[in] error:
 	The constant describing the error cause.*/
 typedef void (*rlc_lexical_error_fn_t)(
-	char const * file,
-	size_t line,
-	size_t column,
-	rlc_char_t const * line_string,
-	enum RlcTokResult cause);
+	struct RlcSrcFile const * file,
+	struct RlcSrcPosition position,
+	struct RlcSrcString line_string,
+	char const * cause);
 
 /** Reports a lexical error.
 	Invokes the registered lexical error callback.
 @param[in] file:
-	The name of the file in which the error occured.
-@param[in] line:
-	The line number (1-based) of the error.
-@param[in] column:
-	The number (1-based) of the first character of the error inside the line in which it occured.
+	The file in which the error occured.
+@param[in] position:
+	The position of the error.
 @param[in] line_string:
 	The contents of the line in which the error occured.
 @param[in] error:
 	The constant describing the error cause. */
 void rlc_report_lexical_error(
-	char const * file,
-	size_t line,
-	size_t column,
-	rlc_char_t const * line_string,
-	enum RlcTokResult cause);
+	struct RlcSrcFile const * file,
+	struct RlcSrcPosition position,
+	struct RlcSrcString line_string,
+	char const * cause);
 
 /** Registers a lexical error handler.
 @param[in] callback:

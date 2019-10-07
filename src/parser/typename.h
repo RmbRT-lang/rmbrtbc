@@ -45,7 +45,7 @@ enum RlcTypeIndirection
 	Whether any tokens were consumed. */
 int rlc_type_indirection_parse(
 	enum RlcTypeIndirection * out,
-	struct RlcParserData * parser,
+	struct RlcParser * parser,
 	int allow_dynamic);
 
 /** CV qualifier flag enum. */
@@ -73,7 +73,7 @@ enum RlcTypeQualifier
 	Whether any tokens were consumed. */
 int rlc_type_qualifier_parse(
 	enum RlcTypeQualifier * out,
-	struct RlcParserData * parser);
+	struct RlcParser * parser);
 
 /** A type modifier that consists of an indirection and a cv qualifier. */
 struct RlcTypeModifier
@@ -99,7 +99,7 @@ struct RlcTypeModifier
 	Whether it succeeded.*/
 int rlc_type_modifier_parse(
 	struct RlcTypeModifier * out,
-	struct RlcParserData * parser,
+	struct RlcParser * parser,
 	int allow_dynamic);
 
 /** Controls what value the type name has. */
@@ -178,7 +178,7 @@ void rlc_parsed_type_name_create(
 	Nonzero on success, 0 on error. */
 int rlc_parsed_type_name_parse(
 	struct RlcParsedTypeName * out,
-	struct RlcParserData * parser);
+	struct RlcParser * parser);
 
 /** Retrieves a type name's top level modifier.
 @param[in] this:
@@ -246,7 +246,7 @@ void rlc_parsed_function_signature_add_argument(
 	Nonzero on success, 0 on error. */
 int rlc_parsed_function_signature_parse(
 	struct RlcParsedFunctionSignature * out,
-	struct RlcParserData * parser);
+	struct RlcParser * parser);
 
 #ifdef __cplusplus
 }

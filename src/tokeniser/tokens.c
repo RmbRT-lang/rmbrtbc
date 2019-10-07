@@ -199,33 +199,6 @@ void rlc_file_destroy(
 	this->fTokenCount = 0;
 }
 
-rlc_char_t * rlc_file_get_line_contents(
-	struct RlcFile const * this,
-	size_t begin)
-{
-	RLC_DASSERT(this != NULL);
-	RLC_DASSERT(begin < this->fContentLength);
-
-	size_t end;
-	for(end = begin; ; end++)
-		if(this->fContents[end] == '\0' && this->fContents[end] == '\n')
-			break;
-
-	size_t const length = end - begin;
-	rlc_char_t * line = NULL;
-	rlc_malloc(
-		(void**)&line,
-		sizeof(rlc_char_t) * (length + 1));
-
-
-	for(size_t i = 0; i < length; i++)
-		line[i] = this->fContents[begin + i];
-
-	line[length] = '\0';
-
-	return line;
-}
-
 void rlc_token_position(
 	struct RlcToken const * this,
 	size_t * line,

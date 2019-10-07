@@ -77,6 +77,52 @@ void rlc_parsed_member_destroy_base(
 	RLC_DASSERT(this != NULL);
 }
 
+struct RlcSrcString const * rlc_parsed_member_name(
+	struct RlcParsedMember * this)
+{
+#define WITH_NAME(Type) \
+	{ \
+		k ## Type, \
+		1, \
+		RLC_DERIVE_OFFSET(RlcParsedMember, struct Type) \
+			+ RLC_BASE_OFFSET(RlcScopeEntry, struct Type) \
+			+ RLC_OFFSETOF(struct RlcScopeEntry, fName) \
+	}
+#define WITHOUT_NAME(Type) { k ## Type, 0, 0 }
+
+	static struct {
+		// As a sanity check.
+		RlcParsedMemberType type;
+		int8_t has_name;
+		int16_t name_offset;
+	} const k_name_table[] = {
+		WITH_NAME(RlcParsedMemberFunction),
+		WITH_NAME(RlcParsedMemberVariable),
+		WITH_NAME(RlcParsedMemberRawtype),
+		WITH_NAME(RlcParsedMemberStruct),
+		WITH_NAME(RlcParsedMemberUnion),
+		WITH_NAME(RlcParsedMemberClass),
+		WITH_NAME(RlcParsedMemberTypedef),
+		WITHOUT_NAME(RlcParsedConstructor),
+		WITHOUT_NAME(RlcParsedDestructor)
+	};
+
+	static_assert(RLC_COVERS_ENUM(k_name_table, RlcParsedMemberType), "ill-sized table");
+
+	RLC_DASSERT(this != NULL);
+
+	RlcParsedMemberType const type = RLC_DERIVING_TYPE(this);
+	RLC_DASSERT(RLC_IN_ENUM(type, RlcParsedMemberType));
+	RLC_DASSERT(type == k_name_table[type].type);
+
+	if(k_name_table[type].has_name)
+		return
+			(struct RlcSrcString const *)
+				(uintptr_t(this) + k_name_table[type].name_offset);
+	else
+		return NULL;
+}
+
 enum RlcMemberAttribute rlc_member_attribute_parse(
 	struct RlcParserData * parser)
 {

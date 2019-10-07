@@ -6,24 +6,21 @@
 #include <stdio.h>
 
 void _rlc_report_lexical_error(
-	char const * file,
-	size_t line,
-	size_t column,
-	rlc_char_t const * line_string,
-	enum RlcTokResult cause)
+	struct RlcSrcFile const * file,
+	struct RlcSrcPosition position,
+	struct RlcSrcString line_string,
+	char const * cause)
 {
-	printf("%s:%zu:%zu: error: %s\n"
-		"%" PRINTF_RLC_STR "\n",
-		file,
-		line,
-		column,
-		rlc_tok_result_message(cause),
-		line_string);
+	char const * line = rlc_src_string_cstr(&line_string, file);
+	printf("%s:%u:%u: error: %s\n"
+		"%s\n",
+		file->fName,
+		position.line, position.column,
+		cause,
+		line);
 
-	for(int i = 0; i < column-1; i++)
-	{
-		putc(line_string[i] == '\t' ? '\t': ' ', stdout);
-	}
+	for(unsigned i = 0; i < position.column-1; i++)
+		putc(line[i] == '\t' ? '\t': ' ', stdout);
 	puts("^");
 }
 
@@ -36,7 +33,7 @@ int main(
 	rlc_parsed_file_registry_create(&parsed_registry);
 
 	int status = 1;
-	for(size_t i = 1; i < argc; i++)
+	for(int i = 1; i < argc; i++)
 	{
 		int error;
 		if(rlc_parsed_file_registry_get(
@@ -59,7 +56,7 @@ int main(
 	rlc_parsed_file_registry_destroy(&parsed_registry);
 
 	size_t allocs;
-	if(allocs = rlc_allocations())
+	if((allocs = rlc_allocations()))
 	{
 		fprintf(stderr, "Warning: leaked allocations: %zu.\n", allocs);
 	}

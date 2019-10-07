@@ -1,6 +1,7 @@
 #include "casestatement.h"
 
 #include "../assert.h"
+#include "../malloc.h"
 
 void rlc_parsed_case_statement_create(
 	struct RlcParsedCaseStatement * this)
@@ -14,7 +15,7 @@ void rlc_parsed_case_statement_create(
 	this->fIsDefault = 1;
 	rlc_control_label_create(&this->fControlLabel);
 	rlc_parsed_expression_list_create(&this->fValues);
-	rlc_parsed_statement_list_create(&this->fStatements);
+	this->fBody = NULL;
 
 }
 
@@ -28,7 +29,11 @@ void rlc_parsed_case_statement_destroy(
 
 
 	rlc_control_label_destroy(&this->fControlLabel);
-	rlc_parsed_statement_list_destroy(&this->fStatements);
+	if(this->fBody)
+	{
+		rlc_parsed_statement_destroy_virtual(this->fBody);
+		rlc_free((void**)&this->fBody);
+	}
 
 	rlc_parsed_statement_destroy_base(
 		RLC_BASE_CAST(this, RlcParsedStatement));
@@ -36,95 +41,56 @@ void rlc_parsed_case_statement_destroy(
 
 int rlc_parsed_case_statement_parse(
 	struct RlcParsedCaseStatement * out,
-	struct RlcParserData * parser)
+	struct RlcParser * parser)
 {
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
 
-	size_t const start = parser->fIndex;
-	enum RlcParseError error_code;
-
 	rlc_parsed_case_statement_create(out);
 
-	if(rlc_parser_data_consume(
+	if(rlc_parser_consume(
 		parser,
+		NULL,
 		kRlcTokDefault))
 	{
 		out->fIsDefault = 1;
-		if(!rlc_control_label_parse(
+		rlc_control_label_parse(
 			&out->fControlLabel,
-			parser)
-		&& parser->fErrorCount)
-		{
-			error_code = kRlcParseErrorExpectedControlLabel;
-			goto failure;
-		}
-	} else if(rlc_parser_data_consume(
+			parser);
+	} else if(rlc_parser_consume(
 		parser,
+		NULL,
 		kRlcTokCase))
 	{
-		if(!rlc_control_label_parse(
+		rlc_control_label_parse(
 			&out->fControlLabel,
-			parser)
-		&& parser->fErrorCount)
-		{
-			error_code = kRlcParseErrorExpectedControlLabel;
-			goto failure;
-		}
+			parser);
 		out->fIsDefault = 0;
 
-		do {
-			struct RlcParsedExpression * value = rlc_parsed_expression_parse(
-				parser,
-				RLC_ALL_FLAGS(RlcParsedExpressionType));
-
-			if(!value) {
-				error_code = kRlcParseErrorExpectedExpression;
-				goto failure;
-			}
-
+		do
+		{
 			rlc_parsed_expression_list_append(
 				&out->fValues,
-				value);
-		} while(rlc_parser_data_consume(
+				rlc_parsed_expression_parse(
+					parser,
+					RLC_ALL_FLAGS(RlcParsedExpressionType)));
+		} while(rlc_parser_consume(
 			parser,
+			NULL,
 			kRlcTokComma));
 	} else return 0;
 
-	if(!rlc_parser_data_consume(
+	rlc_parser_expect(
 		parser,
-		kRlcTokColon))
-	{
-		error_code = kRlcParseErrorExpectedColon;
-		goto failure;
-	}
+		NULL,
+		1,
+		kRlcTokColon);
 
-	struct RlcParsedStatement * stmt;
-	while(stmt = rlc_parsed_statement_parse(
+	out->fBody = rlc_parsed_statement_parse(
 		parser,
 		RLC_ALL_FLAGS(RlcParsedStatementType)
-		&~RLC_FLAG(kRlcParsedCaseStatement)))
-	{
-		rlc_parsed_statement_list_add(
-			&out->fStatements,
-			stmt);
-	}
-
-	if(parser->fErrors
-	|| rlc_parser_data_match(
-		parser,
-		kRlcTokSemicolon))
-	{
-		error_code = kRlcParseErrorExpectedStatement;
-		goto failure;
-	}
+		&~RLC_FLAG(kRlcParsedCaseStatement)
+		&~RLC_FLAG(kRlcParsedVariableStatement));
 
 	return 1;
-failure:
-	rlc_parser_data_add_error(
-		parser,
-		error_code);
-	rlc_parsed_case_statement_destroy(out);
-	parser->fIndex = start;
-	return 0;
 }

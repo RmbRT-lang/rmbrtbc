@@ -38,6 +38,9 @@
 /** Base + RLC_DERIVE_OFFSET = Derived */
 #define RLC_DERIVE_OFFSET(b,d) (-(intptr_t)(RLC_OFFSETOF(d, fDerived##b)))
 
+/** Derived + RLC_BASE_OFFSET = Base */
+#define RLC_BASE_OFFSET(b,d) RLC_OFFSETOF(d, fDerived##b)
+
 /** Retrieves the base instance of `a`. */
 #define RLC_BASE_CAST(a,b) ((a) ? &(a)->fDerived##b : NULL)
 

@@ -8,9 +8,30 @@
 #include <stdio.h>
 #include <stdint.h>
 
+void rlc_tokeniser_create(
+	struct RlcTokeniser * this,
+	struct RlcSrcFile const * file)
+{
+	RLC_DASSERT(this != NULL);
+	RLC_DASSERT(file != NULL);
+
+	this->fSource = file;
+	this->fIndex = 0;
+	this->fStart = 0;
+
+	rlc_tokeniser_skip(this);
+}
+
+int rlc_tokeniser_read(
+	struct RlcTokeniser * this,
+	struct RlcToken * token)
+{
+	token->
+}
+
 
 struct {
-	rlc_utf8_t const * str;
+	char const * str;
 	enum RlcTokenType kw;
 } const s_keywords [] = {
 	// keywords.

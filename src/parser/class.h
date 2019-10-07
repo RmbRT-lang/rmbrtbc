@@ -36,11 +36,11 @@ struct RlcParsedClass
 @param[out] this:
 	The parsed class to create.
 	@dassert @nonnull
-@param[in] start_index:
-	The starting index in the token stream. */
+@param[in] name:
+	The class's name. */
 void rlc_parsed_class_create(
 	struct RlcParsedClass * this,
-	size_t start_index);
+	struct RlcSrcString const * name);
 
 /** Destroys a parsed class.
 @memberof RlcParsedClass
@@ -62,7 +62,7 @@ void rlc_parsed_class_destroy(
 	Nonzero on success. */
 int rlc_parsed_class_parse(
 	struct RlcParsedClass * out,
-	struct RlcParserData * parser);
+	struct RlcParser * parser);
 
 /** The member class type as used by the parser.
 @extends RlcParsedClass
@@ -78,13 +78,10 @@ struct RlcParsedMemberClass
 @param[out] this:
 	The member class to create.
 	@dassert @nonnull
-@param[in] start_index:
-	The start index of the class.
 @param[in] visibility:
 	The visibility level of the member class.*/
 void rlc_parsed_member_class_create(
 	struct RlcParsedMemberClass * this,
-	size_t start_index,
 	enum RlcVisibility visibility);
 
 /** Destroys a member class.
@@ -110,7 +107,7 @@ void rlc_parsed_member_class_destroy(
 int rlc_parsed_member_class_parse(
 	struct RlcParsedMemberClass * this,
 	enum RlcVisibility * default_visibility,
-	struct RlcParserData * parser);
+	struct RlcParser * parser);
 
 #ifdef __cplusplus
 }

@@ -22,9 +22,9 @@ struct RlcControlLabel
 };
 
 static void rlc_control_label_create(
-	struct RlcControlLabel * this) {}
+	struct RlcControlLabel * this) { (void) this; }
 static void rlc_control_label_destroy(
-	struct RlcControlLabel * this) {}
+	struct RlcControlLabel * this) { (void) this; }
 
 /** Parses a control label.
 	Does not produce an error if there is no control label.
@@ -40,7 +40,7 @@ static void rlc_control_label_destroy(
 	To detect whether there was actually a control label, check whether `out` exists. */
 int rlc_control_label_parse(
 	struct RlcControlLabel * out,
-	struct RlcParserData * parser);
+	struct RlcParser * parser);
 
 
 #ifdef __cplusplus

@@ -64,7 +64,7 @@ void rlc_parsed_statement_destroy_virtual(
 @return
 	`NULL`, if no statement could be parsed, otherwise a pointer to a dynamically allocated instance of the deriving type. */
 struct RlcParsedStatement * rlc_parsed_statement_parse(
-	struct RlcParserData * parser,
+	struct RlcParser * parser,
 	int flags);
 
 /** Contains a statement list. */

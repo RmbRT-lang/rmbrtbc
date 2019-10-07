@@ -51,7 +51,7 @@ void rlc_parsed_break_statement_destroy(
 	Whether the break statement was successfully parsed. */
 int rlc_parsed_break_statement_parse(
 	struct RlcParsedBreakStatement * out,
-	struct RlcParserData * parser);
+	struct RlcParser * parser);
 
 #ifdef __cplusplus
 }

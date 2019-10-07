@@ -75,7 +75,7 @@ void rlc_parsed_symbol_child_add_template(
 
 int rlc_parsed_symbol_child_parse(
 	struct RlcParsedSymbolChild * out,
-	struct RlcParserData * parser);
+	struct RlcParser * parser);
 
 
 /** A (possibly) namespace-qualified symbol. */
@@ -128,7 +128,7 @@ void rlc_parsed_symbol_create(
 	@dassert @nonnull */
 int rlc_parsed_symbol_parse(
 	struct RlcParsedSymbol * out,
-	struct RlcParserData * parser);
+	struct RlcParser * parser);
 
 #ifdef __cplusplus
 }

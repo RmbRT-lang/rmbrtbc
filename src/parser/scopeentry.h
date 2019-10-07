@@ -5,7 +5,6 @@
 
 
 #include "parser.h"
-#include "location.h"
 
 #include "../macros.h"
 
@@ -42,18 +41,13 @@ enum RlcParsedScopeEntryType
 	RLC_ENUM_END(RlcParsedScopeEntryType)
 };
 
-/** The base type of scope entries used in the parser.
-	Contains a name and a declaration position in the source file. */
+/** The base type of scope entries used in the parser. */
 struct RlcParsedScopeEntry
 {
 	RLC_ABSTRACT(RlcParsedScopeEntry);
 
-	/** Where the scope entry lies in the source code. */
-	struct RlcParseLocation fLocation;
-	/** The name tokens indices. */
-	size_t * fNames;
-	/** The name count. */
-	size_t fNameCount;
+	/** The name token's content. */
+	struct RlcSrcString fName;
 };
 
 /** Destroys a parsed scope entry.
@@ -84,7 +78,7 @@ void rlc_parsed_scope_entry_destroy_virtual(
 void rlc_parsed_scope_entry_create(
 	struct RlcParsedScopeEntry * this,
 	enum RlcParsedScopeEntryType derivingType,
-	size_t start_index);
+	struct RlcSrcString const * name);
 
 /** Adds a name to a scope entry.
 @param[in,out] this:
@@ -97,7 +91,7 @@ void rlc_parsed_scope_entry_add_name(
 
 /** Parses a scope entry. */
 struct RlcParsedScopeEntry * rlc_parsed_scope_entry_parse(
-	struct RlcParserData * parser);
+	struct RlcParser * parser);
 
 /** List of scope entries. */
 struct RlcParsedScopeEntryList

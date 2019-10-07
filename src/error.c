@@ -22,18 +22,17 @@ void rlc_register_lexical_error_function(
 {
 	rlc_lexical_error_fn = callback;
 }
+
 void rlc_report_lexical_error(
-	char const * file,
-	size_t line,
-	size_t column,
-	rlc_char_t const * line_string,
-	enum RlcTokResult cause)
+	struct RlcSrcFile const * file,
+	struct RlcSrcPosition position,
+	struct RlcSrcString line_string,
+	char const * cause)
 {
 	if(rlc_lexical_error_fn)
 		rlc_lexical_error_fn(
 			file,
-			line,
-			column,
+			position,
 			line_string,
 			cause);
 }

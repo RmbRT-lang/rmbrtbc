@@ -166,88 +166,13 @@ enum RlcTokenType
 char const * rlc_token_type_name(
 	enum RlcTokenType type);
 
-/** The result code of a tokenising function. */
-enum RlcTokResult
-{
-	kRlcTokResultOk,
-	kRlcTokResultEos,
-	kRlcTokResultInvalidHexDigit,
-	kRlcTokResultInvalidOctalDigit,
-	kRlcTokResultInvalidDecimalDigit,
-	kRlcTokResultInvalidFloatingSpecifier,
-	kRlcTokResultUnclosedLiteral,
-	kRlcTokResultInvalidHexEscape,
-	kRlcTokResultInvalidOctalEscape,
-	kRlcTokResultInvalidDecimalEscape,
-	kRlcTokResultInvalidEscape,
-	kRlcTokResultInvalidUtf8,
-	kRlcTokResultEmptyCharLiteral,
-	kRlcTokResultUnclosedComment,
-
-	kRlcTokResultUnexpected,
-
-	RLC_ENUM_END(RlcTokResult)
-};
-
-/** Retrieves a description of an error code.
-	The description is a short english string that names the cause of the error. */
-char const * rlc_tok_result_message(
-	enum RlcTokResult result);
-
-/** Stores the contents of a tokenised file. */
-struct RlcFile
-{
-	/** The file name. */
-	char const * fName;
-	/** The file's contents. */
-	rlc_char_t * fContents;
-	/** The file's content's length. */
-	size_t fContentLength;
-	/** The file's tokens. */
-	struct RlcToken * fTokens;
-	/** The token count. */
-	size_t fTokenCount;
-};
-
-void rlc_file_create(
-	struct RlcFile * this);
-
-void rlc_file_destroy(
-	struct RlcFile * this);
-
-void rlc_file_set_name(
-	struct RlcFile * this,
-	rlc_char_t const * fName);
-
-void rlc_file_add_token(
-	struct RlcFile * this,
-	struct RlcToken const * token);
-
-/** Retrieves a line of code of a source file.
-@param[in] this:
-	The file whose line to read.
-	@dassert @nonnull
-@param[in] begin:
-	The character index the line starts with.
-	@dassert `begin < rlc_strlen(this->contents)`
-@return
-	A copy of the source line. The newline character is excluded. */
-rlc_char_t * rlc_file_get_line_contents(
-	struct RlcFile const * this,
-	size_t begin);
-
 /** A token as used by the tokenizer and preprocessor.
 	It represents a substring of a source file. */
 struct RlcToken
 {
-	/** The beginning inde of the substring. */
-	size_t fBegin;
-	/** The byte length of the substring. */
-	size_t fLength;
+	struct RlcSrcString content;
 	/** Stores a rlcTokenType. */
-	enum RlcTokenType fType;
-	/** The source file of the token. */
-	struct RlcFile const * fFile;
+	enum RlcTokenType type;
 };
 
 /** Retrieves the text position of the token.

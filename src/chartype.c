@@ -30,7 +30,7 @@ enum
 	CT_COUNT
 };
 
-static void rlc_set_buffer(bitmask_t * buffer, unsigned bit, rlc_utf8_t const * trues)
+static void rlc_set_buffer(bitmask_t * buffer, unsigned bit, char const * trues)
 {
 	assert(bit < CT_COUNT);
 
@@ -41,7 +41,7 @@ static void rlc_set_buffer(bitmask_t * buffer, unsigned bit, rlc_utf8_t const * 
 
 	while(*trues)
 	{
-		buffer[*trues++] |= set;
+		buffer[(rlc_utf8_t)*trues++] |= set;
 	}
 }
 

@@ -30,7 +30,7 @@ struct RlcParsedIncludeStatement
 	Whether the parsing succeeded. */
 int rlc_parsed_include_statement_parse(
 	struct RlcParsedIncludeStatement * out,
-	struct RlcParserData * parser);
+	struct RlcParser * parser);
 
 #ifdef __cplusplus
 }
