@@ -13,7 +13,6 @@ void rlc_parsed_case_statement_create(
 		kRlcParsedCaseStatement);
 
 	this->fIsDefault = 1;
-	rlc_control_label_create(&this->fControlLabel);
 	rlc_parsed_expression_list_create(&this->fValues);
 	this->fBody = NULL;
 
@@ -27,8 +26,6 @@ void rlc_parsed_case_statement_destroy(
 	rlc_parsed_expression_list_destroy(&this->fValues);
 	this->fIsDefault = 1;
 
-
-	rlc_control_label_destroy(&this->fControlLabel);
 	if(this->fBody)
 	{
 		rlc_parsed_statement_destroy_virtual(this->fBody);

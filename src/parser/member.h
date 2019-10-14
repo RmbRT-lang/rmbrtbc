@@ -139,7 +139,7 @@ struct RlcSrcString const * rlc_parsed_member_name(
 @return
 	`NULL` if no member declaration could be parsed, otherwise a pointer to a dynamically allocated instance of the deriving type. */
 struct RlcParsedMember * rlc_parsed_member_parse(
-	enum RlcVisibility * default_visibility,
+	enum RlcVisibility * visibility,
 	struct RlcParser * parser,
 	int flags);
 

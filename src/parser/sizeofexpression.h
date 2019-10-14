@@ -49,9 +49,9 @@ void rlc_parsed_sizeof_expression_destroy(
 	@dassert @nonnull
 @return
 	Whether the expression was successfully parsed. */
-int rlc_parsed_sizeof_expression_parse(
+_Nodiscard int rlc_parsed_sizeof_expression_parse(
 	struct RlcParsedSizeofExpression * out,
-	struct RlcParserData * parser);
+	struct RlcParser * parser);
 
 #ifdef __cplusplus
 }

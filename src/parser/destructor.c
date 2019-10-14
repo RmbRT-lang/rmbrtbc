@@ -3,11 +3,16 @@
 #include "../assert.h"
 
 void rlc_parsed_destructor_create(
-	struct RlcParsedDestructor * this)
+	struct RlcParsedDestructor * this,
+	enum RlcVisibility visibility)
 {
 	RLC_DASSERT(this != NULL);
 
-	RLC_BASE_CAST(this, RlcParsedMember)->fVisibility = kRlcVisibilityPublic;
+	rlc_parsed_member_create(
+		RLC_BASE_CAST(this, RlcParsedMember),
+		kRlcParsedDestructor,
+		visibility);
+
 	this->fIsDefinition = 0;
 	this->fIsInline = 0;
 }
@@ -27,35 +32,28 @@ void rlc_parsed_destructor_destroy(
 
 int rlc_parsed_destructor_parse(
 	struct RlcParsedDestructor * out,
-	enum RlcVisibility * default_visibility,
-	struct RlcParserData * parser)
+	enum RlcVisibility visibility,
+	struct RlcParser * parser)
 {
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
 
-	size_t const start = parser->fIndex;
-	rlc_parsed_destructor_create(out);
+	rlc_parsed_destructor_create(out, visibility);
 
-	RLC_BASE_CAST(out, RlcParsedMember)->fVisibility = rlc_visibility_parse(
-		default_visibility,
-		parser);
-
-	if(!rlc_parser_data_consume(
+	if(!rlc_parser_consume(
 		parser,
+		NULL,
 		kRlcTokDestructor))
-	{
-		parser->fIndex = start;
 		return 0;
-	}
 
-	enum RlcParseError error_code;
-
-	out->fIsInline = rlc_parser_data_consume(
+	out->fIsInline = rlc_parser_consume(
 		parser,
+		NULL,
 		kRlcTokInline);
 
-	if(rlc_parser_data_consume(
+	if(rlc_parser_consume(
 		parser,
+		NULL,
 		kRlcTokSemicolon))
 	{
 		return 1;
@@ -65,17 +63,10 @@ int rlc_parsed_destructor_parse(
 		&out->fBody,
 		parser))
 	{
-		error_code = kRlcParseErrorExpectedBlockStatement;
-		goto failure;
+		rlc_parser_fail(parser, "expected destructor body");
 	}
 
 	out->fIsDefinition = 1;
 
 	return 1;
-failure:
-	rlc_parser_data_add_error(
-		parser,
-		error_code);
-	rlc_parsed_destructor_destroy(out);
-	return 0;
 }

@@ -1,6 +1,7 @@
 #ifndef __rlc_parser_lifetime_h_defined
 #define __rlc_parser_lifetime_h_defined
 
+#include "../src/string.h"
 #include "blockstatement.h"
 #include "parser.h"
 #include "templatedecl.h"
@@ -46,11 +47,12 @@ struct RlcParsedConstructor
 @memberof RlcParsedConstructor
 @param[out] this:
 	The constructor to create.
-	@dassert @nonnull */
+	@dassert @nonnull
+@param[in] visibility:
+	The constructor's visibility. */
 void rlc_parsed_constructor_create(
 	struct RlcParsedConstructor * this,
-	enum RlcVisibility visibility,
-	size_t index);
+	enum RlcVisibility visibility);
 
 /** Destroys a constructor.
 @memberof RlcParsedConstructor
@@ -70,10 +72,10 @@ void rlc_parsed_constructor_destroy(
 	@dassert @nonnull
 @return
 	Nonzero on success. */
-int rlc_parsed_constructor_parse(
+_Nodiscard int rlc_parsed_constructor_parse(
 	struct RlcParsedConstructor * out,
-	enum RlcVisibility * default_visibility,
-	struct RlcParserData * parser);
+	enum RlcVisibility visibility,
+	struct RlcParser * parser);
 
 /** Adds an argument to a constructor.
 @memberof RlcParsedConstructor
@@ -106,7 +108,7 @@ void rlc_parsed_constructor_add_initialiser(
 struct RlcParsedInitialiser
 {
 	/** The member's name. */
-	struct RlcParsedSymbolChild fMember;
+	struct RlcSrcString fMember;
 	/** The arguments. */
 	struct RlcParsedExpression ** fArguments;
 	/** The argument count. */
@@ -136,12 +138,10 @@ void rlc_parsed_initialiser_destroy(
 	@dassert @nonnull
 @param[in,out] parser:
 	The parser data.
-	@dassert @nonnull
-@return
-	Nonzero on success. */
-int rlc_parsed_initialiser_parse(
+	@dassert @nonnull */
+void rlc_parsed_initialiser_parse(
 	struct RlcParsedInitialiser * out,
-	struct RlcParserData * parser);
+	struct RlcParser * parser);
 
 /** Adds an argument to an initaliser.
 @memberof RlcParsedInitialiser

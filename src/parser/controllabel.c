@@ -2,49 +2,30 @@
 
 #include "../assert.h"
 
-int rlc_control_label_parse(
+void rlc_control_label_parse(
 	struct RlcControlLabel * out,
-	struct RlcParserData * parser)
+	struct RlcParser * parser)
 {
 	RLC_DASSERT(out != NULL);
 
-	size_t const start = parser->fIndex;
-	enum RlcParseError error_code;
-
 	out->fExists = 0;
-	if(!rlc_parser_data_consume(
+	if(!rlc_parser_consume(
 		parser,
+		NULL,
 		kRlcTokBracketOpen))
-		return 1;
+		return;
 
-	if(!rlc_parser_data_consume(
+	rlc_parser_expect(
 		parser,
-		kRlcTokIdentifier)
-	&& !rlc_parser_data_consume(
-		parser,
-		kRlcTokString))
-	{
-		error_code = kRlcParseErrorExpectedIdentifier;
-		goto failure;
-	}
+		&out->fLabel,
+		2,
+		kRlcTokIdentifier, kRlcTokString);
 
-	out->fLabel = rlc_parser_data_consumed_index(parser);
-
-	if(!rlc_parser_data_consume(
+	rlc_parser_expect(
 		parser,
-		kRlcTokBracketClose))
-	{
-		error_code = kRlcParseErrorExpectedBracketClose;
-		goto failure;
-	}
+		NULL,
+		1,
+		kRlcTokBracketClose);
 
 	out->fExists = 1;
-	return 1;
-failure:
-	rlc_parser_data_add_error(
-		parser,
-		error_code);
-	parser->fIndex = start;
-	out->fExists = 0;
-	return 0;
 }

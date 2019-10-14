@@ -31,12 +31,10 @@ void rlc_parsed_expression_statement_destroy(
 
 int rlc_parsed_expression_statement_parse(
 	struct RlcParsedExpressionStatement * out,
-	struct RlcParserData * parser)
+	struct RlcParser * parser)
 {
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
-
-	enum RlcParseError error_code;
 
 	rlc_parsed_expression_statement_create(
 		out);
@@ -48,28 +46,15 @@ int rlc_parsed_expression_statement_parse(
 
 	if(!out->fExpression)
 	{
-		if(parser->fErrorCount)
-		{
-			error_code = kRlcParseErrorExpectedExpression;
-			goto failure;
-		}
+		rlc_parsed_expression_statement_destroy(out);
+		return 0;
+	}
 
-		goto nonfatal_failure;
-	}
-	if(!rlc_parser_data_consume(
+	rlc_parser_expect(
 		parser,
-		kRlcTokSemicolon))
-	{
-		error_code = kRlcParseErrorExpectedSemicolon;
-		goto failure;
-	}
+		NULL,
+		1,
+		kRlcTokSemicolon);
 
 	return 1;
-failure:
-	rlc_parser_data_add_error(
-		parser,
-		error_code);
-nonfatal_failure:
-	rlc_parsed_expression_statement_destroy(out);
-	return 0;
 }

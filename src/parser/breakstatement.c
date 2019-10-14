@@ -10,8 +10,6 @@ void rlc_parsed_break_statement_create(
 	rlc_parsed_statement_create(
 		RLC_BASE_CAST(this, RlcParsedStatement),
 		kRlcParsedBreakStatement);
-
-	rlc_control_label_create(&this->fLabel);
 }
 
 void rlc_parsed_break_statement_destroy(
@@ -21,8 +19,6 @@ void rlc_parsed_break_statement_destroy(
 
 	rlc_parsed_statement_destroy_base(
 		RLC_BASE_CAST(this, RlcParsedStatement));
-
-	rlc_control_label_destroy(&this->fLabel);
 }
 
 int rlc_parsed_break_statement_parse(

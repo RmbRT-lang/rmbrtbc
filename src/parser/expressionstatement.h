@@ -42,7 +42,7 @@ void rlc_parsed_expression_statement_destroy(
 	@dassert @nonnull
 @return
 	Nonzero on success. */
-int rlc_parsed_expression_statement_parse(
+_Nodiscard int rlc_parsed_expression_statement_parse(
 	struct RlcParsedExpressionStatement * out,
-	struct RlcParserData * parser);
+	struct RlcParser * parser);
 #endif

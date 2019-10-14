@@ -48,9 +48,9 @@ void rlc_this_expression_destroy(
 	@dassert @nonnull
 @return
 	Whether the `this` expression could be parsed. */
-int rlc_this_expression_parse(
+_Nodiscard int rlc_this_expression_parse(
 	struct RlcThisExpression * out,
-	struct RlcParserData * parser);
+	struct RlcParser * parser);
 
 #ifdef __cplusplus
 }

@@ -16,15 +16,15 @@ void rlc_parsed_enum_constant_create(
 
 void rlc_parsed_enum_constant_add_name(
 	struct RlcParsedEnumConstant * this,
-	size_t nameToken)
+	struct RlcSrcString const * nameToken)
 {
 	RLC_DASSERT(this != NULL);
 
 	rlc_realloc(
 		(void**)&this->fNameTokens,
-		sizeof(size_t) * ++this->fNameCount);
+		sizeof(*this->fNameTokens) * ++this->fNameCount);
 
-	this->fNameTokens[this->fNameCount-1] = nameToken;
+	this->fNameTokens[this->fNameCount-1] = *nameToken;
 }
 
 void rlc_parsed_enum_constant_destroy(
@@ -41,7 +41,7 @@ void rlc_parsed_enum_constant_destroy(
 
 int rlc_parsed_enum_constant_parse(
 	struct RlcParsedEnumConstant * out,
-	struct RlcParserData * parser)
+	struct RlcParser * parser)
 {
 	RLC_DASSERT(parser != NULL);
 	RLC_DASSERT(out != NULL);
@@ -49,19 +49,19 @@ int rlc_parsed_enum_constant_parse(
 	rlc_parsed_enum_constant_create(out);
 
 	do {
-		if(rlc_parser_data_consume(
+		struct RlcToken name;
+		rlc_parser_expect(
 			parser,
-			kRlcTokIdentifier))
-		{
-			rlc_parsed_enum_constant_add_name(
-				out,
-				rlc_parser_data_consumed_index(parser));
-		} else
-			return rlc_parser_data_add_error(
-				parser,
-				kRlcParseErrorExpectedIdentifier), 0;
-	} while(rlc_parser_data_consume(
+			&name,
+			1,
+			kRlcTokIdentifier);
+
+		rlc_parsed_enum_constant_add_name(
+			out,
+			&name.content);
+	} while(rlc_parser_consume(
 		parser,
+		NULL,
 		kRlcTokColonEqual));
 
 	return 1;
@@ -69,14 +69,15 @@ int rlc_parsed_enum_constant_parse(
 
 void rlc_parsed_enum_create(
 	struct RlcParsedEnum * this,
-	size_t start_index)
+	struct RlcSrcString const * name)
 {
 	RLC_DASSERT(this != NULL);
+	RLC_DASSERT(name != NULL);
 
 	rlc_parsed_scope_entry_create(
 		RLC_BASE_CAST(this, RlcParsedScopeEntry),
 		kRlcParsedEnum,
-		start_index);
+		name);
 
 	this->fConstants = NULL;
 	this->fConstantCount = 0;
@@ -87,7 +88,7 @@ void rlc_parsed_enum_destroy(
 {
 	RLC_DASSERT(this != NULL);
 
-	for(int i = 0; i < this->fConstantCount; i++)
+	for(size_t i = 0; i < this->fConstantCount; i++)
 		rlc_parsed_enum_constant_destroy(
 			&this->fConstants[i]);
 
@@ -113,84 +114,60 @@ void rlc_parsed_enum_add_constant(
 
 int rlc_parsed_enum_parse(
 	struct RlcParsedEnum * out,
-	struct RlcParserData * parser)
+	struct RlcParser * parser)
 {
 	RLC_DASSERT(parser != NULL);
 	RLC_DASSERT(out != NULL);
 
-	size_t const start_index = parser->fIndex;
-	enum RlcParseError error_code;
-
-	if(!rlc_parser_data_consume(
+	if(!rlc_parser_consume(
 		parser,
+		NULL,
 		kRlcTokEnum))
-	{
 		return 0;
-	}
+
+	struct RlcToken name;
+	rlc_parser_expect(
+		parser,
+		&name,
+		1,
+		kRlcTokIdentifier);
 
 	rlc_parsed_enum_create(
 		out,
-		start_index);
+		&name.content);
 
-	if(!rlc_parser_data_consume(
+	rlc_parser_expect(
 		parser,
-		kRlcTokIdentifier))
-	{
-		error_code = kRlcParseErrorExpectedIdentifier;
-		goto failure;
-	}
-
-	if(!rlc_parser_data_consume(
-		parser,
-		kRlcTokBraceOpen))
-	{
-		error_code = kRlcParseErrorExpectedBraceOpen;
-		goto failure;
-	}
+		NULL,
+		1,
+		kRlcTokBraceOpen);
 
 	do {
 		struct RlcParsedEnumConstant constant;
-
-		if(!rlc_parsed_enum_constant_parse(
+		rlc_parsed_enum_constant_parse(
 			&constant,
-			parser))
-		{
-			error_code = kRlcParseErrorExpectedEnumConstant;
-			goto failure;
-		}
+			parser);
 
 		rlc_parsed_enum_add_constant(
 			out,
 			&constant);
 
-	} while(rlc_parser_data_consume(
+	} while(rlc_parser_consume(
 		parser,
+		NULL,
 		kRlcTokComma));
 
-	if(!rlc_parser_data_consume(
+	rlc_parser_expect(
 		parser,
-		kRlcTokBraceClose))
-	{
-		error_code = kRlcParseErrorExpectedBraceClose;
-		goto failure;
-	}
+		NULL,
+		1,
+		kRlcTokBraceClose);
 
-	if(!rlc_parser_data_consume(
+	rlc_parser_expect(
 		parser,
-		kRlcTokSemicolon))
-	{
-		error_code = kRlcParseErrorExpectedSemicolon;
-		goto failure;
-	}
+		NULL,
+		1,
+		kRlcTokSemicolon);
 
-success:
-	RLC_BASE_CAST(out, RlcParsedScopeEntry)->fLocation.fEnd = parser->fIndex;
 	return 1;
-failure:
-	rlc_parser_data_add_error(
-		parser,
-		error_code);
-	rlc_parsed_enum_destroy(out);
-	parser->fIndex = start_index;
-	return 0;
 }

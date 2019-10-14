@@ -72,9 +72,12 @@ int rlc_parsed_class_parse(
 		NULL,
 		kRlcTokBraceClose))
 	{
+		enum RlcVisibility local_visibility = rlc_visibility_parse(
+			&visibility,
+			parser);
 		if(rlc_parsed_destructor_parse(
 			&destructor,
-			&visibility,
+			local_visibility,
 			parser))
 		{
 			if(out->fHasDestructor)
@@ -88,7 +91,7 @@ int rlc_parsed_class_parse(
 			rlc_parsed_member_list_add(
 				&out->fMembers,
 				rlc_parsed_member_parse(
-					&visibility,
+					&local_visibility,
 					parser,
 					RLC_ALL_FLAGS(RlcParsedMemberType)
 					&~RLC_FLAG(kRlcParsedDestructor)));
@@ -145,6 +148,5 @@ int rlc_parsed_member_class_parse(
 		return 0;
 	}
 
-	RLC_BASE_CAST(out, RlcParsedMember)->fLocation.fEnd = parser->fIndex;
 	return 1;
 }

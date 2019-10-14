@@ -75,8 +75,8 @@ void rlc_parsed_operator_expression_destroy(
 	@dassert @nonnull
 @return
 	`Null`, if no expression could be parsed, otherwise a pointer to a dynamically allocated expression, which is either an operator expression, or a more primitive expression in case no operator operator was present. */
-struct RlcParsedExpression * rlc_parsed_operator_expression_parse(
-	struct RlcParserData * parser);
+_Nodiscard struct RlcParsedExpression * rlc_parsed_operator_expression_parse(
+	struct RlcParser * parser);
 
 /** Adds an expression to an operator expression's list.
 @memberof RlcParsedOperatorExpression

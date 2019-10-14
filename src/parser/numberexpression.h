@@ -52,9 +52,9 @@ void rlc_parsed_number_expression_destroy(
 	@dassert @nonnull
 @return
 	Whether the number expression could be parsed. */
-int rlc_parsed_number_expression_parse(
+_Nodiscard int rlc_parsed_number_expression_parse(
 	struct RlcParsedNumberExpression * out,
-	struct RlcParserData * parser);
+	struct RlcParser * parser);
 
 #ifdef __cplusplus
 }

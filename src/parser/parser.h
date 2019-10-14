@@ -71,17 +71,17 @@ void rlc_parser_untrace(
 
 /** Retrieves a parser's current context.
 @memberof RlcParser */
-char const * rlc_parser_context(
+_Nodiscard char const * rlc_parser_context(
 	struct RlcParser const * this);
 
 /** Whether the end of the file is reached.
 @memberof RlcParser */
-inline int rlc_parser_eof(
+_Nodiscard inline int rlc_parser_eof(
 	struct RlcParser const * this);
 
 /** Whether the end of the file is directly after the current token.
 @memberof RlcParser */
-inline int rlc_parser_ahead_eof(
+_Nodiscard inline int rlc_parser_ahead_eof(
 	struct RlcParser const * this);
 
 /** Returns the address of the current token, if not at the end of the token stream.
@@ -89,17 +89,17 @@ inline int rlc_parser_ahead_eof(
 @param[in] this:
 	The parser data.
 	@dassert @nonnull */
-inline struct RlcToken const * rlc_parser_current(
+_Nodiscard inline struct RlcToken const * rlc_parser_current(
 	struct RlcParser const * this);
 
 /** Retrieves the parser's next token.
 @memberof RlcParser */
-inline struct RlcToken const * rlc_parser_ahead(
+_Nodiscard inline struct RlcToken const * rlc_parser_ahead(
 	struct RlcParser const * this);
 
 /** Retrieves the parser's current source index.
 @memberof RlcParser */
-RlcSrcIndex rlc_parser_index(
+_Nodiscard RlcSrcIndex rlc_parser_index(
 	struct RlcParser const * this);
 
 /** Matches a token.
@@ -110,11 +110,11 @@ RlcSrcIndex rlc_parser_index(
 	The token type to match.
 @return
 	Nonzero if matched. */
-int rlc_parser_is_current(
+_Nodiscard int rlc_parser_is_current(
 	struct RlcParser const * this,
 	enum RlcTokenType type);
 
-struct RlcToken const * rlc_parser_is_ahead(
+_Nodiscard struct RlcToken const * rlc_parser_is_ahead(
 	struct RlcParser const * this,
 	enum RlcTokenType type);
 
@@ -135,7 +135,7 @@ _Noreturn void rlc_parser_fail(
 	The token type to match.
 @return
 	Nonzero if a token was matched. */
-int rlc_parser_consume(
+_Nodiscard int rlc_parser_consume(
 	struct RlcParser * this,
 	struct RlcToken * token,
 	enum RlcTokenType type);

@@ -17,7 +17,7 @@ extern "C" {
 struct RlcParsedEnumConstant
 {
 	/** The aliases. */
-	size_t * fNameTokens;
+	struct RlcSrcString * fNameTokens;
 	/** The alias count. */
 	size_t fNameCount;
 };
@@ -32,11 +32,11 @@ void rlc_parsed_enum_constant_create(
 @param[in,out] this:
 	The enum constant to add a name to.
 	@dassert @nonnull
-@param[in] nameToken:
+@param[in] name:
 	The alias. */
 void rlc_parsed_enum_constant_add_name(
 	struct RlcParsedEnumConstant * this,
-	size_t nameToken);
+	struct RlcSrcString const * name);
 
 /** Destroys an enum constant.
 @param[in,out] this:
@@ -52,7 +52,7 @@ void rlc_parsed_enum_constant_destroy(
 	The enum constant. */
 int rlc_parsed_enum_constant_parse(
 	struct RlcParsedEnumConstant * out,
-	struct RlcParserData * parser);
+	struct RlcParser * parser);
 
 /** Enum type.
 @extends RlcParsedScopeEntry */
@@ -69,10 +69,13 @@ struct RlcParsedEnum
 /** Creates an enum.
 @param[out] this:
 	The enum to create.
+	@dassert @nonnull
+@param[in] name:
+	The enum's name.
 	@dassert @nonnull */
 void rlc_parsed_enum_create(
 	struct RlcParsedEnum * this,
-	size_t start_index);
+	struct RlcSrcString const * name);
 
 /** Destroys an enum.
 @memberof RlcParsedEnum
@@ -99,9 +102,9 @@ void rlc_parsed_enum_add_constant(
 @param[out] out:
 	The enum to parse.
 	@dassert @nonnull */
-int rlc_parsed_enum_parse(
+_Nodiscard int rlc_parsed_enum_parse(
 	struct RlcParsedEnum * out,
-	struct RlcParserData * parser);
+	struct RlcParser * parser);
 
 #ifdef __cplusplus
 }

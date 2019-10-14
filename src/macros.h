@@ -9,6 +9,8 @@
 #define NULL ((void *)0)
 #endif
 
+#define _Nodiscard __attribute__((warn_unused_result))
+
 /** @def RLC_ENUM_END(Enum)
 	Defines the entry count of the enum.
 @param Enum: The Enum name. */

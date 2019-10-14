@@ -17,16 +17,13 @@
 void rlc_parsed_member_create(
 	struct RlcParsedMember * this,
 	enum RlcParsedMemberType type,
-	enum RlcVisibility visibility,
-	size_t start_index)
+	enum RlcVisibility visibility)
 {
 	RLC_DASSERT(this != NULL);
 
 	RLC_DERIVING_TYPE(this) = type;
 
 	this->fVisibility = visibility;
-	this->fLocation.fBegin = start_index;
-	this->fLocation.fEnd = 0;
 }
 
 void rlc_parsed_member_destroy_virtual(

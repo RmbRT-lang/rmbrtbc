@@ -48,9 +48,9 @@ void rlc_parsed_symbol_expression_destroy(
 	@dassert @nonnul
 @return
 	Nonzero on success. */
-int rlc_parsed_symbol_expression_parse(
+_Nodiscard int rlc_parsed_symbol_expression_parse(
 	struct RlcParsedSymbolExpression * out,
-	struct RlcParserData * parser);
+	struct RlcParser * parser);
 
 #ifdef __cplusplus
 }

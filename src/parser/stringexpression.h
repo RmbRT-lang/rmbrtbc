@@ -57,9 +57,9 @@ void rlc_parsed_string_expression_destroy(
 	@dassert @nonnull
 @return
 	Nonzero on success. */
-int rlc_parsed_string_expression_parse(
+_Nodiscard int rlc_parsed_string_expression_parse(
 	struct RlcParsedStringExpression * out,
-	struct RlcParserData * parser);
+	struct RlcParser * parser);
 
 #ifdef __cplusplus
 }

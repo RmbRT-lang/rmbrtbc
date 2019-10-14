@@ -95,7 +95,7 @@ void rlc_parsed_variable_destroy(
 	Nonzero on success. */
 int rlc_parsed_variable_parse(
 	struct RlcParsedVariable * out,
-	struct RlcParserData * parser,
+	struct RlcParser * parser,
 	int needs_name,
 	int allow_initialiser,
 	int force_initialiser,
@@ -143,7 +143,7 @@ void rlc_parsed_member_variable_destroy(
 int rlc_parsed_member_variable_parse(
 	struct RlcParsedMemberVariable * out,
 	enum RlcVisibility * default_visibility,
-	struct RlcParserData * parser);
+	struct RlcParser * parser);
 
 #ifdef __cplusplus
 }

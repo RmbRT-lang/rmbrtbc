@@ -57,7 +57,7 @@ void rlc_parsed_case_statement_destroy(
 	@dassert @nonnull
 @return
 	Whether the case statement was successfully parsed. */
-int rlc_parsed_case_statement_parse(
+_Nodiscard int rlc_parsed_case_statement_parse(
 	struct RlcParsedCaseStatement * out,
 	struct RlcParser * parser);
 

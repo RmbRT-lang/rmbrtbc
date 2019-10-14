@@ -81,9 +81,9 @@ union RlcExpressionStorage
 	struct RlcParsedSizeofExpression fRlcParsedSizeofExpression;
 };
 
-static int dummy_rlc_parsed_operator_expression_parse(
+_Nodiscard static int dummy_rlc_parsed_operator_expression_parse(
 	union RlcExpressionStorage * storage,
-	struct RlcParserData * parser)
+	struct RlcParser * parser)
 {
 	storage->fPointer = rlc_parsed_operator_expression_parse(parser);
 
@@ -91,24 +91,21 @@ static int dummy_rlc_parsed_operator_expression_parse(
 }
 
 struct RlcParsedExpression * rlc_parsed_expression_parse(
-	struct RlcParserData * parser,
+	struct RlcParser * parser,
 	int flags)
 {
 	RLC_DASSERT(parser != NULL);
-	RLC_DASSERT(!parser->fErrors);
-	RLC_DASSERT(!parser->fErrorCount);
 
 	union RlcExpressionStorage storage;
 
-	typedef int (*parse_fn_t)(
+	typedef _Nodiscard int (*parse_fn_t)(
 		union RlcExpressionStorage *,
-		struct RlcParserData *);
+		struct RlcParser *);
 
 
-#define ENTRY(Type, parse, error, ispointer) { \
+#define ENTRY(Type, parse, ispointer) { \
 		k ## Type,\
 		(parse_fn_t)parse, \
-		error, \
 		sizeof(struct Type), \
 		RLC_DERIVE_OFFSET(RlcParsedExpression, struct Type), \
 		ispointer }
@@ -116,27 +113,25 @@ struct RlcParsedExpression * rlc_parsed_expression_parse(
 	static struct {
 		enum RlcParsedExpressionType fType;
 		parse_fn_t fParseFn;
-		enum RlcParseError fErrorCode;
 		size_t fTypeSize;
 		size_t fOffset;
 		int fIsPointer;
 	} const k_parse_lookup[] = {
-		ENTRY(RlcParsedOperatorExpression, &dummy_rlc_parsed_operator_expression_parse, kRlcParseErrorExpectedOperatorExpression, 1),
-		ENTRY(RlcParsedNumberExpression, &rlc_parsed_number_expression_parse, kRlcParseErrorExpectedNumberExpression, 0),
-		ENTRY(RlcParsedStringExpression, &rlc_parsed_string_expression_parse, kRlcParseErrorExpectedStringExpression, 0),
-		ENTRY(RlcParsedSymbolExpression, &rlc_parsed_symbol_expression_parse, kRlcParseErrorExpectedSymbolExpression, 0),
-		ENTRY(RlcParsedSymbolChildExpression, &rlc_parsed_symbol_child_expression_parse, kRlcParseErrorExpectedSymbolChildExpression, 0),
-		ENTRY(RlcThisExpression, &rlc_this_expression_parse, kRlcParseErrorExpectedThisExpression, 0),
-		ENTRY(RlcParsedCastExpression, &rlc_parsed_cast_expression_parse, kRlcParseErrorExpectedCastExpression, 0),
-		ENTRY(RlcParsedSizeofExpression, &rlc_parsed_sizeof_expression_parse, kRlcParseErrorExpectedSizeofExpression, 0)
+		ENTRY(RlcParsedOperatorExpression, &dummy_rlc_parsed_operator_expression_parse, 1),
+		ENTRY(RlcParsedNumberExpression, &rlc_parsed_number_expression_parse, 0),
+		ENTRY(RlcParsedStringExpression, &rlc_parsed_string_expression_parse, 0),
+		ENTRY(RlcParsedSymbolExpression, &rlc_parsed_symbol_expression_parse, 0),
+		ENTRY(RlcParsedSymbolChildExpression, &rlc_parsed_symbol_child_expression_parse, 0),
+		ENTRY(RlcThisExpression, &rlc_this_expression_parse, 0),
+		ENTRY(RlcParsedCastExpression, &rlc_parsed_cast_expression_parse, 0),
+		ENTRY(RlcParsedSizeofExpression, &rlc_parsed_sizeof_expression_parse, 0)
 	};
 
 	static_assert(RLC_COVERS_ENUM(k_parse_lookup, RlcParsedExpressionType), "ill-sized parse table.");
 
-	enum RlcParseError error_code;
 	struct RlcParsedExpression * ret;
 
-	for(int i = 0; i < _countof(k_parse_lookup); i++)
+	for(size_t i = 0; i < _countof(k_parse_lookup); i++)
 	{
 		if(RLC_FLAG(k_parse_lookup[i].fType) & flags)
 		{
@@ -156,16 +151,13 @@ struct RlcParsedExpression * rlc_parsed_expression_parse(
 					return ret;
 				} else
 					return storage.fPointer;
-			} else if(parser->fErrorCount)
-			{
-				error_code = k_parse_lookup[i].fErrorCode;
-				goto failure;
 			}
 		}
 	}
 
-	if(rlc_parser_data_consume(
+	if(rlc_parser_consume(
 		parser,
+		NULL,
 		kRlcTokParentheseOpen))
 	{
 		ret = rlc_parsed_expression_parse(
@@ -173,30 +165,16 @@ struct RlcParsedExpression * rlc_parsed_expression_parse(
 			RLC_ALL_FLAGS(RlcParsedExpressionType));
 
 		if(!ret)
-		{
-			error_code = kRlcParseErrorExpectedExpression;
-			goto failure;
-		}
+			rlc_parser_fail(parser, "expected expression");
 
-		if(rlc_parser_data_consume(
+		rlc_parser_expect(
 			parser,
-			kRlcTokParentheseClose))
-		{
-			return ret;
-		} else
-		{
-			rlc_parsed_expression_destroy_virtual(ret);
-			rlc_free((void**)&ret);
+			NULL,
+			1,
+			kRlcTokParentheseClose);
+		return ret;
+	}
 
-			error_code = kRlcParseErrorExpectedParentheseClose;
-			goto failure;
-		}
-	} else return NULL;
-
-failure:
-	rlc_parser_data_add_error(
-		parser,
-		error_code);
 	return NULL;
 }
 
