@@ -34,7 +34,7 @@ struct RlcParsedFile
 	@pass_pointer_ownership
 @return
 	Whether there were any parsing errors. */
-int rlc_parsed_file_create(
+_Nodiscard int rlc_parsed_file_create(
 	struct RlcParsedFile * this,
 	char const * filename);
 

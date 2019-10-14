@@ -21,7 +21,7 @@ struct RlcParsedExternalSymbol
 	/** Whether the external symbol has a custom link name (i.e., it is not from RL). */
 	int fHasCustomLinkName;
 	/** The symbol's custom link name. */
-	size_t fCustomLinkName;
+	struct RlcToken fCustomLinkName;
 	/** The symbol's type. */
 	struct RlcParsedTypeName fType;
 };
@@ -31,11 +31,15 @@ struct RlcParsedExternalSymbol
 @param[out] this:
 	The external symbol to create.
 	@dassert @nonnull
-@param[in] start:
-	The start index of the token stream. */
+@param[in] linkname:
+	The external symbol's custom link name, or null.
+@param[in] name:
+	The external symbol's name.
+	@dassert @nonnull */
 void rlc_parsed_external_symbol_create(
 	struct RlcParsedExternalSymbol * this,
-	size_t start);
+	struct RlcToken const * linkname,
+	struct RlcSrcString const * name);
 
 /** Destroys an external symbol.
 @memberof RlcParsedExternalSymbol
@@ -55,9 +59,9 @@ void rlc_parsed_external_symbol_destroy(
 	@dassert @nonnull
 @return
 	Whether the external symbol was successfully parsed. */
-int rlc_parsed_external_symbol_parse(
+_Nodiscard int rlc_parsed_external_symbol_parse(
 	struct RlcParsedExternalSymbol * out,
-	struct RlcParserData * parser);
+	struct RlcParser * parser);
 
 #ifdef __cplusplus
 }
