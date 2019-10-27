@@ -52,9 +52,10 @@ void rlc_parsed_struct_destroy(
 	@dassert @nonnull
 @param[in,out] parser:
 	The parser data. */
-int rlc_parsed_struct_parse(
+_Nodiscard int rlc_parsed_struct_parse(
 	struct RlcParsedStruct * out,
-	struct RlcParserData * parser);
+	struct RlcParser * parser,
+	struct RlcParsedTemplateDecl const * templates);
 
 /** Member structure type as used by the parser.
 @extends RlcParsedMember
@@ -97,8 +98,8 @@ void rlc_parsed_member_struct_destroy(
 	Nonzero on success. */
 int rlc_parsed_member_struct_parse(
 	struct RlcParsedMemberStruct * out,
-	enum RlcVisibility * default_visibility,
-	struct RlcParserData * parser);
+	struct RlcParser * parser,
+	struct RlcParsedTemplateDecl const * templates);
 
 
 #ifdef __cplusplus

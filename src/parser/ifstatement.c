@@ -20,9 +20,6 @@ void rlc_parsed_if_statement_create(
 	this->fCondition.fIsVariable = 0;
 	this->fCondition.fExpression = NULL;
 
-	rlc_control_label_create(&this->fIfLabel);
-	rlc_control_label_create(&this->fElseLabel);
-
 	this->fIf = NULL;
 	this->fElse = NULL;
 }
@@ -56,115 +53,93 @@ void rlc_parsed_if_statement_destroy(
 
 int rlc_parsed_if_statement_parse(
 	struct RlcParsedIfStatement * out,
-	struct RlcParserData * parser)
+	struct RlcParser * parser)
 {
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
 
-	if(!rlc_parser_data_consume(
+	if(!rlc_parser_consume(
 		parser,
+		NULL,
 		kRlcTokIf))
 		return 0;
 
-	enum RlcParseError error_code;
-
 	rlc_parsed_if_statement_create(out);
 
-	if(!rlc_control_label_parse(
+	rlc_control_label_parse(
 		&out->fIfLabel,
-		parser))
-	{
-		error_code = kRlcParseErrorExpectedControlLabel;
-		goto failure;
-	}
+		parser);
 
-	if(!rlc_parser_data_consume(
+	rlc_parser_expect(
 		parser,
-		kRlcTokParentheseOpen))
-	{
-		error_code = kRlcParseErrorExpectedParentheseOpen;
-		goto failure;
-	}
+		NULL,
+		1,
+		kRlcTokParentheseOpen);
 
-	if(out->fCondition.fIsVariable = rlc_parsed_variable_parse(
+	if((out->fCondition.fIsVariable = rlc_parsed_variable_parse(
 		&out->fCondition.fVariable,
 		parser,
 		1,
 		1,
 		1,
 		0,
-		0))
+		0)))
 	{
-	} else if(!(out->fCondition.fExpression = rlc_parsed_expression_parse(
+		;
+	} else if((out->fCondition.fExpression = rlc_parsed_expression_parse(
 		parser,
 		RLC_ALL_FLAGS(RlcParsedExpressionType))))
 	{
-		error_code = kRlcParseErrorExpectedExpression;
-		goto failure;
+		;
+	} else
+	{
+		rlc_parser_fail(parser, "expected condition");
 	}
 
-	if(!rlc_parser_data_consume(
+	rlc_parser_expect(
 		parser,
-		kRlcTokParentheseClose))
-	{
-		error_code = kRlcParseErrorExpectedParentheseClose;
-		goto failure;
-	}
+		NULL,
+		1,
+		kRlcTokParentheseClose);
 
 	if(!(out->fIf = rlc_parsed_statement_parse(
 		parser,
 		kBodyStatementFlags)))
 	{
-		error_code = kRlcParseErrorExpectedBodyStatement;
-		goto failure;
+		rlc_parser_fail(parser, "expected if body statement");
 	}
 
-	if(rlc_parser_data_consume(
+	if(rlc_parser_consume(
 		parser,
+		NULL,
 		kRlcTokElse))
 	{
-		if(!rlc_control_label_parse(
+		rlc_control_label_parse(
 			&out->fElseLabel,
-			parser))
-		{
-			error_code = kRlcParseErrorExpectedControlLabel;
-			goto failure;
-		}
+			parser);
+
 		if(!out->fIfLabel.fExists
 		&& out->fElseLabel.fExists)
 		{
-			parser->fLatestIndex -= 2;
-			parser->fIndex = parser->fLatestIndex;
-			error_code = kRlcParseErrorUnexpectedControlLabel;
-			goto failure;
+			rlc_parser_fail(parser, "expected control label");
 		}
 
 		if(out->fElseLabel.fExists
-		&& !rlc_parser_data_equal_tokens(
+		&& !rlc_parser_equal_tokens(
 			parser,
-			out->fIfLabel.fLabel,
-			out->fElseLabel.fLabel))
+			&out->fIfLabel.fLabel,
+			&out->fElseLabel.fLabel))
 		{
-			parser->fLatestIndex -= 2;
-			parser->fIndex = parser->fLatestIndex;
-			error_code = kRlcParseErrorMismatchedControlLabelName;
-			goto failure;
+			rlc_parser_fail(parser, "control label strings mismatch");
 		}
 
 		if(!(out->fElse = rlc_parsed_statement_parse(
 			parser,
-			kBodyStatementFlags))
-		&& parser->fErrorCount)
+			kBodyStatementFlags)))
 		{
-			error_code = kRlcParseErrorExpectedBodyStatement;
-			goto failure;
+			rlc_parser_fail(parser, "expected else body statement");
 		}
 	}
 
-success:
 	return 1;
-failure:
-	rlc_parser_data_add_error(parser, error_code);
-	rlc_parsed_if_statement_destroy(out);
-	return 0;
 }

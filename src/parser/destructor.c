@@ -4,14 +4,17 @@
 
 void rlc_parsed_destructor_create(
 	struct RlcParsedDestructor * this,
-	enum RlcVisibility visibility)
+	struct RlcParsedMemberCommon const * member)
 {
 	RLC_DASSERT(this != NULL);
+	RLC_DASSERT(member != NULL);
+	RLC_DASSERT(member->attribute == kRlcMemberAttributeNone);
+	RLC_DASSERT(!rlc_parsed_template_decl_exists(&member->templates));
 
 	rlc_parsed_member_create(
 		RLC_BASE_CAST(this, RlcParsedMember),
 		kRlcParsedDestructor,
-		visibility);
+		member);
 
 	this->fIsDefinition = 0;
 	this->fIsInline = 0;
@@ -32,13 +35,13 @@ void rlc_parsed_destructor_destroy(
 
 int rlc_parsed_destructor_parse(
 	struct RlcParsedDestructor * out,
-	enum RlcVisibility visibility,
-	struct RlcParser * parser)
+	struct RlcParser * parser,
+	struct RlcParsedMemberCommon const * member)
 {
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
 
-	rlc_parsed_destructor_create(out, visibility);
+	rlc_parsed_destructor_create(out, member);
 
 	if(!rlc_parser_consume(
 		parser,

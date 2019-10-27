@@ -4,6 +4,7 @@
 #define __rlc_parser_member_h_defined
 
 #include "parser.h"
+#include "templatedecl.h"
 
 #include "../macros.h"
 
@@ -79,7 +80,39 @@ struct RlcParsedMember
 
 	/** The visibility level of the member. */
 	enum RlcVisibility fVisibility;
+	/** The member's attribute. */
+	enum RlcMemberAttribute fAttribute;
 };
+
+/** Common fields that are passed to member parsing functions. */
+struct RlcParsedMemberCommon
+{
+	/** The member's visibility. */
+	enum RlcVisibility visibility;
+	/** The member's default visibility. */
+	enum RlcVisibility default_visibility;
+	/** The member's attribute. */
+	enum RlcMemberAttribute attribute;
+	/** The member's templates. */
+	struct RlcParsedTemplateDecl templates;
+};
+
+void rlc_parsed_member_common_create(
+	struct RlcParsedMemberCommon * this,
+	enum RlcVisibility default_visibility);
+
+/** Parses the common fields of a member.
+@param[out] out:
+	The common member fields to parse.
+	@dassert @nonnull
+@param[in,out] parser:
+	The parser.
+	@dassert @nonnull
+@return
+	Whether a member needs to follow. */
+_Nodiscard int rlc_parsed_member_common_parse(
+	struct RlcParsedMemberCommon * out,
+	struct RlcParser * parser);
 
 /** Parses a visibility modifier. */
 enum RlcVisibility rlc_visibility_parse(
@@ -93,12 +126,12 @@ enum RlcVisibility rlc_visibility_parse(
 	@dassert @nonnull
 @param[in] type:
 	The deriving type.
-@param[in] visibility:
-	The visibility level of the member. */
+@param[in] common:
+	The member's common fields. */
 void rlc_parsed_member_create(
 	struct RlcParsedMember * this,
 	enum RlcParsedMemberType type,
-	enum RlcVisibility visibility);
+	struct RlcParsedMemberCommon const * common);
 
 /** Destroys a parsed member.
 @memberof RlcParsedMember
@@ -130,17 +163,17 @@ struct RlcSrcString const * rlc_parsed_member_name(
 /** Parses a member declaration.
 	Goes through all member types and tries to parse them.
 @memberof RlcParsedMember
-@param[in,out] default_visibility:
-	The visibility to use if no visibility modifier is found. If a visibility block modifier is found, then `default_visibility` is changed to the new value.
 @param[in,out] parser:
 	The parser data.
+@param[in,out] member:
+	The common member attributes. Use the same value across multiple calls to track the visibility of the members.
 @param[in] flags:
 	The flags for the RlcParsedMemberType values. If set, a corresponding RlcParsedMember can be parsed, otherwise, is ignored.
 @return
 	`NULL` if no member declaration could be parsed, otherwise a pointer to a dynamically allocated instance of the deriving type. */
 struct RlcParsedMember * rlc_parsed_member_parse(
-	enum RlcVisibility * visibility,
 	struct RlcParser * parser,
+	struct RlcParsedMemberCommon * member,
 	int flags);
 
 /** A list of parsed members. */

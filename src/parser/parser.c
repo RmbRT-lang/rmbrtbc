@@ -3,9 +3,11 @@
 #include "../malloc.h"
 #include "../assert.h"
 
+#include <stdlib.h>
+
 void rlc_parser_create(
 	struct RlcParser * this,
-	struct RlcSrcFile * file)
+	struct RlcSrcFile const * file)
 {
 	RLC_DASSERT(this != NULL);
 	RLC_DASSERT(file != NULL);
@@ -37,14 +39,16 @@ void rlc_parser_destroy(
 		struct RlcSrcPosition pos;
 		rlc_src_file_position(
 			this->fTokeniser.fSource,
-			pos,
+			&pos,
 			rlc_parser_current(this)->content.start);
 
 		fprintf(stderr, "%s:%u:%u: error: unexpected '%s'.\n",
 			this->fTokeniser.fSource->fName,
 			pos.line,
 			pos.column,
-			rlc_src_string_cstr(&rlc_parser_current(this)->content));
+			rlc_src_string_cstr(
+				&rlc_parser_current(this)->content,
+				this->fTokeniser.fSource));
 		exit(1);
 	}
 }
@@ -53,29 +57,9 @@ int rlc_parser_next(
 	struct RlcParser * this)
 {
 	RLC_DASSERT(this != NULL);
-	RLC_DASSERT(this->fFile != NULL);
 
-	if(this->fIndex < this->fFile->fTokenCount)
-	{
-		++ this->fIndex;
-		if(this->fLatestIndex < this->fIndex)
-			this->fLatestIndex = this->fIndex;
-		return 1;
-	} else
-		return 0;
 }
 
-
-struct RlcToken const * rlc_parser_current(
-	struct RlcParser const * this)
-{
-	RLC_DASSERT(this != NULL);
-
-	if(this->fIndex < this->fFile->fTokenCount)
-		return this->fFile->fTokens[this->fIndex];
-	else
-		return NULL;
-}
 
 struct RlcToken const * rlc_parser_latest(
 	struct RlcParser const * this)
@@ -209,32 +193,20 @@ size_t rlc_parser_consumed_index(
 	return parser->fIndex - 1;
 }
 
-int rlc_parser_equal_tokens(
+_Nodiscard int rlc_parser_equal_tokens(
 	struct RlcParser const * parser,
-	size_t lhs,
-	size_t rhs)
+	struct RlcToken const * lhs,
+	struct RlcToken const * rhs)
 {
 	RLC_DASSERT(parser != NULL);
+	RLC_DASSERT(lhs != NULL);
+	RLC_DASSERT(rhs != NULL);
+
 	RLC_DASSERT(lhs < parser->fFile->fTokenCount);
 	RLC_DASSERT(rhs < parser->fFile->fTokenCount);
 
-	if(lhs == rhs)
-		return 1;
-
-	struct RlcToken const * lt, * rt;
-	lt = parser->fFile->fTokens[lhs];
-	rt = parser->fFile->fTokens[rhs];
-
-	if(lt->fType != rt->fType
-	|| lt->fLength != rt->fLength)
-	{
-		return 0;
-	} else
-	{
-		rlc_char_t * file = 0;
-		return 0 == rlc_strncmp(
-			lt->fFile->fContents+lt->fBegin,
-			rt->fFile->fContents+rt->fBegin,
-			lt->fLength);
-	}
+	return 0 == rlc_src_string_cmp(
+		parser->fTokeniser->fSource,
+		&lhs->content,
+		&rhs->content);
 }

@@ -42,9 +42,10 @@ void rlc_parsed_union_create(
 void rlc_parsed_union_destroy(
 	struct RlcParsedUnion * this);
 
-int rlc_parsed_union_parse(
+_Nodiscard int rlc_parsed_union_parse(
 	struct RlcParsedUnion * out,
-	struct RlcParserData * parser);
+	struct RlcParser * parser,
+	struct RlcParsedTemplateDecl const * templates);
 
 /** A member union as used by the parser.
 @implements RlcParsedMember
@@ -63,10 +64,10 @@ void rlc_parsed_member_union_create(
 void rlc_parsed_member_union_destroy(
 	struct RlcParsedMemberUnion * this);
 
-int rlc_parsed_member_union_parse(
+_Nodiscard int rlc_parsed_member_union_parse(
 	struct RlcParsedMemberUnion * out,
-	enum RlcVisibility * default_visibility,
-	struct RlcParserData * parser);
+	struct RlcParser * parser,
+	struct RlcParsedMemberCommon const * member);
 
 #ifdef __cplusplus
 }

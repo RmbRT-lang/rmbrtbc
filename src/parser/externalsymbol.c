@@ -4,14 +4,14 @@
 
 void rlc_parsed_external_symbol_create(
 	struct RlcParsedExternalSymbol * this,
-	size_t start)
+	struct RlcSrcString const * name)
 {
 	RLC_DASSERT(this != NULL);
 
 	rlc_parsed_scope_entry_create(
 		RLC_BASE_CAST(this, RlcParsedScopeEntry),
 		kRlcParsedExternalSymbol,
-		start);
+		name);
 
 	this->fHasCustomLinkName = 0;
 	rlc_parsed_type_name_create(&this->fType);
@@ -30,87 +30,69 @@ void rlc_parsed_external_symbol_destroy(
 
 int rlc_parsed_external_symbol_parse(
 	struct RlcParsedExternalSymbol * out,
-	struct RlcParserData * parser)
+	struct RlcParser * parser)
 {
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
 
-	size_t const start = parser->fIndex;
-	enum RlcParseError error_code;
-
-	if(!rlc_parser_data_consume(
+	if(!rlc_parser_consume(
 		parser,
+		NULL,
 		kRlcTokExtern))
-	{
 		return 0;
+
+	int hasCustomLinkName = 0;
+	struct RlcToken customLinkName;
+	if(rlc_parser_consume(
+		parser,
+		NULL,
+		kRlcTokBracketOpen))
+	{
+		hasCustomLinkName = 1;
+
+		rlc_parser_expect(
+			parser,
+			&customLinkName,
+			1,
+			kRlcTokString);
+
+		rlc_parser_expect(
+			parser,
+			NULL,
+			1,
+			kRlcTokBracketClose);
 	}
 
+	struct RlcToken name;
+	rlc_parser_expect(
+		parser,
+		&name,
+		1,
+		kRlcTokIdentifier);
 
 	rlc_parsed_external_symbol_create(
 		out,
-		start);
+		&name.content);
 
-	if((out->fHasCustomLinkName = 0 != rlc_parser_data_consume(
+	if((out->fHasCustomLinkName = hasCustomLinkName))
+		out->fCustomLinkName = customLinkName.content;
+
+	rlc_parser_expect(
 		parser,
-		kRlcTokBracketOpen)))
-	{
-		if(!rlc_parser_data_consume(
-			parser,
-			kRlcTokString))
-		{
-			error_code = kRlcParseErrorExpectedStringExpression;
-			goto failure;
-		}
-
-		out->fCustomLinkName = rlc_parser_data_consumed_index(parser);
-
-		if(!rlc_parser_data_consume(
-			parser,
-			kRlcTokBracketClose))
-		{
-			error_code = kRlcParseErrorExpectedBracketClose;
-			goto failure;
-		}
-	}
-
-	if(!rlc_parser_data_consume(
-		parser,
-		kRlcTokIdentifier))
-	{
-		error_code = kRlcParseErrorExpectedIdentifier;
-		goto failure;
-	}
-
-	if(!rlc_parser_data_consume(
-		parser,
-		kRlcTokColon))
-	{
-		error_code = kRlcParseErrorExpectedColon;
-		goto failure;
-	}
+		NULL,
+		1,
+		kRlcTokColon);
 
 	if(!rlc_parsed_type_name_parse(
 		&out->fType,
 		parser))
-	{
-		error_code = kRlcParseErrorExpectedTypeName;
-		goto failure;
-	}
+		rlc_parser_fail(parser, "expected type name");
 
-	if(!rlc_parser_data_consume(
+	rlc_parser_expect(
 		parser,
-		kRlcTokSemicolon))
-	{
-		error_code = kRlcParseErrorExpectedSemicolon;
-		goto failure;
-	}
+		NULL,
+		1,
+		kRlcTokSemicolon);
 
 	return 1;
-failure:
-	rlc_parser_data_add_error(
-		parser,
-		error_code);
-	parser->fIndex = start;
-	rlc_parsed_external_symbol_destroy(out);
-	return 0;
 }

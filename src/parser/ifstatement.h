@@ -71,7 +71,7 @@ void rlc_parsed_if_statement_destroy(
 	Nonzero on success. */
 int rlc_parsed_if_statement_parse(
 	struct RlcParsedIfStatement * out,
-	struct RlcParserData * parser);
+	struct RlcParser * parser);
 
 #ifdef __cplusplus
 }

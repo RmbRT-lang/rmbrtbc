@@ -74,7 +74,7 @@ void rlc_parsed_loop_statement_destroy(
 	@dassert @nonnull */
 int rlc_parsed_loop_statement_parse(
 	struct RlcParsedLoopStatement * out,
-	struct RlcParserData * parser);
+	struct RlcParser * parser);
 
 #ifdef __cplusplus
 }

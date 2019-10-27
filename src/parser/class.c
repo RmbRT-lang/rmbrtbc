@@ -1,10 +1,12 @@
 #include "class.h"
 
 #include "../assert.h"
+#include "../malloc.h"
 
 void rlc_parsed_class_create(
 	struct RlcParsedClass * this,
-	struct RlcSrcString const * name)
+	struct RlcSrcString const * name,
+	struct RlcParsedTemplateDecl const * templates)
 {
 	RLC_DASSERT(this != NULL);
 
@@ -13,7 +15,10 @@ void rlc_parsed_class_create(
 		kRlcParsedClass,
 		name);
 
-	rlc_parsed_template_decl_create(&this->fTemplateDecl);
+	if(templates)
+		this->fTemplateDecl = *templates;
+	else
+		rlc_parsed_template_decl_create(&this->fTemplateDecl);
 
 	rlc_parsed_member_list_create(&this->fMembers);
 
@@ -40,10 +45,15 @@ void rlc_parsed_class_destroy(
 
 int rlc_parsed_class_parse(
 	struct RlcParsedClass * out,
-	struct RlcParser * parser)
+	struct RlcParser * parser,
+	struct RlcParsedTemplateDecl const * templates)
 {
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
+	RLC_DASSERT(templates != NULL);
+
+	struct RlcParserTracer tracer;
+	rlc_parser_trace(parser, "class", &tracer);
 
 	struct RlcToken name;
 	if((!rlc_parser_is_ahead(parser, kRlcTokBraceOpen)
@@ -53,10 +63,7 @@ int rlc_parsed_class_parse(
 		return 0;
 	}
 
-	rlc_parsed_class_create(out, &name.content);
-
-	struct RlcParserTracer tracer;
-	rlc_parser_trace(parser, "class", &tracer);
+	rlc_parsed_class_create(out, &name.content, templates);
 
 	rlc_parser_expect(
 		parser,
@@ -64,53 +71,55 @@ int rlc_parsed_class_parse(
 		1,
 		kRlcTokBraceOpen);
 
-	// default visibility is private.
-	enum RlcVisibility visibility = kRlcVisibilityPrivate;
-	struct RlcParsedDestructor destructor;
-	while(!rlc_parser_consume(
-		parser,
-		NULL,
-		kRlcTokBraceClose))
-	{
-		enum RlcVisibility local_visibility = rlc_visibility_parse(
-			&visibility,
-			parser);
-		if(rlc_parsed_destructor_parse(
-			&destructor,
-			local_visibility,
-			parser))
-		{
-			if(out->fHasDestructor)
-				rlc_parser_fail(parser, "duplicate destructor");
+	struct RlcParsedMemberCommon common;
+	rlc_parsed_member_common_create(&common, kRlcVisibilityPrivate);
 
+	struct RlcParsedMember * member;
+	while((member = rlc_parsed_member_parse(
+		parser,
+		&common,
+		RLC_ALL_FLAGS(RlcParsedMemberType)
+		& (out->fHasDestructor ? ~RLC_FLAG(kRlcParsedDestructor) : ~0))))
+	{
+		if(RLC_DERIVING_TYPE(member) == kRlcParsedDestructor)
+		{
 			out->fHasDestructor = 1;
-			out->fDestructor = destructor;
+			out->fDestructor = *RLC_DERIVE_CAST(
+				member,
+				RlcParsedMember,
+				struct RlcParsedDestructor);
+			rlc_parsed_member_destroy_virtual(member);
+			rlc_free((void**)&member);
 		} else
 		{
 			// add the member to the members list.
 			rlc_parsed_member_list_add(
 				&out->fMembers,
-				rlc_parsed_member_parse(
-					&local_visibility,
-					parser,
-					RLC_ALL_FLAGS(RlcParsedMemberType)
-					&~RLC_FLAG(kRlcParsedDestructor)));
+				member);
 		}
 	}
+
+	rlc_parser_expect(
+		parser,
+		NULL,
+		1,
+		kRlcTokBraceClose);
 
 	return 1;
 }
 
 void rlc_parsed_member_class_create(
 	struct RlcParsedMemberClass * this,
-	enum RlcVisibility visibility)
+	struct RlcParsedMemberCommon const * member)
 {
 	RLC_DASSERT(this != NULL);
+	RLC_DASSERT(member != NULL);
+	RLC_DASSERT(member->attribute == kRlcMemberAttributeNone);
 
 	rlc_parsed_member_create(
 		RLC_BASE_CAST(this, RlcParsedMember),
 		kRlcParsedMemberClass,
-		visibility);
+		member);
 }
 
 void rlc_parsed_member_class_destroy(
@@ -126,27 +135,23 @@ void rlc_parsed_member_class_destroy(
 
 int rlc_parsed_member_class_parse(
 	struct RlcParsedMemberClass * out,
-	enum RlcVisibility * default_visibility,
-	struct RlcParser * parser)
+	struct RlcParser * parser,
+	struct RlcParsedMemberCommon const * member)
 {
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
-	RLC_DASSERT(default_visibility != NULL);
+	RLC_DASSERT(member != NULL);
 
-	enum RlcVisibility visibility = rlc_visibility_parse(
-		default_visibility,
-		parser);
+	if(member->attribute != kRlcMemberAttributeNone
+	|| !rlc_parsed_class_parse(
+		RLC_BASE_CAST(out, RlcParsedClass),
+		parser,
+		&member->templates))
+		return 0;
 
 	rlc_parsed_member_class_create(
 		out,
-		visibility);
-
-	if(!rlc_parsed_class_parse(
-		RLC_BASE_CAST(out, RlcParsedClass),
-		parser))
-	{
-		return 0;
-	}
+		member);
 
 	return 1;
 }

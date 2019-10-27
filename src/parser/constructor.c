@@ -4,14 +4,16 @@
 
 void rlc_parsed_constructor_create(
 	struct RlcParsedConstructor * this,
-	enum RlcVisibility visibility)
+	struct RlcParsedMemberCommon const * member)
 {
 	RLC_DASSERT(this != NULL);
+	RLC_DASSERT(member != NULL);
+	RLC_DASSERT(member->attribute == kRlcMemberAttributeNone);
 
 	rlc_parsed_member_create(
 		RLC_BASE_CAST(this, RlcParsedMember),
 		kRlcParsedConstructor,
-		visibility);
+		member);
 
 	rlc_parsed_template_decl_create(&this->fTemplates);
 
@@ -54,13 +56,14 @@ void rlc_parsed_constructor_destroy(
 
 int rlc_parsed_constructor_parse(
 	struct RlcParsedConstructor * out,
-	enum RlcVisibility visibility,
-	struct RlcParser * parser)
+	struct RlcParser * parser,
+	struct RlcParsedMemberCommon const * member)
 {
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
 
-	if(!rlc_parser_consume(
+	if(member->attribute != kRlcMemberAttributeNone
+	|| !rlc_parser_consume(
 		parser,
 		NULL,
 		kRlcTokConstructor))
@@ -68,7 +71,7 @@ int rlc_parsed_constructor_parse(
 
 	rlc_parsed_constructor_create(
 		out,
-		visibility);
+		member);
 
 	rlc_parsed_template_decl_parse(
 		&out->fTemplates,

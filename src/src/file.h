@@ -6,6 +6,7 @@
 #include <stdio.h>
 
 #include "string.h"
+#include "../macros.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -29,7 +30,7 @@ struct RlcSrcFile
 	@dassert @nonnull
 @return
 	Whether the file could be successfully read. */
-int rlc_src_file_read(
+_Nodiscard int rlc_src_file_read(
 	struct RlcSrcFile * this,
 	char const * file);
 
@@ -37,7 +38,7 @@ int rlc_src_file_read(
 @param[in,out] this:
 	The source file to destroy.
 	@dassert @nonnull */
-void rlc_src_file_destoy(
+void rlc_src_file_destroy(
 	struct RlcSrcFile * this);
 
 /** Retrieves a line of code of a source file.

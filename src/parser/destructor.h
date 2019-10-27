@@ -34,7 +34,7 @@ struct RlcParsedDestructor
 	The destructor's visibility. */
 void rlc_parsed_destructor_create(
 	struct RlcParsedDestructor * this,
-	enum RlcVisibility visibility);
+	struct RlcParsedMemberCommon const * member);
 
 /** Destroys a destructor.
 @memberof RlcParsedDestructor
@@ -54,10 +54,10 @@ void rlc_parsed_destructor_destroy(
 	@dassert @nonnull
 @return
 	Nonzero on success. */
-int rlc_parsed_destructor_parse(
+_Nodiscard int rlc_parsed_destructor_parse(
 	struct RlcParsedDestructor * out,
-	enum RlcVisibility visibility,
-	struct RlcParser * parser);
+	struct RlcParser * parser,
+	struct RlcParsedMemberCommon const * member);
 
 #ifdef __cplusplus
 }

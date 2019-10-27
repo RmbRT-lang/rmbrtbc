@@ -5,14 +5,17 @@
 
 void rlc_parsed_function_create(
 	struct RlcParsedFunction * this,
-	size_t start_index)
+	struct RlcSrcString const * name,
+	struct RlcParsedTemplateDecl const * templates)
 {
 	RLC_DASSERT(this != NULL);
 
 	rlc_parsed_scope_entry_create(
 		RLC_BASE_CAST(this, RlcParsedScopeEntry),
 		kRlcParsedFunction,
-		start_index);
+		name);
+
+	this->fTemplates = *templates;
 
 	this->fHasReturnType = 0;
 
@@ -91,54 +94,32 @@ void rlc_parsed_function_add_argument(
 
 int rlc_parsed_function_parse(
 	struct RlcParsedFunction * out,
-	struct RlcParserData * parser)
+	struct RlcParser * parser,
+	struct RlcParsedTemplateDecl const * templates)
 {
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
 
+	struct RlcToken name;
+	if(!rlc_parser_is_ahead(
+		parser,
+		kRlcTokParentheseOpen)
+	|| !rlc_parser_consume(
+		parser,
+		&name,
+		kRlcTokIdentifier))
+		return 0;
 
-	size_t const start_index = parser->fIndex;
-
-	enum RlcParseError error_code;
+	rlc_parser_skip(parser);
 
 	rlc_parsed_function_create(
 		out,
-		parser->fIndex);
-
-	if(!rlc_parsed_template_decl_parse(
-		&out->fTemplates,
-		parser))
-	{
-		RLC_DASSERT(parser->fErrorCount > 0);
-		error_code = kRlcParseErrorExpectedTemplateDeclaration;
-		goto failure;
-	}
-
-	if(!rlc_parser_data_consume(
-		parser,
-		kRlcTokIdentifier))
-	{
-		goto nonfatal_failure;
-	}
-
-
-	rlc_parsed_scope_entry_add_name(
-		RLC_BASE_CAST(out, RlcParsedScopeEntry),
-		rlc_parser_data_consumed_index(parser));
-
-	if(!rlc_parser_data_consume(
-		parser,
-		kRlcTokParentheseOpen))
-	{
-		goto nonfatal_failure;
-	}
+		&name.content,
+		templates);
 
 	// parse arguments.
-
-	do
-	{
-		struct RlcParsedVariable argument;
-		if(rlc_parsed_variable_parse(
+	struct RlcParsedVariable argument;
+	while(rlc_parsed_variable_parse(
 			&argument,
 			parser,
 			0,
@@ -146,38 +127,36 @@ int rlc_parsed_function_parse(
 			0,
 			0,
 			1))
-		{
-			rlc_parsed_function_add_argument(
-				out,
-				&argument);
-		} else if(parser->fErrorCount)
-		{
-			error_code = kRlcParseErrorExpectedArgument;
-			goto failure;
-		} else break;
-
-	} while(rlc_parser_data_consume(
-		parser,
-		kRlcTokComma));
-
-	if(!rlc_parser_data_consume(
-		parser,
-		kRlcTokParentheseClose))
 	{
-		error_code = kRlcParseErrorExpectedParentheseClose;
-		goto failure;
+		rlc_parsed_function_add_argument(
+			out,
+			&argument);
+
+		if(!rlc_parser_consume(
+			parser,
+			NULL,
+			kRlcTokComma))
+			break;
 	}
+
+	rlc_parser_expect(
+		parser,
+		NULL,
+		1,
+		kRlcTokParentheseClose);
 
 	int accept_block_statement = 1;
 	int accept_expression = 0;
 	int expect_semicolon = 1;
 
-	out->fIsAsync = rlc_parser_data_consume(
+	out->fIsAsync = rlc_parser_consume(
 		parser,
+		NULL,
 		kRlcTokAt);
 
-	if((out->fHasReturnType = rlc_parser_data_consume(
+	if((out->fHasReturnType = rlc_parser_consume(
 		parser,
+		NULL,
 		kRlcTokColon)))
 	{
 		// parse return type.
@@ -186,40 +165,42 @@ int rlc_parsed_function_parse(
 			&out->fReturnType,
 			parser))
 		{
-			error_code = kRlcParseErrorExpectedTypeName;
-			goto failure;
+			rlc_parser_fail(parser, "expected type name.");
 		}
 
-		if(rlc_parser_data_consume(
+		if(rlc_parser_consume(
 			parser,
+			NULL,
 			kRlcTokSemicolon))
 		{
 			out->fHasBody = 0;
-			goto success;
+			return 1;
 		}
 
-		if(!rlc_parser_data_consume(
+		if(!rlc_parser_consume(
 			parser,
+			NULL,
 			kRlcTokColonEqual))
 		{
-			error_code =
+			rlc_parser_fail(parser,
 				(out->fHasReturnType)
-				? kRlcParseErrorExpectedColonEqual
-				: kRlcParseErrorExpectedColonEqualOrColon;
-			goto failure;
+				? "expected ':='"
+				: "expected '::=' or ':'");
 		}
 
 		accept_expression = 1;
-	} else if(rlc_parser_data_consume(
+	} else if(rlc_parser_consume(
 		parser,
+		NULL,
 		kRlcTokDoubleColonEqual))
 	{
 		accept_expression = 1;
 		accept_block_statement = 0;
 	} else expect_semicolon = 0;
 
-	out->fIsInline = rlc_parser_data_consume(
+	out->fIsInline = rlc_parser_consume(
 		parser,
+		NULL,
 		kRlcTokInline);
 
 
@@ -232,14 +213,6 @@ int rlc_parsed_function_parse(
 	{
 		out->fHasBody = 1;
 		out->fIsShortHandBody = 0;
-	} else if(parser->fErrorCount)
-	{
-		// prepare values so that the destructor can be called.
-		//*
-		out->fIsShortHandBody = 1;
-		out->fReturnValue = NULL; //*/
-		error_code = kRlcParseErrorExpectedBlockStatement;
-		goto failure;
 	} else if(accept_expression
 	&& (out->fReturnValue = rlc_parsed_expression_parse(
 		parser,
@@ -250,96 +223,53 @@ int rlc_parsed_function_parse(
 	} else
 	{
 		if(!accept_expression)
-			error_code = kRlcParseErrorExpectedBlockStatement;
-		else
-			error_code = kRlcParseErrorExpectedExpression;
-		goto failure;
+			rlc_parser_fail(parser,
+				accept_expression
+				? "expected expression"
+				: "expected block statement");
 	}
 
-	if(expect_semicolon
-	&& !rlc_parser_data_consume(
-		parser,
-		kRlcTokSemicolon))
-	{
-		error_code = kRlcParseErrorExpectedSemicolon;
-		goto failure;
-	}
-success:
-	RLC_BASE_CAST(out, RlcParsedScopeEntry)->fLocation.fEnd = parser->fIndex;
+	if(expect_semicolon)
+		rlc_parser_expect(
+			parser,
+			NULL,
+			1,
+			kRlcTokSemicolon);
 	return 1;
-failure:
-	rlc_parser_data_add_error(
-		parser,
-		error_code);
-nonfatal_failure:
-	rlc_parsed_function_destroy(out);
-	parser->fIndex = start_index;
-	return 0;
 }
 
 void rlc_parsed_member_function_create(
 	struct RlcParsedMemberFunction * this,
-	enum RlcVisibility visiblity,
-	size_t start_index)
+	struct RlcParsedMemberCommon const * member)
 {
 	RLC_DASSERT(this != NULL);
 
 	rlc_parsed_member_create(
 		RLC_BASE_CAST(this, RlcParsedMember),
 		kRlcParsedMemberFunction,
-		visiblity,
-		0);
-
-	rlc_parsed_function_create(
-		RLC_BASE_CAST(this, RlcParsedFunction),
-		0);
+		member);
 }
 
 int rlc_parsed_member_function_parse(
 	struct RlcParsedMemberFunction * out,
-	enum RlcVisibility * default_visibility,
-	struct RlcParserData * parser)
+	struct RlcParsedMemberCommon const * member,
+	struct RlcParser * parser)
 {
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
-	RLC_DASSERT(default_visibility != NULL);
-
-	size_t const start_index = parser->fIndex;
-	enum RlcParseError error_code;
-
-	enum RlcVisibility visibility = rlc_visibility_parse(
-		default_visibility,
-		parser);
-
-	rlc_parsed_member_function_create(
-		out,
-		start_index,
-		visibility);
-
-	out->fAttribute = rlc_member_attribute_parse(parser);
+	RLC_DASSERT(member != NULL);
 
 	if(!rlc_parsed_function_parse(
 		RLC_BASE_CAST(out, RlcParsedFunction),
-		parser))
-	{
-		if(parser->fErrorCount)
-		{
-			error_code = kRlcParseErrorExpectedFunction;
-			goto fatal_failure;
-		} else goto nonfatal_failure;
-	}
-
-success:
-	RLC_BASE_CAST(out, RlcParsedMember)->fLocation.fEnd = parser->fIndex;
-	return 1;
-fatal_failure:
-	rlc_parser_data_add_error(
 		parser,
-		error_code);
-nonfatal_failure:
-	rlc_parsed_member_function_destroy(out);
-	parser->fIndex = start_index;
-	return 0;
+		&member->templates))
+		return 0;
+
+	rlc_parsed_member_function_create(
+		out,
+		member);
+
+	return 1;
 }
 
 void rlc_parsed_member_function_destroy(

@@ -15,6 +15,8 @@ extern "C" {
 /** A parsed input file. */
 struct RlcParsedFile
 {
+	/** The source file. */
+	struct RlcSrcFile fSource;
 	/** The file's include statements. */
 	struct RlcParsedIncludeStatement * fIncludes;
 	/** The file's include statement count.*/
@@ -33,8 +35,8 @@ struct RlcParsedFile
 	@dassert @nonnull
 	@pass_pointer_ownership
 @return
-	Whether there were any parsing errors. */
-int rlc_parsed_file_create(
+	Whether the file exists. If there are any parsing errors, terminates the program. */
+_Nodiscard int rlc_parsed_file_create(
 	struct RlcParsedFile * this,
 	char const * filename);
 

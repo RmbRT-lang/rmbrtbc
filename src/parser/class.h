@@ -37,10 +37,14 @@ struct RlcParsedClass
 	The parsed class to create.
 	@dassert @nonnull
 @param[in] name:
-	The class's name. */
+	The class's name.
+	@dassert @nonnull
+@param[in] templates:
+	The class's templates. */
 void rlc_parsed_class_create(
 	struct RlcParsedClass * this,
-	struct RlcSrcString const * name);
+	struct RlcSrcString const * name,
+	struct RlcParsedTemplateDecl const * templates);
 
 /** Destroys a parsed class.
 @memberof RlcParsedClass
@@ -58,11 +62,14 @@ void rlc_parsed_class_destroy(
 @param[in,out] parser:
 	The parser data.
 	@dassert @nonnull
+@param[in] templates:
+	The class's templates.
 @return
 	Nonzero on success. */
-int rlc_parsed_class_parse(
+_Nodiscard int rlc_parsed_class_parse(
 	struct RlcParsedClass * out,
-	struct RlcParser * parser);
+	struct RlcParser * parser,
+	struct RlcParsedTemplateDecl const * templates);
 
 /** The member class type as used by the parser.
 @extends RlcParsedClass
@@ -78,11 +85,12 @@ struct RlcParsedMemberClass
 @param[out] this:
 	The member class to create.
 	@dassert @nonnull
-@param[in] visibility:
-	The visibility level of the member class.*/
+@param[in] member:
+	The common part of the member.
+	@dassert @nonnull */
 void rlc_parsed_member_class_create(
 	struct RlcParsedMemberClass * this,
-	enum RlcVisibility visibility);
+	struct RlcParsedMemberCommon const * member);
 
 /** Destroys a member class.
 @memberof RlcParsedMemberClass
@@ -100,14 +108,15 @@ void rlc_parsed_member_class_destroy(
 @param[in,out] parser:
 	The parser data.
 	@dassert @nonnull
-@param[in,out] default_visibility:
-	The default visibility to use.
+@param[in] member:
+	The member values.
+	@dassert @nonnull
 @return
 	Nonzero on success. */
-int rlc_parsed_member_class_parse(
+_Nodiscard int rlc_parsed_member_class_parse(
 	struct RlcParsedMemberClass * this,
-	enum RlcVisibility * default_visibility,
-	struct RlcParser * parser);
+	struct RlcParser * parser,
+	struct RlcParsedMemberCommon const * member);
 
 #ifdef __cplusplus
 }

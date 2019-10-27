@@ -13,9 +13,9 @@ extern "C" {
 struct RlcParsedIncludeStatement
 {
 	/** Whether the filepath is relative to the current file. */
-	size_t fIsRelative;
+	int fIsRelative;
 	/** The file name to include. */
-	size_t fFileName;
+	struct RlcToken fFileName;
 };
 
 /** Parses an include statement.

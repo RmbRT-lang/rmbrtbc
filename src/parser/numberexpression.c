@@ -6,16 +6,16 @@
 
 void rlc_parsed_number_expression_create(
 	struct RlcParsedNumberExpression * this,
-	size_t token_index)
+	struct RlcToken const * token)
 {
 	RLC_DASSERT(this != NULL);
 
 	rlc_parsed_expression_create(
 		RLC_BASE_CAST(this, RlcParsedExpression),
 		kRlcParsedNumberExpression,
-		token_index);
+		token->content.start);
 
-	this->fNumberToken = token_index;
+	this->fNumberToken = *token;
 }
 
 void rlc_parsed_number_expression_destroy(
@@ -30,7 +30,7 @@ void rlc_parsed_number_expression_destroy(
 
 int rlc_parsed_number_expression_parse(
 	struct RlcParsedNumberExpression * out,
-	struct RlcParserData * parser)
+	struct RlcParser * parser)
 {
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
@@ -51,15 +51,17 @@ int rlc_parsed_number_expression_parse(
 		kRlcTokBin128,
 	};
 
+	struct RlcToken token;
 	for(size_t i = 0; i < _countof(k_types); i++)
 	{
-		if(rlc_parser_data_consume(
+		if(rlc_parser_consume(
 			parser,
+			&token,
 			k_types[i]))
 		{
 			rlc_parsed_number_expression_create(
 				out,
-				rlc_parser_data_consumed_index(parser));
+				&token);
 			return 1;
 		}
 	}

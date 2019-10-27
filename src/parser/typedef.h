@@ -44,9 +44,10 @@ void rlc_parsed_typedef_destroy(
 @param[out] out:
 	The typedef to parse into.
 	@dassert @nonnull */
-int rlc_parsed_typedef_parse(
+_Nodiscard int rlc_parsed_typedef_parse(
 	struct RlcParsedTypedef * out,
-	struct RlcParserData * parser);
+	struct RlcParser * parser,
+	struct RlcParsedTemplateDecl const * templates);
 
 /** Describes a member typedef as used by the parser.
 @extends RlcParsedTypedef
@@ -81,10 +82,10 @@ void rlc_parsed_member_typedef_destroy(
 
 /** Parses a member typedef.
 @memberof RlcParsedMemberTypedef */
-int rlc_parsed_member_typedef_parse(
+_Nodiscard int rlc_parsed_member_typedef_parse(
 	struct RlcParsedMemberTypedef * out,
-	enum RlcVisibility * default_visibility,
-	struct RlcParserData * parser);
+	struct RlcParser * parser,
+	struct RlcParsedMemberCommon const * templates);
 
 #ifdef __cplusplus
 }

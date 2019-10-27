@@ -12,7 +12,6 @@ void rlc_parsed_loop_statement_create(
 		RLC_BASE_CAST(this, RlcParsedStatement),
 		kRlcParsedLoopStatement);
 
-	rlc_control_label_create(&this->fLabel);
 	this->fIsVariableInitial = 0;
 	this->fIsVariableCondition = 0;
 	this->fCondition.fExpression = NULL;
@@ -60,14 +59,12 @@ void rlc_parsed_loop_statement_destroy(
 	}
 }
 
-static int parse_initial(
+static void parse_initial(
 	struct RlcParsedLoopStatement * out,
-	struct RlcParserData * parser)
+	struct RlcParser * parser)
 {
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
-
-	enum RlcParseError error_code;
 
 	if(!(out->fIsVariableInitial = rlc_parsed_variable_parse(
 		&out->fInitial.fVariable,
@@ -78,157 +75,95 @@ static int parse_initial(
 		0,
 		0)))
 	{
-		if(parser->fErrorCount)
-		{
-			error_code = kRlcParseErrorExpectedVariable;
-			goto failure;
-		}
-	} else goto success;
-	if(!(out->fInitial.fExpression = rlc_parsed_expression_parse(
-		parser,
-		RLC_ALL_FLAGS(RlcParsedExpressionType))))
-	{
-		if(parser->fErrorCount)
-		{
-			error_code = kRlcParseErrorExpectedExpression;
-			goto failure;
-		}
-	} else goto success;
-success:
-	return 1;
-failure:
-	rlc_parser_data_add_error(parser, error_code);
-	return 0;
+		out->fInitial.fExpression = rlc_parsed_expression_parse(
+			parser,
+			RLC_ALL_FLAGS(RlcParsedExpressionType));
+	}
 }
 
-static int parse_for_head(
+static _Nodiscard int parse_for_head(
 	struct RlcParsedLoopStatement * out,
-	struct RlcParserData * parser)
+	struct RlcParser * parser)
 {
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
 
-	if(!rlc_parser_data_consume(
+	if(!rlc_parser_consume(
 		parser,
+		NULL,
 		kRlcTokFor))
 		return 0;
 
-	enum RlcParseError error_code;
-
 	if(!out->fIsPostCondition)
-	{
-		if(!rlc_control_label_parse(
+		rlc_control_label_parse(
 			&out->fLabel,
-			parser))
-		{
-			error_code = kRlcParseErrorExpectedControlLabel;
-			goto failure;
-		}
-	}
+			parser);
 
-	if(!rlc_parser_data_consume(
+	rlc_parser_expect(
 		parser,
-		kRlcTokParentheseOpen))
-	{
-		error_code = kRlcParseErrorExpectedParentheseOpen;
-		goto failure;
-	}
+		NULL,
+		1,
+		kRlcTokParentheseOpen);
 
 	if(!out->fIsPostCondition)
 	{
-		if(!parse_initial(out, parser))
-		{
-			error_code = kRlcParseErrorExpectedExpressionOrVariable;
-			goto failure;
-		}
-		if(!rlc_parser_data_consume(
+		parse_initial(out, parser);
+		rlc_parser_expect(
 			parser,
-			kRlcTokSemicolon))
-		{
-			error_code = kRlcParseErrorExpectedSemicolon;
-			goto failure;
-		}
+			NULL,
+			1,
+			kRlcTokSemicolon);
 	}
 
 	out->fIsVariableCondition = 0;
-
-	if(!(out->fCondition.fExpression =
-		rlc_parsed_expression_parse(
-			parser,
-			RLC_ALL_FLAGS(RlcParsedExpressionType)))
-	&& parser->fErrorCount)
-	{
-		error_code = kRlcParseErrorExpectedExpression;
-		goto failure;
-	}
-
-	if(!rlc_parser_data_consume(
+	out->fCondition.fExpression = rlc_parsed_expression_parse(
 		parser,
-		kRlcTokSemicolon))
-	{
-		error_code = kRlcParseErrorExpectedSemicolon;
-		goto failure;
-	}
+		RLC_ALL_FLAGS(RlcParsedExpressionType));
 
-	if(!(out->fPostLoop =
-		rlc_parsed_expression_parse(
-			parser,
-			RLC_ALL_FLAGS(RlcParsedExpressionType)))
-	&& parser->fErrorCount)
-	{
-		error_code = kRlcParseErrorExpectedExpression;
-		goto failure;
-	}
-
-	if(!rlc_parser_data_consume(
+	rlc_parser_expect(
 		parser,
-		kRlcTokParentheseClose))
-	{
-		error_code = kRlcParseErrorExpectedParentheseClose;
-		goto failure;
-	}
+		NULL,
+		1,
+		kRlcTokSemicolon);
+
+	out->fPostLoop = rlc_parsed_expression_parse(
+		parser,
+		RLC_ALL_FLAGS(RlcParsedExpressionType));
+
+	rlc_parser_expect(
+		parser,
+		NULL,
+		1,
+		kRlcTokParentheseClose);
 
 	return 1;
-failure:
-	rlc_parser_data_add_error(parser, error_code);
-	return 0;
 }
 
-static int parse_while_head(
+static _Nodiscard int parse_while_head(
 	struct RlcParsedLoopStatement * out,
-	struct RlcParserData * parser)
+	struct RlcParser * parser)
 {
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
 
-	if(!rlc_parser_data_consume(
+	if(!rlc_parser_consume(
 		parser,
+		NULL,
 		kRlcTokWhile))
 		return 0;
 
-	enum RlcParseError error_code;
-
 	if(!out->fIsPostCondition)
-	{
-		if(!rlc_control_label_parse(
+		rlc_control_label_parse(
 			&out->fLabel,
-			parser))
-		{
-			error_code = kRlcParseErrorExpectedControlLabel;
-			goto failure;
-		}
-	}
+			parser);
 
-	if(!rlc_parser_data_consume(
+	rlc_parser_expect(
 		parser,
-		kRlcTokParentheseOpen))
-	{
-		error_code = kRlcParseErrorExpectedParentheseOpen;
-		goto failure;
-	}
+		NULL,
+		1,
+		kRlcTokParentheseOpen);
 
-
-	if(!(out->fIsVariableCondition =
+	if((out->fIsVariableCondition =
 		rlc_parsed_variable_parse(
 			&out->fCondition.fVariable,
 			parser,
@@ -238,154 +173,106 @@ static int parse_while_head(
 			0,
 			0)))
 	{
-		if(parser->fErrorCount)
-		{
-			error_code = kRlcParseErrorExpectedVariable;
-			goto failure;
-		}
-		if(!(out->fCondition.fExpression =
-			rlc_parsed_expression_parse(
-				parser,
-				RLC_ALL_FLAGS(RlcParsedExpressionType))))
-		{
-			error_code = parser->fErrorCount
-				? kRlcParseErrorExpectedExpression
-				: kRlcParseErrorExpectedExpressionOrVariable;
-			goto failure;
-		}
+		;
+	} else if((out->fCondition.fExpression =
+		rlc_parsed_expression_parse(
+			parser,
+			RLC_ALL_FLAGS(RlcParsedExpressionType))))
+	{
+		;
+	} else
+	{
+		rlc_parser_fail(parser, "expected condition");
 	}
 
-	if(!rlc_parser_data_consume(
+	rlc_parser_expect(
 		parser,
-		kRlcTokParentheseClose))
-	{
-		error_code = kRlcParseErrorExpectedParentheseClose;
-		goto failure;
-	}
+		NULL,
+		1,
+		kRlcTokParentheseClose);
 
 	return 1;
-failure:
-	rlc_parser_data_add_error(parser, error_code);
-	return 0;
+}
+
+static _Nodiscard int parse_do_head(
+	struct RlcParsedLoopStatement * out,
+	struct RlcParser * parser)
+{
+	if(!rlc_parser_consume(
+		parser,
+		NULL,
+		kRlcTokDo))
+		return 0;
+
+	out->fIsPostCondition = 1;
+	rlc_control_label_parse(
+		&out->fLabel,
+		parser);
+
+	rlc_parser_expect(
+		parser,
+		NULL,
+		1,
+		kRlcTokParentheseOpen);
+
+	parse_initial(out, parser);
+
+	rlc_parser_expect(
+		parser,
+		NULL,
+		1,
+		kRlcTokParentheseClose);
+	return 1;
+}
+
+static void parse_loop_head(
+	struct RlcParsedLoopStatement * out,
+	struct RlcParser * parser)
+{
+	out->fIsPostCondition = 0;
+	if(!parse_do_head(out, parser)
+	&& !parse_for_head(out, parser)
+	&& !parse_while_head(out, parser))
+	{
+		rlc_parser_fail(parser, "expected loop head");
+	}
 }
 
 int rlc_parsed_loop_statement_parse(
 	struct RlcParsedLoopStatement * out,
-	struct RlcParserData * parser)
+	struct RlcParser * parser)
 {
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
 
-	enum RlcParseError error_code;
-
-	if(!rlc_parser_data_match(
+	if(!rlc_parser_is_current(
 		parser, kRlcTokDo)
-	&& !rlc_parser_data_match(
+	&& !rlc_parser_is_current(
 		parser, kRlcTokFor)
-	&& !rlc_parser_data_match(
+	&& !rlc_parser_is_current(
 		parser, kRlcTokWhile))
 		return 0;
 
 	rlc_parsed_loop_statement_create(out);
 
-	if(out->fIsPostCondition = rlc_parser_data_consume(
-		parser,
-		kRlcTokDo))
-	{
-		if(!rlc_control_label_parse(
-			&out->fLabel,
-			parser))
-		{
-			error_code = kRlcParseErrorExpectedControlLabel;
-			goto failure;
-		}
+	parse_loop_head(out, parser);
 
-		if(!rlc_parser_data_consume(
-			parser,
-			kRlcTokParentheseOpen))
-		{
-			error_code = kRlcParseErrorExpectedParentheseOpen;
-			goto parsed_head;
-		}
-
-		if(!parse_initial(out, parser))
-		{
-			error_code = kRlcParseErrorExpectedLoopInitial;
-			goto failure;
-		}
-
-		if(!rlc_parser_data_consume(
-			parser,
-			kRlcTokParentheseClose))
-		{
-			error_code = kRlcParseErrorExpectedParentheseClose;
-			goto failure;
-		}
-	} else
-	{
-		if(!parse_for_head(out, parser))
-		{
-			if(parser->fErrorCount)
-			{
-				error_code = kRlcParseErrorExpectedForHead;
-				goto failure;
-			}
-		} else goto parsed_head;
-		if(!parse_while_head(out, parser))
-		{
-			if(parser->fErrorCount)
-			{
-				error_code = kRlcParseErrorExpectedWhileHead;
-				goto failure;
-			} else
-			{
-				error_code = kRlcParseErrorExpectedLoopHead;
-				goto failure;
-			}
-		}
-	}
-parsed_head:
 	if(!(out->fBody = rlc_parsed_statement_parse(
 		parser,
-		RLC_ALL_FLAGS(RlcParsedStatementType))))
+		RLC_ALL_FLAGS(RlcParsedStatementType)
+		&~RLC_FLAG(kRlcParsedVariableStatement))))
 	{
-		error_code = kRlcParseErrorExpectedStatement;
-		goto failure;
+		rlc_parser_fail(parser, "expected loop body");
 	}
 
 	if(out->fIsPostCondition)
 	{
-		if(!parse_for_head(out, parser))
+		if(!parse_for_head(out, parser)
+		&& !parse_while_head(out, parser))
 		{
-			if(parser->fErrorCount)
-			{
-				error_code = kRlcParseErrorExpectedForHead;
-				goto failure;
-			}
-		} else goto success;
-
-		if(!parse_while_head(out, parser))
-		{
-			if(parser->fErrorCount)
-			{
-				error_code = kRlcParseErrorExpectedForHead;
-				goto failure;
-			} else
-			{
-				error_code = kRlcParseErrorExpectedLoopHead;
-				goto failure;
-			}
-		} else goto success;
+			rlc_parser_fail(parser, "expected loop head");
+		}
 	}
 
-success:
 	return 1;
-
-failure:
-	rlc_parser_data_add_error(
-		parser,
-		error_code);
-nonfatal_failure:
-	rlc_parsed_loop_statement_destroy(out);
-	return 0;
 }

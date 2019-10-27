@@ -20,7 +20,7 @@ struct RlcParsedNumberExpression
 	RLC_DERIVE(struct,RlcParsedExpression);
 
 	/** The number token's index. */
-	size_t fNumberToken;
+	struct RlcToken fNumberToken;
 };
 
 /** Initialises a number expression.
@@ -28,11 +28,11 @@ struct RlcParsedNumberExpression
 
 @param[out] this:
 	The number expression to initialise.
-@param[in] token_index:
-	The number token's index. */
+@param[in] token:
+	The number token. */
 void rlc_parsed_number_expression_create(
 	struct RlcParsedNumberExpression * this,
-	size_t token_index);
+	struct RlcToken const * token);
 
 /** Destroys a number expression.
 @memberof RlcParsedNumberExpression

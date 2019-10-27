@@ -35,20 +35,17 @@ int main(
 	int status = 1;
 	for(int i = 1; i < argc; i++)
 	{
-		int error;
 		if(rlc_parsed_file_registry_get(
 			&parsed_registry,
-			argv[i],
-			&error))
+			argv[i]))
 		{
 			printf("parsed file %s\n",
 				argv[i]);
 		} else
 		{
 			fprintf(
-				stderr, "could not parse file %s (error: %s)\n",
-				argv[i],
-				error ? "true" : "false");
+				stderr, "%s not found\n",
+				argv[i]);
 			status = 0;
 		}
 	}

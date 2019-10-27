@@ -172,18 +172,18 @@ static struct RlcParsedOperatorExpression * make_unary_expression(
 	if(!operand)
 		return NULL;
 
+	(void) last;
+
 	struct RlcParsedOperatorExpression * out = make_operator_expression(type, first);
 	rlc_parsed_operator_expression_add(out, operand);
 
 	return out;
 }
 
-static struct RlcParsedExpression * parse_postfix(
-	struct RlcParserData * parser)
+static _Nodiscard struct RlcParsedExpression * parse_postfix(
+	struct RlcParser * parser)
 {
 	struct RlcParsedExpression * out = NULL;
-
-	size_t const start = parser->fIndex;
 
 	// get elementary expression.
 	out = rlc_parsed_expression_parse(
@@ -194,8 +194,6 @@ static struct RlcParsedExpression * parse_postfix(
 	// without an elementary expression, fail.
 	if(!out)
 		return NULL;
-
-	enum RlcParseError error_code = kRlcParseErrorExpectedExpression;
 
 	// get all postfix operators, if any.
 	for(int postfix = 1; postfix--;)
@@ -210,9 +208,11 @@ static struct RlcParsedExpression * parse_postfix(
 
 		{
 			int found = 0;
+			struct RlcToken token;
 			for(size_t i = _countof(k_unary_postfix); i--;)
-				if(rlc_parser_data_consume(
+				if(rlc_parser_consume(
 					parser,
+					&token,
 					k_unary_postfix[i].fTok))
 				{
 					struct RlcParsedOperatorExpression * temp =
@@ -220,7 +220,7 @@ static struct RlcParsedExpression * parse_postfix(
 							k_unary_postfix[i].fOp,
 							out,
 							out->fFirst,
-							rlc_parser_data_consumed_index(parser));
+							rlc_src_string_end(&token.content));
 					out = RLC_BASE_CAST(
 						temp,
 						RlcParsedExpression);
@@ -235,8 +235,9 @@ static struct RlcParsedExpression * parse_postfix(
 			}
 		}
 		// Subscript operator?
-		if(rlc_parser_data_consume(
+		if(rlc_parser_consume(
 			parser,
+			NULL,
 			kRlcTokBracketOpen))
 		{
 			struct RlcParsedOperatorExpression * binary =
@@ -251,24 +252,22 @@ static struct RlcParsedExpression * parse_postfix(
 				binary,
 				RlcParsedExpression)))
 			{
-				error_code = kRlcParseErrorExpectedExpression;
-				goto failure;
+				rlc_parser_fail(parser, "expected an expression");
 			}
 
-			if(!rlc_parser_data_consume(
+			rlc_parser_expect(
 				parser,
-				kRlcTokBracketClose))
-			{
-				error_code = kRlcParseErrorExpectedBracketClose;
-				goto delete_out_failure;
-			}
+				NULL,
+				1,
+				kRlcTokBracketClose);
 
 			++postfix;
 			continue;
 		}
 		// function call operator?
-		else if(rlc_parser_data_consume(
+		else if(rlc_parser_consume(
 			parser,
+			NULL,
 			kRlcTokParentheseOpen))
 		{
 			struct RlcParsedOperatorExpression * temp =
@@ -280,20 +279,20 @@ static struct RlcParsedExpression * parse_postfix(
 
 			out = RLC_BASE_CAST(temp, RlcParsedExpression);
 
+			struct RlcToken parenthese;
 			int arguments = 0;
-			while(!rlc_parser_data_consume(
+			while(!rlc_parser_consume(
 				parser,
+				&parenthese,
 				kRlcTokParentheseClose))
 			{
 				// parse comma, if necessary.
-				if(arguments++
-				&& !rlc_parser_data_consume(
+				if(arguments++)
+					rlc_parser_expect(
 						parser,
-						kRlcTokComma))
-				{
-					error_code = kRlcParseErrorExpectedComma;
-					goto delete_out_failure;
-				}
+						NULL,
+						1,
+						kRlcTokComma);
 
 				// parse the argument.
 				struct RlcParsedExpression * arg = rlc_parsed_expression_parse(
@@ -301,7 +300,7 @@ static struct RlcParsedExpression * parse_postfix(
 					RLC_ALL_FLAGS(RlcParsedExpressionType));
 
 				if(!arg)
-					goto delete_out_failure;
+					rlc_parser_fail(parser, "expected argument");
 
 				rlc_parsed_operator_expression_add(
 					RLC_DERIVE_CAST(
@@ -311,7 +310,7 @@ static struct RlcParsedExpression * parse_postfix(
 					arg);
 			}
 
-			out->fLast = rlc_parser_data_consumed_index(parser);
+			out->fLast = rlc_src_string_end(&parenthese.content);
 
 			++postfix;
 			continue;
@@ -327,10 +326,12 @@ static struct RlcParsedExpression * parse_postfix(
 				{ kRlcTokMinusGreater, kMemberPointer }
 			};
 
+			struct RlcToken token;
 			for(size_t i = _countof(k_ops); i--;)
 			{
-				if(rlc_parser_data_consume(
+				if(rlc_parser_consume(
 					parser,
+					&token,
 					k_ops[i].fToken))
 				{
 					struct RlcParsedOperatorExpression * temp =
@@ -343,9 +344,7 @@ static struct RlcParsedExpression * parse_postfix(
 
 					if(!(out = RLC_BASE_CAST(temp, RlcParsedExpression)))
 					{
-						error_code = kRlcParseErrorExpectedSymbolChildExpression;
-						// make_binary_expression already deleted everything.
-						goto failure;
+						rlc_parser_fail(parser, "expected symbol child expression");
 					}
 
 					++postfix;
@@ -356,45 +355,36 @@ static struct RlcParsedExpression * parse_postfix(
 	}
 
 	return out;
-delete_out_failure:
-	rlc_parsed_expression_destroy_virtual(out);
-	rlc_free((void**)&out);
-failure:
-	rlc_parser_data_add_error(
-		parser,
-		error_code);
-	return NULL;
 }
 
 static struct RlcParsedExpression * parse_prefix(
-	struct RlcParserData * parser)
+	struct RlcParser * parser)
 {
 	RLC_DASSERT(parser != NULL);
 
 	// track the beginning index of the expression.
-	size_t const first = rlc_parser_data_matched_index(parser);
+	size_t const first = rlc_parser_index(parser);
 
 	for(size_t i = _countof(k_unary); i--;)
 	{
-		if(rlc_parser_data_consume(
+		if(rlc_parser_consume(
 			parser,
+			NULL,
 			k_unary[i].fTok))
 		{
+			struct RlcParsedExpression * operand = parse_prefix(parser);
 			struct RlcParsedOperatorExpression * unary = NULL;
 			if(!(unary = make_unary_expression(
 					k_unary[i].fOp,
-					parse_prefix(parser),
+					operand,
 					first,
 					0)))
 			{
-				rlc_parser_data_add_error(
-					parser,
-					kRlcParseErrorExpectedExpression);
-				return NULL;
+				rlc_parser_fail(parser, "expected expression");
 			}
 
 			struct RlcParsedExpression * out = RLC_BASE_CAST(unary, RlcParsedExpression);
-			out->fLast = rlc_parser_data_consumed_index(parser);
+			out->fLast = operand->fLast;
 
 			return out;
 		}
@@ -405,23 +395,17 @@ static struct RlcParsedExpression * parse_prefix(
 }
 
 static struct RlcParsedExpression * parse_binary(
-	struct RlcParserData * parser,
+	struct RlcParser * parser,
 	size_t group)
 {
 	RLC_DASSERT(parser != NULL);
 
-	size_t const parser_start = parser->fIndex;
-
 	struct RlcParsedExpression * lhs = group
 		? parse_binary(parser, group-1)
 		: parse_prefix(parser);
+
 	if(!lhs)
-	{
-		/*if(parser->fErrorCount)
-			rlc_parser_data_add_error(parser, kRlcParseErrorExpectedExpression);*/
-		parser->fIndex = parser_start;
 		return NULL;
-	}
 
 	size_t start = 0;
 	for(size_t i = 0; i < group; i++)
@@ -429,11 +413,11 @@ static struct RlcParsedExpression * parse_binary(
 
 	for(size_t i = start + k_binary_groups[group]; i-->start;)
 	{
-		if(rlc_parser_data_consume(
+		if(rlc_parser_consume(
 			parser,
+			NULL,
 			k_binary[i].fTok))
 		{
-			size_t const before = parser->fIndex;
 			struct RlcParsedOperatorExpression * op =
 				make_binary_expression(
 					k_binary[i].fOp,
@@ -442,13 +426,7 @@ static struct RlcParsedExpression * parse_binary(
 						? parse_binary(parser, group)
 						: parse_prefix(parser));
 			if(!op)
-			{
-				//parser->fIndex = before;
-				rlc_parser_data_add_error(
-					parser,
-					kRlcParseErrorExpectedExpression);
-				// lhs is already destroyed by make_binary_expression().
-			}
+				rlc_parser_fail(parser, "expeected expression");
 			return RLC_BASE_CAST(op, RlcParsedExpression);
 		}
 	}
@@ -457,7 +435,7 @@ static struct RlcParsedExpression * parse_binary(
 }
 
 struct RlcParsedExpression * rlc_parsed_operator_expression_parse(
-	struct RlcParserData * parser)
+	struct RlcParser * parser)
 {
 	RLC_DASSERT(parser != NULL);
 
@@ -469,46 +447,27 @@ struct RlcParsedExpression * rlc_parsed_operator_expression_parse(
 		return NULL;
 	}
 
-	if(rlc_parser_data_consume(
+	if(rlc_parser_consume(
 		parser,
+		NULL,
 		kRlcTokQuestionMark))
 	{
 		struct RlcParsedExpression * then = rlc_parsed_operator_expression_parse(parser);
 		if(!then)
 		{
-			rlc_parser_data_add_error(
-				parser,
-				kRlcParseErrorExpectedExpression);
-			rlc_parsed_expression_destroy_virtual(left);
-			rlc_free((void**)&left);
-			return NULL;
+			rlc_parser_fail(parser, "expected expression");
 		}
 
-		if(!rlc_parser_data_consume(
+		rlc_parser_expect(
 			parser,
-			kRlcTokColon))
-		{
-			rlc_parser_data_add_error(
-				parser,
-				kRlcParseErrorExpectedColon);
-			rlc_parsed_expression_destroy_virtual(then);
-			rlc_parsed_expression_destroy_virtual(left);
-			rlc_free((void**)&then);
-			rlc_free((void**)&left);
-			return NULL;
-		}
+			NULL,
+			1,
+			kRlcTokColon);
 
 		struct RlcParsedExpression * other = rlc_parsed_operator_expression_parse(parser);
 		if(!other)
 		{
-			/*rlc_parser_data_add_error(
-				parser,
-				kRlcParseErrorExpectedExpression);*/
-			rlc_parsed_expression_destroy_virtual(then);
-			rlc_parsed_expression_destroy_virtual(left);
-			rlc_free((void**)&then);
-			rlc_free((void**)&left);
-			return NULL;
+			rlc_parser_fail(parser, "expected expression");
 		}
 
 		struct RlcParsedOperatorExpression * cond = make_binary_expression(

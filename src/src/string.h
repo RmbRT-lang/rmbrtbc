@@ -4,6 +4,8 @@
 
 #include <inttypes.h>
 
+#include "../assert.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -49,6 +51,17 @@ int rlc_src_string_cmp_cstr(
 char const * rlc_src_string_cstr(
 	struct RlcSrcString const * this,
 	struct RlcSrcFile const * file);
+
+/** Calculates the end of a source string.
+@param[in] this:
+	The source string.
+	@dassert @nonnull
+@return
+	The source string's end. */
+inline RlcSrcIndex rlc_src_string_end(
+	struct RlcSrcString const * this);
+
+#include "string.inl"
 
 #ifdef __cplusplus
 }

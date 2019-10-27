@@ -164,6 +164,23 @@ enum RlcTokenType rlc_parser_expect(
 void rlc_parser_skip(
 	struct RlcParser * this);
 
+/** Checks whether two tokens have equal contents.
+@param[in] parser:
+	The parser.
+	@dassert @nonnull
+@param[in] lhs:
+	The first token.
+	@dassert @nonnull
+@param[in] rhs:
+	The second token.
+	@dassert @nonnull
+@return
+	Whether both tokens have equal contents. */
+int rlc_parser_equal_tokens(
+	struct RlcParser const * parser,
+	struct RlcToken const * lhs,
+	struct RlcToken const * rhs);
+
 #include "parser.inl"
 
 #ifdef __cplusplus

@@ -9,21 +9,11 @@
 extern "C" {
 #endif
 
-
-/** A registry entry for files that could not be parsed. */
-struct RlcFailedParsedFile
-{
-	/** The file's name. */
-	char const * fName;
-	/** Whether the file failed with an error, or just didn't exist. */
-	int fError;
-};
-
 /** A registry for parsed files. */
 struct RlcParsedFileRegistry
 {
 	/** File names that failed with and error. */
-	struct RlcFailedParsedFile * fFailedFiles;
+	char const * * fFailedFiles;
 	/** How many files failed with an error. */
 	size_t fFailedFileCount;
 	/** The parsed files. */
@@ -63,8 +53,7 @@ void rlc_parsed_file_registry_destroy(
 	The requested file, or, if it does not exist or contained errors, null. */
 struct RlcParsedFile const * rlc_parsed_file_registry_get(
 	struct RlcParsedFileRegistry * this,
-	char const * file,
-	int * error);
+	char const * file);
 
 #ifdef __cplusplus
 }

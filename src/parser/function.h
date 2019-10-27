@@ -62,7 +62,8 @@ struct RlcParsedFunction
 	@dassert @nonnull */
 void rlc_parsed_function_create(
 	struct RlcParsedFunction * this,
-	size_t start_index);
+	struct RlcSrcString const * name,
+	struct RlcParsedTemplateDecl const * templates);
 
 /** Destroys a parsed function.
 @memberof RlcParsedFunction
@@ -94,9 +95,10 @@ void rlc_parsed_function_add_argument(
 	@dassert @nonnull
 @return
 	Nonzero on success. */
-int rlc_parsed_function_parse(
+_Nodiscard int rlc_parsed_function_parse(
 	struct RlcParsedFunction * out,
-	struct RlcParserData * parser);
+	struct RlcParser * parser,
+	struct RlcParsedTemplateDecl const * templates);
 
 /** Member function type used by the parser.
 @extends RlcParsedMember
@@ -105,8 +107,6 @@ struct RlcParsedMemberFunction
 {
 	RLC_DERIVE(struct,RlcParsedMember);
 	RLC_DERIVE(struct,RlcParsedFunction);
-
-	enum RlcMemberAttribute fAttribute;
 };
 
 /** Creates a member function.
@@ -116,8 +116,7 @@ struct RlcParsedMemberFunction
 	@dassert @nonnull */
 void rlc_parsed_member_function_create(
 	struct RlcParsedMemberFunction * this,
-	enum RlcVisibility visiblity,
-	size_t start_index);
+	struct RlcParsedMemberCommon const * member);
 
 /** Destroys a parsed member function.
 @memberof RlcParsedMemberFunction
@@ -127,10 +126,10 @@ void rlc_parsed_member_function_create(
 void rlc_parsed_member_function_destroy(
 	struct RlcParsedMemberFunction * this);
 
-int rlc_parsed_member_function_parse(
+_Nodiscard int rlc_parsed_member_function_parse(
 	struct RlcParsedMemberFunction * out,
-	enum RlcVisibility * default_visibility,
-	struct RlcParserData * parser);
+	struct RlcParsedMemberCommon const * member,
+	struct RlcParser * parser);
 
 #ifdef __cplusplus
 }

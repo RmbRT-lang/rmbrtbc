@@ -52,7 +52,7 @@ struct RlcParsedConstructor
 	The constructor's visibility. */
 void rlc_parsed_constructor_create(
 	struct RlcParsedConstructor * this,
-	enum RlcVisibility visibility);
+	struct RlcParsedMemberCommon const * member);
 
 /** Destroys a constructor.
 @memberof RlcParsedConstructor
@@ -70,12 +70,14 @@ void rlc_parsed_constructor_destroy(
 @param[in,out] parser:
 	The parser data.
 	@dassert @nonnull
+@param[in] member:
+	@dassert @nonnull
 @return
 	Nonzero on success. */
 _Nodiscard int rlc_parsed_constructor_parse(
 	struct RlcParsedConstructor * out,
-	enum RlcVisibility visibility,
-	struct RlcParser * parser);
+	struct RlcParser * parser,
+	struct RlcParsedMemberCommon const * member);
 
 /** Adds an argument to a constructor.
 @memberof RlcParsedConstructor
