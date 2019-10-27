@@ -4,6 +4,7 @@
 
 void rlc_parsed_external_symbol_create(
 	struct RlcParsedExternalSymbol * this,
+	struct RlcToken const * linkname,
 	struct RlcSrcString const * name)
 {
 	RLC_DASSERT(this != NULL);
@@ -13,7 +14,10 @@ void rlc_parsed_external_symbol_create(
 		kRlcParsedExternalSymbol,
 		name);
 
-	this->fHasCustomLinkName = 0;
+	this->fHasCustomLinkName = linkname != NULL;
+	if(linkname)
+		this->fCustomLinkName = *linkname;
+
 	rlc_parsed_type_name_create(&this->fType);
 }
 
@@ -41,18 +45,17 @@ int rlc_parsed_external_symbol_parse(
 		kRlcTokExtern))
 		return 0;
 
-	int hasCustomLinkName = 0;
-	struct RlcToken customLinkName;
+	struct RlcToken linkname;
+	int hasLinkName = 0;
 	if(rlc_parser_consume(
 		parser,
 		NULL,
 		kRlcTokBracketOpen))
 	{
-		hasCustomLinkName = 1;
-
+		hasLinkName = 1;
 		rlc_parser_expect(
 			parser,
-			&customLinkName,
+			&linkname,
 			1,
 			kRlcTokString);
 
@@ -63,6 +66,7 @@ int rlc_parsed_external_symbol_parse(
 			kRlcTokBracketClose);
 	}
 
+
 	struct RlcToken name;
 	rlc_parser_expect(
 		parser,
@@ -72,10 +76,8 @@ int rlc_parsed_external_symbol_parse(
 
 	rlc_parsed_external_symbol_create(
 		out,
+		hasLinkName ? &linkname : NULL,
 		&name.content);
-
-	if((out->fHasCustomLinkName = hasCustomLinkName))
-		out->fCustomLinkName = customLinkName.content;
 
 	rlc_parser_expect(
 		parser,
