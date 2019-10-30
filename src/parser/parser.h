@@ -102,7 +102,7 @@ _Nodiscard inline struct RlcToken const * rlc_parser_ahead(
 _Nodiscard RlcSrcIndex rlc_parser_index(
 	struct RlcParser const * this);
 
-/** Matches a token.
+/** Checks whether the current token is the requested type.
 @memberof RlcParser
 @param[in] this:
 	The parser data.
@@ -114,7 +114,8 @@ _Nodiscard int rlc_parser_is_current(
 	struct RlcParser const * this,
 	enum RlcTokenType type);
 
-_Nodiscard struct RlcToken const * rlc_parser_is_ahead(
+/** */
+_Nodiscard int rlc_parser_is_ahead(
 	struct RlcParser const * this,
 	enum RlcTokenType type);
 

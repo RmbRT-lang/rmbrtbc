@@ -4,6 +4,8 @@
 #include "../assert.h"
 
 #include <stdlib.h>
+#include <stdio.h>
+#include <stdarg.h>
 
 void rlc_parser_create(
 	struct RlcParser * this,
@@ -40,7 +42,7 @@ void rlc_parser_destroy(
 		rlc_src_file_position(
 			this->fTokeniser.fSource,
 			&pos,
-			rlc_parser_current(this)->content.start);
+			rlc_parser_index(this));
 
 		fprintf(stderr, "%s:%u:%u: error: unexpected '%s'.\n",
 			this->fTokeniser.fSource->fName,
@@ -53,144 +55,218 @@ void rlc_parser_destroy(
 	}
 }
 
-int rlc_parser_next(
+void rlc_parser_trace(
+	struct RlcParser * this,
+	char const * context,
+	struct RlcParserTracer * tracer)
+{
+	RLC_DASSERT(this != NULL);
+	RLC_DASSERT(context != NULL);
+	RLC_DASSERT(tracer != NULL);
+
+	tracer->fPrevious = this->fTracer;
+	tracer->fContext = context;
+	this->fTracer = tracer;
+}
+
+void rlc_parser_untrace(
 	struct RlcParser * this)
 {
 	RLC_DASSERT(this != NULL);
+	RLC_DASSERT(this->fTracer != NULL);
 
+	this->fTracer = this->fTracer->fPrevious;
 }
 
-
-struct RlcToken const * rlc_parser_latest(
+char const * rlc_parser_context(
 	struct RlcParser const * this)
 {
 	RLC_DASSERT(this != NULL);
 
-	if(this->fLatestIndex < this->fFile->fTokenCount)
-		return this->fFile->fTokens[this->fLatestIndex];
-	else
-		return NULL;
+	return this->fTracer
+		? this->fTracer->fContext
+		: "global scope";
 }
 
-struct RlcToken const * rlc_parser_ahead(
+RlcSrcIndex rlc_parser_index(
 	struct RlcParser const * this)
 {
 	RLC_DASSERT(this != NULL);
+	RLC_DASSERT(!rlc_parser_eof(this));
 
-	if(this->fIndex + 1 < this->fFile->fTokenCount)
-		return this->fFile->fTokens[this->fIndex + 1];
-	else
-		return NULL;
+	return rlc_parser_current(this)->content.start;
 }
 
-static struct RlcToken const * static_match_token(
-	struct RlcToken const * token,
-	enum RlcTokenType type)
-{
-	RLC_DASSERT(RLC_IN_ENUM(type, RlcTokenType));
-
-	if(token != NULL
-	&& token->fType == type)
-		return token;
-	else
-		return NULL;
-}
-
-int rlc_parser_match(
+int rlc_parser_is_current(
 	struct RlcParser const * this,
 	enum RlcTokenType type)
 {
 	RLC_DASSERT(this != NULL);
+	RLC_DASSERT(!rlc_parser_eof(this));
 
-	return NULL != static_match_token(
-		rlc_parser_current(this),
-		type);
+	return rlc_parser_current(this)->type == type;
 }
 
-struct RlcToken const * rlc_parser_match_ahead(
+int rlc_parser_is_ahead(
 	struct RlcParser const * this,
 	enum RlcTokenType type)
 {
 	RLC_DASSERT(this != NULL);
+	RLC_DASSERT(!rlc_parser_ahead_eof(this));
 
-	return static_match_token(
-		rlc_parser_ahead(this),
-		type);
+	return rlc_parser_ahead(this)->type == type;
+}
+
+_Noreturn void rlc_parser_fail(
+	struct RlcParser * parser,
+	char const * reason)
+{
+	struct RlcSrcPosition pos;
+	if(rlc_parser_eof(parser))
+	{
+		rlc_src_file_position(
+			parser->fTokeniser.fSource,
+			&pos,
+			parser->fTokeniser.fSource->fContentLength);
+
+		fprintf(stderr, "%s:%u:%u: error: unexpected end of file in %s: %s.\n",
+			parser->fTokeniser.fSource->fName,
+			pos.line,
+			pos.column,
+			rlc_parser_context(parser),
+			reason);
+	} else
+	{
+		rlc_src_file_position(
+			parser->fTokeniser.fSource,
+			&pos,
+			rlc_parser_index(parser));
+
+		fprintf(stderr, "%s:%u:%u: error: unexpected '%s' in %s: %s.\n",
+			parser->fTokeniser.fSource->fName,
+			pos.line,
+			pos.column,
+			rlc_src_string_cstr(
+				&rlc_parser_current(parser)->content,
+				parser->fTokeniser.fSource),
+			rlc_parser_context(parser),
+			reason);
+	}
+
+	fflush(stderr);
+	exit(EXIT_FAILURE);
 }
 
 int rlc_parser_consume(
 	struct RlcParser * this,
+	struct RlcToken * token,
 	enum RlcTokenType type)
 {
 	RLC_DASSERT(this != NULL);
 
-	int ret = rlc_parser_match(
+	int ret = rlc_parser_is_current(
 		this,
 		type);
 
 	if(ret)
-		rlc_parser_next(this);
+	{
+		if(token)
+			*token = *rlc_parser_current(this);
+		rlc_parser_skip(this);
+	}
 
 	return ret;
 }
 
-void rlc_parser_destroy(
-	struct RlcParser * this)
+enum RlcTokenType rlc_parser_expect(
+	struct RlcParser * this,
+	struct RlcToken * token,
+	size_t count,
+	enum RlcTokenType types, ...)
 {
-	RLC_DASSERT(this != NULL);
+	va_list args;
+	va_start(args, types);
 
-	rlc_parser_clear_errors(this);
+	struct RlcToken const * current = rlc_parser_current(this);
 
-	if(this->fFile)
+
+	size_t const count_ = count;
+check:
+	if(current->type == types)
 	{
-		rlc_preprocessed_file_destroy(this->fFile);
-		rlc_free((void**)&this->fFile);
+		if(token)
+			*token = *current;
+		return types;
 	}
 
-	this->fIndex = 0;
-	this->fLatestIndex = 0;
+	if(count--)
+	{
+		types = va_arg(args, enum RlcTokenType);
+		goto check;
+	}
+
+	struct RlcSrcPosition pos;
+	if(rlc_parser_eof(this))
+	{
+		rlc_src_file_position(
+			this->fTokeniser.fSource,
+			&pos,
+			this->fTokeniser.fSource->fContentLength);
+
+		fprintf(stderr, "%s:%u:%u: error: unexpected end of file",
+			this->fTokeniser.fSource->fName,
+			pos.line,
+			pos.column);
+	} else
+	{
+		rlc_src_file_position(
+			this->fTokeniser.fSource,
+			&pos,
+			rlc_parser_index(this));
+
+		fprintf(stderr, "%s:%u:%u: error: unexpected '%s'",
+			this->fTokeniser.fSource->fName,
+			pos.line,
+			pos.column,
+			rlc_src_string_cstr(
+				&rlc_parser_current(this)->content,
+				this->fTokeniser.fSource));
+	}
+
+	fprintf(stderr, " in %s: expected %s",
+		rlc_parser_context(this),
+		rlc_token_type_name(types));
+
+	va_start(args, types);
+	for(size_t i = 0; i < count_; i++)
+	{
+		types = va_arg(args, enum RlcTokenType);
+		fprintf(
+			stderr,
+			(i == count-1)
+				? ", or %s"
+				: ", %s",
+			rlc_token_type_name(types));
+	}
+
+	exit(EXIT_FAILURE);
 }
 
-void rlc_parser_add_error(
-	struct RlcParser * this,
-	enum RlcParseError error_message)
-{
-	RLC_DASSERT(this != NULL);
-	RLC_DASSERT(RLC_IN_ENUM(error_message, RlcParseError));
-
-	rlc_realloc(
-		(void**)&this->fErrors,
-		sizeof(struct RlcParseErrorMessage) * ++this->fErrorCount);
-
-	struct RlcParseErrorMessage * msg = &this->fErrors[this->fErrorCount-1];
-
-	msg->fError = error_message;
-	msg->fLocation = this->fIndex;
-}
-
-void rlc_parser_clear_errors(
+void rlc_parser_skip(
 	struct RlcParser * this)
 {
-	if(this->fErrors)
-		rlc_free((void**)&this->fErrors);
-	this->fErrorCount = 0;
-}
+	RLC_DASSERT(this != NULL);
+	RLC_DASSERT(!rlc_parser_eof(this));
 
-size_t rlc_parser_matched_index(
-	struct RlcParser * parser)
-{
-	RLC_DASSERT(parser != NULL);
-
-	return parser->fIndex;
-}
-
-size_t rlc_parser_consumed_index(
-	struct RlcParser * parser)
-{
-	RLC_DASSERT(parser != NULL);
-	RLC_DASSERT(parser->fIndex > 0);
-
-	return parser->fIndex - 1;
+	if(this->fEnd)
+	{
+		this->fLookaheadSize--;
+	} else {
+		this->fEnd = !rlc_tokeniser_read(
+			&this->fTokeniser,
+			&this->fLookahead[this->fToken]);
+	}
+	this->fToken ^= 1;
 }
 
 _Nodiscard int rlc_parser_equal_tokens(
@@ -202,11 +278,8 @@ _Nodiscard int rlc_parser_equal_tokens(
 	RLC_DASSERT(lhs != NULL);
 	RLC_DASSERT(rhs != NULL);
 
-	RLC_DASSERT(lhs < parser->fFile->fTokenCount);
-	RLC_DASSERT(rhs < parser->fFile->fTokenCount);
-
 	return 0 == rlc_src_string_cmp(
-		parser->fTokeniser->fSource,
+		parser->fTokeniser.fSource,
 		&lhs->content,
 		&rhs->content);
 }

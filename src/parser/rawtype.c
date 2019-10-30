@@ -5,14 +5,14 @@
 
 void rlc_parsed_rawtype_create(
 	struct RlcParsedRawtype * this,
-	size_t start_index)
+	struct RlcSrcString const * name)
 {
 	RLC_DASSERT(this != NULL);
 
 	rlc_parsed_scope_entry_create(
 		RLC_BASE_CAST(this, RlcParsedScopeEntry),
 		kRlcParsedRawtype,
-		start_index);
+		name);
 
 	this->fSize = NULL;
 
@@ -44,25 +44,11 @@ void rlc_parsed_rawtype_destroy(
 
 int rlc_parsed_rawtype_parse(
 	struct RlcParsedRawtype * out,
-	struct RlcParserData * parser)
+	struct RlcParser * parser,
+	struct RlcParsedTemlateDecl const * templates)
 {
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
-
-	enum RlcParseError error_code;
-	size_t const start_index = parser->fIndex;
-
-	rlc_parsed_rawtype_create(
-		out,
-		start_index);
-
-	if(!rlc_parsed_template_decl_parse(
-		&out->fTemplates,
-		parser))
-	{
-		error_code = kRlcParseErrorExpectedTemplateDeclaration;
-		goto failure;
-	}
 
 	if(!rlc_parser_data_consume(
 		parser,
@@ -212,7 +198,8 @@ void rlc_parsed_member_rawtype_destroy(
 int rlc_parsed_member_rawtype_parse(
 	struct RlcParsedMemberRawtype * out,
 	enum RlcVisibility * default_visibility,
-	struct RlcParserData * parser)
+	struct RlcParserData * parser,
+	struct RlcParsedMemberCommon const * member)
 {
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(default_visibility != NULL);
@@ -226,8 +213,7 @@ int rlc_parsed_member_rawtype_parse(
 
 	rlc_parsed_member_rawtype_create(
 		out,
-		visibility,
-		start_index);
+		member);
 
 	if(!rlc_parsed_rawtype_parse(
 		RLC_BASE_CAST(out, RlcParsedRawtype),

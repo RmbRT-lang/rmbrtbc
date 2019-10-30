@@ -37,7 +37,8 @@ struct RlcParsedRawtype
 	@dassert @nonnull */
 void rlc_parsed_rawtype_create(
 	struct RlcParsedRawtype * this,
-	size_t start_index);
+	struct RlcSrcString const * name,
+	struct RlcParsedTemplateDecl const * templates);
 
 /** Destroys a parsed rawtype.
 @memberof RlcParsedRawtype
@@ -74,14 +75,15 @@ struct RlcParsedMemberRawtype
 void rlc_parsed_member_rawtype_create(
 	struct RlcParsedMemberRawtype * this,
 	enum RlcVisibility visibility,
-	size_t start_index);
+	struct RlcParsedMemberCommon const * member);
 
 void rlc_parsed_member_rawtype_destroy(
 	struct RlcParsedMemberRawtype * this);
 
 _Nodiscard int rlc_parsed_member_rawtype_parse(
 	struct RlcParsedMemberRawtype * out,
-	struct RlcParser * parser);
+	struct RlcParser * parser,
+	struct RlcParsedMemberCommon const * member);
 
 
 #ifdef __cplusplus
