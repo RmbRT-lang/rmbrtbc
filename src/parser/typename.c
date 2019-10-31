@@ -279,7 +279,7 @@ void rlc_parsed_function_signature_create(
 	this->fArguments = NULL;
 	this->fArgumentCount = 0;
 	rlc_parsed_type_name_create(&this->fResult);
-	this->fIsAsync = this->fIsClosure = 0;
+	this->fIsAsync = 0;
 }
 
 void rlc_parsed_function_signature_destroy(
@@ -335,34 +335,31 @@ int rlc_parsed_function_signature_parse(
 			return 0;
 	}
 
-	enum RlcParseError error_code = kRlcParseErrorExpectedSymbol;
-
 	rlc_parsed_function_signature_create(out);
 	out->fIsAsync = is_async;
 
-	if(!rlc_parser_data_consume(
+	rlc_parser_expect(
 		parser,
-		kRlcTokParentheseOpen))
-	{
-		error_code = kRlcParseErrorExpectedParentheseOpen;
-		goto failure;
-	}
+		NULL,
+		1,
+		kRlcTokParentheseOpen);
 
-	if(rlc_parser_data_consume(
+	if(rlc_parser_consume(
 		parser,
+		NULL,
 		kRlcTokParentheseClose))
 	{
 		;
 	// explicit void arguments?
-	} else if(rlc_parser_data_match(
+	} else if(rlc_parser_is_current(
 		parser,
 		kRlcTokVoid)
-	&& rlc_parser_data_match_ahead(
+	&& rlc_parser_is_ahead(
 		parser,
 		kRlcTokParentheseClose))
 	{
-		rlc_parser_data_next(parser);
-		rlc_parser_data_next(parser);
+		rlc_parser_skip(parser);
+		rlc_parser_skip(parser);
 	} else
 	{
 		// parse argument list.
@@ -377,8 +374,9 @@ int rlc_parsed_function_signature_parse(
 			rlc_parsed_function_signature_add_argument(
 				out,
 				&name);
-		} while(rlc_parser_data_consume(
+		} while(rlc_parser_consume(
 			parser,
+			NULL,
 			kRlcTokComma));
 
 		rlc_parser_expect(

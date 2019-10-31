@@ -86,10 +86,6 @@ void rlc_parsed_function_add_argument(
 		sizeof(struct RlcParsedVariable) * ++this->fArgumentCount);
 
 	this->fArguments[this->fArgumentCount - 1] = *variable;
-
-#ifdef RLC_DEBUG
-	rlc_parsed_variable_create(variable, 0);
-#endif
 }
 
 int rlc_parsed_function_parse(
@@ -122,6 +118,7 @@ int rlc_parsed_function_parse(
 	while(rlc_parsed_variable_parse(
 			&argument,
 			parser,
+			NULL,
 			0,
 			0,
 			0,

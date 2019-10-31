@@ -33,7 +33,7 @@ struct RlcParsedUnion
 	@dassert @nonnull */
 void rlc_parsed_union_create(
 	struct RlcParsedUnion * this,
-	size_t start_index);
+	struct RlcSrcString const * name);
 
 /** Destroys a parsed union.
 @memberof RlcParsedUnion
@@ -58,8 +58,7 @@ struct RlcParsedMemberUnion
 
 void rlc_parsed_member_union_create(
 	struct RlcParsedMemberUnion * this,
-	enum RlcVisibility visibility,
-	size_t start_index);
+	struct RlcParsedMemberCommon const * common);
 
 void rlc_parsed_member_union_destroy(
 	struct RlcParsedMemberUnion * this);

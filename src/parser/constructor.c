@@ -103,6 +103,7 @@ int rlc_parsed_constructor_parse(
 			if(!rlc_parsed_variable_parse(
 				&argument,
 				parser,
+				NULL,
 				0,
 				0,
 				0,

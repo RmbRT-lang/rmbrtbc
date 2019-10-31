@@ -5,14 +5,14 @@
 
 void rlc_parsed_union_create(
 	struct RlcParsedUnion * this,
-	size_t start_index)
+	struct RlcSrcString const * name)
 {
 	RLC_DASSERT(this != NULL);
 
 	rlc_parsed_scope_entry_create(
 		RLC_BASE_CAST(this, RlcParsedScopeEntry),
 		kRlcParsedUnion,
-		start_index);
+		name);
 
 	rlc_parsed_member_list_create(
 		&this->fMembers);
@@ -31,114 +31,75 @@ void rlc_parsed_union_destroy(
 }
 
 int rlc_parsed_union_parse(
-	struct RlcParsedUnion * this,
-	struct RlcParserData * parser)
+	struct RlcParsedUnion * out,
+	struct RlcParser * parser,
+	struct RlcParsedTemplateDecl const * templates)
 {
-	RLC_DASSERT(this != NULL);
+	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
+	RLC_DASSERT(templates != NULL);
 
-	enum RlcParseError error_code;
-	size_t const start_index = parser->fIndex;
-
-	if(!rlc_parser_data_consume(
+	if(!rlc_parser_consume(
 		parser,
+		NULL,
 		kRlcTokUnion))
 	{
 		return 0;
 	}
 
+	struct RlcToken name;
+	rlc_parser_expect(
+		parser,
+		NULL,
+		1,
+		kRlcTokIdentifier);
+
 	rlc_parsed_union_create(
-		this,
-		start_index);
+		out,
+		&name.content);
 
-
-	if(!rlc_parser_data_consume(
+	rlc_parser_expect(
 		parser,
-		kRlcTokIdentifier))
-	{
-		error_code = kRlcParseErrorExpectedIdentifier;
-		goto failure;
-	}
-	else
-	{
-		rlc_parsed_scope_entry_add_name(
-			RLC_BASE_CAST(this, RlcParsedScopeEntry),
-			rlc_parser_data_consumed_index(parser));
-	}
-
-	if(!rlc_parser_data_consume(
-		parser,
-		kRlcTokColonEqual))
-	{
-		error_code = kRlcParseErrorExpectedColonEqual;
-		goto failure;
-	}
-
-	if(!rlc_parser_data_consume(
-		parser,
-		kRlcTokBraceOpen))
-	{
-		error_code = kRlcParseErrorExpectedBraceOpen;
-		goto failure;
-	}
+		NULL,
+		1,
+		kRlcTokBraceOpen);
 
 	{
+		struct RlcParsedMemberCommon common;
+		rlc_parsed_member_common_create(&common, kRlcVisibilityPublic);
 		struct RlcParsedMember * member = NULL;
-		enum RlcVisibility visibility = kRlcVisibilityPublic;
 		while((member = rlc_parsed_member_parse(
-			&visibility,
 			parser,
-			RLC_FLAG(kRlcParsedMemberVariable))))
+			&common,
+			RLC_FLAG(kRlcParsedMemberVariable)
+			| RLC_FLAG(kRlcParsedMemberFunction))))
 		{
 			rlc_parsed_member_list_add(
-				&this->fMembers,
+				&out->fMembers,
 				member);
 		}
 	}
 
-	if(!rlc_parser_data_consume(
+	rlc_parser_expect(
 		parser,
-		kRlcTokBraceClose))
-	{
-		error_code = kRlcParseErrorExpectedBraceClose;
-		goto failure;
-	}
+		NULL,
+		1,
+		kRlcTokBraceClose);
 
-	if(!rlc_parser_data_consume(
-		parser,
-		kRlcTokSemicolon))
-	{
-		error_code = kRlcParseErrorExpectedSemicolon;
-		goto failure;
-	}
-success:
-	RLC_BASE_CAST(this, RlcParsedScopeEntry)->fLocation.fEnd = parser->fIndex;
 	return 1;
-failure:
-	rlc_parsed_union_destroy(
-		this);
-	rlc_parser_data_add_error(
-		parser,
-		error_code);
-	return 0;
 }
 
 void rlc_parsed_member_union_create(
 	struct RlcParsedMemberUnion * this,
-	enum RlcVisibility visibility,
-	size_t start_index)
+	struct RlcParsedMemberCommon const * common)
 {
 	RLC_DASSERT(this != NULL);
+	RLC_DASSERT(common != NULL);
 
 	rlc_parsed_member_create(
 		RLC_BASE_CAST(this, RlcParsedMember),
 		kRlcParsedMemberUnion,
-		visibility,
-		start_index);
-
-	rlc_parsed_union_create(
-		RLC_BASE_CAST(this, RlcParsedUnion),
-		0);
+		common);
 }
 
 void rlc_parsed_member_union_destroy(
@@ -155,46 +116,22 @@ void rlc_parsed_member_union_destroy(
 
 int rlc_parsed_member_union_parse(
 	struct RlcParsedMemberUnion * out,
-	enum RlcVisibility * default_visibility,
-	struct RlcParserData * parser)
+	struct RlcParser * parser,
+	struct RlcParsedMemberCommon const * common)
 {
 	RLC_DASSERT(out != NULL);
-	RLC_DASSERT(default_visibility != NULL);
 	RLC_DASSERT(parser != NULL);
-
-	size_t const start_index = parser->fIndex;
-	enum RlcParseError error_code;
-
-	enum RlcVisibility visibility = rlc_visibility_parse(
-		default_visibility,
-		parser);
-
-	rlc_parsed_member_union_create(
-		out,
-		visibility,
-		start_index);
+	RLC_DASSERT(common != NULL);
 
 	if(!rlc_parsed_union_parse(
 		RLC_BASE_CAST(out, RlcParsedUnion),
-		parser))
+		parser,
+		&common->templates))
 	{
-		if(parser->fErrorCount)
-		{
-			error_code = kRlcParseErrorExpectedUnion;
-			goto failure;
-		}
-		else goto nonfatal_failure;
+		return 0;
 	}
 
-success:
-	RLC_BASE_CAST(out, RlcParsedMember)->fLocation.fEnd = parser->fIndex;
+	rlc_parsed_member_union_create(out, common);
+
 	return 1;
-failure:
-	rlc_parser_data_add_error(
-		parser,
-		error_code);
-	rlc_parsed_member_union_destroy(out);
-nonfatal_failure:
-	parser->fIndex = start_index;
-	return 0;
 }

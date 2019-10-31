@@ -79,6 +79,7 @@ int rlc_parsed_if_statement_parse(
 	if((out->fCondition.fIsVariable = rlc_parsed_variable_parse(
 		&out->fCondition.fVariable,
 		parser,
+		NULL,
 		1,
 		1,
 		1,

@@ -59,7 +59,8 @@ struct RlcParsedVariable
 	@dassert @nonnull */
 void rlc_parsed_variable_create(
 	struct RlcParsedVariable * this,
-	size_t start_index);
+	struct RlcSrcString const * name,
+	struct RlcParsedTemplateDecl const * templates);
 
 /** Destroys a variable.
 @memberof RlcParsedVariable
@@ -93,9 +94,10 @@ void rlc_parsed_variable_destroy(
 	Whether to allow the variable to be a reference.
 @return
 	Nonzero on success. */
-int rlc_parsed_variable_parse(
+_Nodiscard int rlc_parsed_variable_parse(
 	struct RlcParsedVariable * out,
 	struct RlcParser * parser,
+	struct RlcParsedTemplateDecl const * templates,
 	int needs_name,
 	int allow_initialiser,
 	int force_initialiser,

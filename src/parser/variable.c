@@ -5,18 +5,19 @@
 
 void rlc_parsed_variable_create(
 	struct RlcParsedVariable * this,
-	size_t start_index)
+	struct RlcSrcString const * name,
+	struct RlcParsedTemplateDecl const * templates)
 {
 	RLC_DASSERT(this != NULL);
-
+	RLC_DASSERT(name != NULL);
+	RLC_DASSERT(templates != NULL);
 
 	rlc_parsed_scope_entry_create(
 		RLC_BASE_CAST(this, RlcParsedScopeEntry),
 		kRlcParsedVariable,
-		start_index);
+		name);
 
-	rlc_parsed_template_decl_create(
-		&this->fTemplates);
+	this->fTemplates = *templates;
 
 	this->fHasType = 0;
 	this->fInitArgs = NULL;
@@ -64,7 +65,8 @@ static void rlc_parsed_variable_add_arg(
 
 int rlc_parsed_variable_parse(
 	struct RlcParsedVariable * out,
-	struct RlcParserData * parser,
+	struct RlcParser * parser,
+	struct RlcParsedTemplateDecl const * templates,
 	int needs_name,
 	int allow_initialiser,
 	int force_initialiser,
@@ -74,94 +76,76 @@ int rlc_parsed_variable_parse(
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
 
-	enum RlcParseError error_code;
-	size_t const start_index = parser->fIndex;
-
-	rlc_parsed_variable_create(
-		out,
-		start_index);
-
-	if(!rlc_parsed_template_decl_parse(
-		&out->fTemplates,
-		parser))
-	{
-		error_code = kRlcParseErrorExpectedTemplateDeclaration;
-		goto failure;
-	}
-
-	int has_type = 1;
+	int needs_type = 1;
 	int has_name = 0;
-	size_t name = parser->fIndex;
 
-	size_t const before_name = parser->fIndex;
-	if(rlc_parser_data_match(
+	struct RlcToken name;
+	if(rlc_parser_is_current(
 		parser,
 		kRlcTokIdentifier))
 	{
 		// "name: type" style variable?
-		if(rlc_parser_data_match_ahead(
+		if(rlc_parser_is_ahead(
 			parser,
 			kRlcTokColon))
 		{
 			has_name = 1;
-			rlc_parser_data_next(parser);
-			rlc_parser_data_next(parser);
+			rlc_parser_expect(
+				parser,
+				&name,
+				1,
+				kRlcTokIdentifier);
+			rlc_parser_skip(parser);
 		} else if(allow_initialiser)
 		{
-			rlc_parser_data_next(parser);
+			rlc_parser_expect(
+				parser,
+				&name,
+				1,
+				kRlcTokIdentifier);
 			enum RlcTypeQualifier qualifier;
 			int has_qualifier = rlc_type_qualifier_parse(
 				&qualifier,
 				parser);
 
-			if(parser->fErrorCount)
-			{
-				error_code = kRlcParseErrorExpectedTypeModifier;
-				goto failure;
-			}
-
 			// "name ::=" style variable?
-			if(rlc_parser_data_consume(
+			if(rlc_parser_consume(
 				parser,
+				NULL,
 				kRlcTokDoubleColonEqual))
 			{
 				has_name = 1;
-				has_type = 0;
+				needs_type = 0;
 				out->fHasType = 0;
 				out->fTypeQualifier = qualifier;
 			} else if(has_qualifier)
 			{
-				error_code = kRlcParseErrorExpectedDoubleColonEqual;
-				goto failure;
-			} else
-			{
-				parser->fIndex = before_name;
-				parser->fLatestIndex = before_name;
+				rlc_parser_fail(parser, "expected '::='");
 			}
 		}
 	} // If !isArgument, "name: type" is expected.
 	if(!has_name
 	&& needs_name)
 	{
-		goto nonfatal_failure;
+		return 0;
 	}
 
-	if(has_name)
-		rlc_parsed_scope_entry_add_name(
-			RLC_BASE_CAST(out, RlcParsedScopeEntry),
-			name);
+	if(!has_name)
+		name.content = kRlcSrcStringEmpty;
 
-	if(!has_type)
+	rlc_parsed_variable_create(
+		out,
+		&name.content,
+		templates);
+
+	if(!needs_type)
 	{
 		out->fReferenceType = kRlcReferenceTypeNone;
 		struct RlcParsedExpression * init = rlc_parsed_expression_parse(
 			parser,
 			RLC_ALL_FLAGS(RlcParsedExpressionType));
 		if(!init)
-		{
-			error_code = kRlcParseErrorExpectedExpression;
-			goto failure;
-		}
+			rlc_parser_fail(parser, "expected expression");
 		rlc_parsed_variable_add_arg(out, init);
 	} else
 	{
@@ -169,30 +153,28 @@ int rlc_parsed_variable_parse(
 			&out->fType,
 			parser))
 		{
-			if(parser->fErrorCount
-			|| has_name)
-			{
-				error_code = kRlcParseErrorExpectedTypeName;
-				goto failure;
-			} else {
-				goto nonfatal_failure;
-			}
+			if(needs_name)
+				rlc_parser_fail(parser, "expected type name");
+			else
+				return 0;
 		}
+
 		out->fHasType = 1;
 
 		out->fReferenceType = kRlcReferenceTypeNone;
 		if(allow_reference)
 		{
-			if(rlc_parser_data_consume(
+			if(rlc_parser_consume(
 				parser,
+				NULL,
 				kRlcTokAnd))
 			{
 				out->fReferenceType = kRlcReferenceTypeReference;
-			} else if(rlc_parser_data_consume(
+			} else if(rlc_parser_consume(
 				parser,
+				NULL,
 				kRlcTokDoubleAnd))
 			{
-				rlc_parser_data_next(parser);
 				out->fReferenceType = kRlcReferenceTypeTempReference;
 			}
 		}
@@ -200,11 +182,13 @@ int rlc_parsed_variable_parse(
 		if(allow_initialiser)
 		{
 			int isParenthese = 0;
-			if(rlc_parser_data_consume(
+			if(rlc_parser_consume(
 				parser,
+				NULL,
 				kRlcTokColonEqual)
-			|| (isParenthese = rlc_parser_data_consume(
+			|| (isParenthese = rlc_parser_consume(
 				parser,
+				NULL,
 				kRlcTokParentheseOpen)))
 			{
 				// check for empty initialiser.
@@ -214,59 +198,38 @@ int rlc_parsed_variable_parse(
 					kRlcTokParentheseClose))
 				{
 					do {
-
 						struct RlcParsedExpression * arg = rlc_parsed_expression_parse(
 							parser,
 							RLC_ALL_FLAGS(RlcParsedExpressionType));
 
 						if(!arg)
-						{
-							error_code = kRlcParseErrorExpectedExpression;
-							goto failure;
-						}
+							rlc_parser_fail(parser, "expected expression");
 
 						rlc_parsed_variable_add_arg(out, arg);
-
-					} while(isParenthese && rlc_parser_data_consume(
+					} while(isParenthese && rlc_parser_consume(
 						parser,
+						NULL,
 						kRlcTokComma));
 
-					if(isParenthese && !rlc_parser_data_consume(
-						parser,
-						kRlcTokParentheseClose))
-					{
-						error_code = kRlcParseErrorExpectedParentheseClose;
-						goto failure;
-					}
+					if(isParenthese)
+						rlc_parser_expect(
+							parser,
+							NULL,
+							1,
+							kRlcTokParentheseClose);
 				}
 			} else if(force_initialiser)
 			{
-				error_code = kRlcParseErrorExpectedInitialiser;
-				goto failure;
+				rlc_parser_fail(parser, "expected ':=' or '('");
 			}
 		}
 	}
 
 	if(!allow_templates
 	&& rlc_parsed_template_decl_exists(&out->fTemplates))
-	{
-		parser->fIndex = start_index;
-		parser->fLatestIndex = start_index;
-		error_code = kRlcParseErrorForbiddenTemplateDeclaration;
-		goto failure;
-	}
+		rlc_parser_fail(parser, "variable had forbidden template declaration");
 
-success:
-	RLC_BASE_CAST(out, RlcParsedScopeEntry)->fLocation.fEnd = 0;
 	return 1;
-failure:
-	rlc_parser_data_add_error(
-		parser,
-		error_code);
-nonfatal_failure:
-	rlc_parsed_variable_destroy(out);
-	parser->fIndex = start_index;
-	return 0;
 }
 
 void rlc_parsed_member_variable_create(

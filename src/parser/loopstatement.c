@@ -69,6 +69,7 @@ static void parse_initial(
 	if(!(out->fIsVariableInitial = rlc_parsed_variable_parse(
 		&out->fInitial.fVariable,
 		parser,
+		NULL,
 		1,
 		1,
 		0,
@@ -167,6 +168,7 @@ static _Nodiscard int parse_while_head(
 		rlc_parsed_variable_parse(
 			&out->fCondition.fVariable,
 			parser,
+			NULL,
 			1,
 			1,
 			1,
