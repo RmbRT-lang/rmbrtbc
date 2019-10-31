@@ -28,7 +28,8 @@ struct RlcParsedTypedef
 
 void rlc_parsed_typedef_create(
 	struct RlcParsedTypedef * this,
-	size_t start_index);
+	struct RlcSrcString const * name,
+	struct RlcParsedTemplateDecl const * templates);
 
 /** Destroys a typedef.
 @memberof RlcParsedTypedef
@@ -69,8 +70,7 @@ struct RlcParsedMemberTypedef
 	The starting index. */
 void rlc_parsed_member_typedef_create(
 	struct RlcParsedMemberTypedef * this,
-	enum RlcVisibility visibility,
-	size_t start_index);
+	struct RlcParsedMemberCommon const * member);
 
 /** Destroys a member typedef.
 @memberof RlcParsedMemberTypedef
@@ -85,7 +85,7 @@ void rlc_parsed_member_typedef_destroy(
 _Nodiscard int rlc_parsed_member_typedef_parse(
 	struct RlcParsedMemberTypedef * out,
 	struct RlcParser * parser,
-	struct RlcParsedMemberCommon const * templates);
+	struct RlcParsedMemberCommon const * common);
 
 #ifdef __cplusplus
 }

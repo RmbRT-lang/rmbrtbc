@@ -19,8 +19,8 @@ struct RlcParsedStringExpression
 {
 	RLC_DERIVE(struct,RlcParsedExpression);
 
-	/** The string's first literal's index. */
-	size_t fStartToken;
+	/** The string literal(s). */
+	struct RlcToken * fTokens;
 	/** How many literals are chained together. */
 	size_t fTokenCount;
 };
@@ -32,10 +32,11 @@ struct RlcParsedStringExpression
 	The string expression to initialise.
 	@dassert @nonnull
 @param[in] first:
-	The expression's first token. */
+	The expression's first token.
+	@dassert @nonnull */
 void rlc_parsed_string_expression_create(
 	struct RlcParsedStringExpression * this,
-	size_t first);
+	struct RlcToken const * first);
 
 /** Destroys a strin expression.
 @memberof RlcParsedStringExpression

@@ -1,20 +1,42 @@
 #include "stringexpression.h"
 
 #include "../assert.h"
+#include "../malloc.h"
+
+static void rlc_parsed_string_expression_add(
+	struct RlcParsedStringExpression * this,
+	struct RlcToken const * token)
+{
+	RLC_DASSERT(this != NULL);
+	RLC_DASSERT(token != NULL);
+
+	rlc_realloc(
+		(void**)&this->fTokens,
+		sizeof(struct RlcToken) * ++this->fTokenCount);
+	this->fTokens[this->fTokenCount-1] = *token;
+
+	struct RlcParsedExpression * base = RLC_BASE_CAST(this, RlcParsedExpression);
+	if(base->fLast < rlc_src_string_end(&token->content))
+		base->fLast = rlc_src_string_end(&token->content);
+}
 
 void rlc_parsed_string_expression_create(
 	struct RlcParsedStringExpression * this,
-	size_t first)
+	struct RlcToken const * first)
 {
 	RLC_DASSERT(this != NULL);
+	RLC_DASSERT(first != NULL);
 
 	rlc_parsed_expression_create(
 		RLC_BASE_CAST(this, RlcParsedExpression),
 		kRlcParsedStringExpression,
-		first);
+		first->content.start,
+		rlc_src_string_end(&first->content));
 
-	this->fStartToken = first;
+	this->fTokens = NULL;
 	this->fTokenCount = 0;
+
+	rlc_parsed_string_expression_add(this, first);
 }
 
 void rlc_parsed_string_expression_destroy(
@@ -28,8 +50,12 @@ void rlc_parsed_string_expression_destroy(
 }
 
 static int consume_string_literal(
-	struct RlcParserData * parser)
+	struct RlcParser * parser,
+	struct RlcToken * token)
 {
+	RLC_DASSERT(parser != NULL);
+	RLC_DASSERT(token != NULL);
+
 	static enum RlcTokenType const k_types[] = {
 		kRlcTokString,
 		kRlcTokUtf8String,
@@ -40,8 +66,9 @@ static int consume_string_literal(
 	};
 
 	for(size_t i = _countof(k_types); i--;)
-		if(rlc_parser_data_consume(
+		if(rlc_parser_consume(
 			parser,
+			token,
 			k_types[i]))
 		{
 			return 1;
@@ -52,25 +79,21 @@ static int consume_string_literal(
 
 int rlc_parsed_string_expression_parse(
 	struct RlcParsedStringExpression * out,
-	struct RlcParserData * parser)
+	struct RlcParser * parser)
 {
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
 
-	if(!consume_string_literal(parser))
+	struct RlcToken string;
+	if(!consume_string_literal(parser, &string))
 		return 0;
 
 	rlc_parsed_string_expression_create(
 		out,
-		rlc_parser_data_consumed_index(parser));
+		&string);
 
-	out->fTokenCount = 1;
-
-	while(consume_string_literal(parser))
-		++out->fTokenCount;
-
-	RLC_BASE_CAST(out, RlcParsedExpression)->fLast =
-		rlc_parser_data_consumed_index(parser);
+	while(consume_string_literal(parser, &string))
+		rlc_parsed_string_expression_add(out, &string);
 
 	return 1;
 }

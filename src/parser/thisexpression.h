@@ -28,7 +28,7 @@ struct RlcThisExpression
 	The expression's first token. */
 void rlc_this_expression_create(
 	struct RlcThisExpression * this,
-	size_t first);
+	struct RlcSrcString const * string);
 
 /** Destroys a `this` expression.
 @memberof RlcThisExpression

@@ -29,7 +29,8 @@ struct RlcParsedSizeofExpression
 	The expression's first token. */
 void rlc_parsed_sizeof_expression_create(
 	struct RlcParsedSizeofExpression * this,
-	size_t start);
+	RlcSrcIndex start,
+	RlcSrcIndex end);
 
 /** Destroys a sizeof expression.
 @memberof RlcParsedSizeofExpression

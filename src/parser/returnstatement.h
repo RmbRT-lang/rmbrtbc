@@ -24,7 +24,7 @@ void rlc_parsed_return_statement_destroy(
 
 int rlc_parsed_return_statement_parse(
 	struct RlcParsedReturnStatement * out,
-	struct RlcParserData * parser);
+	struct RlcParser * parser);
 
 #ifdef __cplusplus
 }

@@ -34,7 +34,8 @@ void rlc_parsed_external_symbol_destroy(
 
 int rlc_parsed_external_symbol_parse(
 	struct RlcParsedExternalSymbol * out,
-	struct RlcParser * parser)
+	struct RlcParser * parser,
+	struct RlcParsedTemplateDecl const * templates)
 {
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
@@ -44,6 +45,9 @@ int rlc_parsed_external_symbol_parse(
 		NULL,
 		kRlcTokExtern))
 		return 0;
+
+	if(rlc_parsed_template_decl_exists(templates))
+		rlc_parser_fail(parser, "external symbols must not have templates");
 
 	struct RlcToken linkname;
 	int hasLinkName = 0;

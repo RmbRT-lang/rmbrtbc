@@ -16,14 +16,15 @@
 void rlc_parsed_expression_create(
 	struct RlcParsedExpression * this,
 	enum RlcParsedExpressionType type,
-	size_t first)
+	RlcSrcIndex first,
+	RlcSrcIndex last)
 {
 	RLC_DASSERT(this != NULL);
 	RLC_DASSERT(RLC_IN_ENUM(type, RlcParsedExpressionType));
 
 	RLC_DERIVING_TYPE(this) = type;
 	this->fFirst = first;
-	this->fLast = 0;
+	this->fLast = last;
 }
 
 void rlc_parsed_expression_destroy_virtual(

@@ -33,7 +33,7 @@ struct RlcParsedTemplateDeclChild
 	/** If the template argument is a value, then this is the value's type. */
 	struct RlcParsedTypeName fValueType;
 	/** The name of the argument. */
-	size_t fNameToken;
+	struct RlcSrcString fName;
 };
 
 /** Multiple template arguemnt declaration. */
@@ -73,7 +73,7 @@ void rlc_parsed_template_decl_destroy(
 	struct RlcParsedTemplateDecl * this);
 
 /** Parses a template declaration. */
-int rlc_parsed_template_decl_parse(
+void rlc_parsed_template_decl_parse(
 	struct RlcParsedTemplateDecl * decl,
 	struct RlcParser * parser);
 

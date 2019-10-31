@@ -4,17 +4,15 @@
 
 void rlc_parsed_symbol_child_expression_create(
 	struct RlcParsedSymbolChildExpression * this,
-	size_t first)
+	RlcSrcIndex first)
 {
 	RLC_DASSERT(this != NULL);
 
 	rlc_parsed_expression_create(
 		RLC_BASE_CAST(this, RlcParsedExpression),
 		kRlcParsedSymbolChildExpression,
-		first);
-
-	rlc_parsed_symbol_child_create(
-		RLC_BASE_CAST(this, RlcParsedSymbolChild));
+		first,
+		rlc_src_string_end(&RLC_BASE_CAST(this, RlcParsedSymbolChild)->fName));
 }
 
 void rlc_parsed_symbol_child_expression_destroy(
@@ -31,25 +29,23 @@ void rlc_parsed_symbol_child_expression_destroy(
 
 int rlc_parsed_symbol_child_expression_parse(
 	struct RlcParsedSymbolChildExpression * out,
-	struct RlcParserData * parser)
+	struct RlcParser * parser)
 {
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
 
-	rlc_parsed_symbol_child_expression_create(
-		out,
-		parser->fIndex);
+	RlcSrcIndex const start = rlc_parser_index(parser);
 
 	if(!rlc_parsed_symbol_child_parse(
 		RLC_BASE_CAST(out, RlcParsedSymbolChild),
 		parser))
 	{
-		rlc_parsed_symbol_child_expression_destroy(out);
 		return 0;
 	}
 
-	RLC_BASE_CAST(out, RlcParsedExpression)->fLast =
-		rlc_parser_data_consumed_index(parser);
+	rlc_parsed_symbol_child_expression_create(
+		out,
+		start);
 
 	return 1;
 }

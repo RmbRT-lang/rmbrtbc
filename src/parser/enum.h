@@ -3,8 +3,9 @@
 #ifndef __rlc_parser_enum_h_defined
 #define __rlc_parser_enum_h_defined
 
-#include "scopeentry.h"
 #include "parser.h"
+#include "scopeentry.h"
+#include "templatedecl.h"
 
 #include <stddef.h>
 
@@ -104,7 +105,8 @@ void rlc_parsed_enum_add_constant(
 	@dassert @nonnull */
 _Nodiscard int rlc_parsed_enum_parse(
 	struct RlcParsedEnum * out,
-	struct RlcParser * parser);
+	struct RlcParser * parser,
+	struct RlcParsedTemplateDecl const * templates);
 
 #ifdef __cplusplus
 }

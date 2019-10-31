@@ -10,9 +10,9 @@ void rlc_parsed_symbol_expression_create(
 	rlc_parsed_expression_create(
 		RLC_BASE_CAST(this, RlcParsedExpression),
 		kRlcParsedSymbolExpression,
-		first);
-
-	rlc_parsed_symbol_create(&this->fSymbol);
+		first,
+		rlc_src_string_end(
+			&this->fSymbol.fChildren[this->fSymbol.fChildCount-1].fName));
 }
 
 void rlc_parsed_symbol_expression_destroy(
@@ -26,25 +26,23 @@ void rlc_parsed_symbol_expression_destroy(
 
 int rlc_parsed_symbol_expression_parse(
 	struct RlcParsedSymbolExpression * out,
-	struct RlcParserData * parser)
+	struct RlcParser * parser)
 {
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
 
-	rlc_parsed_symbol_expression_create(
-		out,
-		parser->fIndex);
+	RlcSrcIndex const start = rlc_parser_index(parser);
 
 	if(!rlc_parsed_symbol_parse(
 		&out->fSymbol,
 		parser))
 	{
-		rlc_parsed_symbol_expression_destroy(out);
 		return 0;
 	}
 
-	RLC_BASE_CAST(out, RlcParsedExpression)->fLast =
-		rlc_parser_data_consumed_index(parser);
+	rlc_parsed_symbol_expression_create(
+		out,
+		start);
 
 	return 1;
 }

@@ -5,7 +5,8 @@
 
 void rlc_parsed_rawtype_create(
 	struct RlcParsedRawtype * this,
-	struct RlcSrcString const * name)
+	struct RlcSrcString const * name,
+	struct RlcParsedTemplateDecl const * templates)
 {
 	RLC_DASSERT(this != NULL);
 
@@ -18,8 +19,7 @@ void rlc_parsed_rawtype_create(
 
 	rlc_parsed_member_list_create(
 		&this->fMembers);
-	rlc_parsed_template_decl_create(
-		&this->fTemplates);
+	this->fTemplates = *templates;
 }
 
 void rlc_parsed_rawtype_destroy(
@@ -45,142 +45,87 @@ void rlc_parsed_rawtype_destroy(
 int rlc_parsed_rawtype_parse(
 	struct RlcParsedRawtype * out,
 	struct RlcParser * parser,
-	struct RlcParsedTemlateDecl const * templates)
+	struct RlcParsedTemplateDecl const * templates)
 {
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
 
-	if(!rlc_parser_data_consume(
+	if(!rlc_parser_consume(
 		parser,
-		kRlcTokRawtype))
-	{
-		goto nonfatal_failure;
-	}
-
-	if(!rlc_parser_data_consume(
-		parser,
-		kRlcTokIdentifier))
-	{
-		error_code = kRlcParseErrorExpectedIdentifier;
-		goto failure;
-	} else
-	{
-		rlc_parsed_scope_entry_add_name(
-			RLC_BASE_CAST(out, RlcParsedScopeEntry),
-			rlc_parser_data_consumed_index(parser));
-	}
-
-
-	if(!rlc_parser_data_consume(
-		parser,
-		kRlcTokBracketOpen))
-	{
-		error_code = kRlcParseErrorExpectedBracketOpen;
-		goto failure;
-	}
+		NULL,
+		kRlcTokParentheseOpen))
+		return 0;
 
 	if(!(out->fSize = rlc_parsed_expression_parse(
 		parser,
 		RLC_ALL_FLAGS(RlcParsedExpressionType))))
 	{
-		error_code = kRlcParseErrorExpectedExpression;
-		goto failure;
+		rlc_parser_fail(parser, "expected expression");
 	}
 
-	if(!rlc_parser_data_consume(
+	rlc_parser_expect(
 		parser,
-		kRlcTokBracketClose))
-	{
-		error_code = kRlcParseErrorExpectedBracketClose;
-		goto failure;
-	}
+		NULL,
+		1,
+		kRlcTokParentheseClose);
 
-	if(rlc_parser_data_consume(
+	struct RlcToken name;
+	rlc_parser_expect(
 		parser,
-		kRlcTokSemicolon))
-		goto success;
+		&name,
+		1,
+		kRlcTokIdentifier);
 
-	if(!rlc_parser_data_consume(
-		parser,
-		kRlcTokColonEqual))
-	{
-		error_code = kRlcParseErrorExpectedColonEqual;
-		goto failure;
-	}
+	rlc_parsed_rawtype_create(out, &name.content, templates);
 
-	if(!rlc_parser_data_consume(
+	if(kRlcTokSemicolon == rlc_parser_expect(
 		parser,
+		NULL,
+		2,
+		kRlcTokSemicolon,
 		kRlcTokBraceOpen))
-	{
-		error_code = kRlcParseErrorExpectedBraceOpen;
-		goto failure;
-	}
+		return 1;
 
-	for(enum RlcVisibility visibility = kRlcVisibilityPublic;;)
+	struct RlcParsedMemberCommon common;
+	rlc_parsed_member_common_create(&common, kRlcVisibilityPublic);
+	while(!rlc_parser_consume(
+		parser,
+		NULL,
+		kRlcTokParentheseClose))
 	{
 		struct RlcParsedMember * member = rlc_parsed_member_parse(
-			&visibility,
 			parser,
+			&common,
 			RLC_FLAG(kRlcParsedMemberFunction));
+
 		if(!member)
-			break;
-		else
-			rlc_parsed_member_list_add(
-				&out->fMembers,
-				member);
+			rlc_parser_fail(parser, "expected member function");
+
+		rlc_parsed_member_list_add(
+			&out->fMembers,
+			member);
 	}
 
-	if(parser->fErrorCount)
-	{
-		error_code = kRlcParseErrorExpectedStructMember;
-		goto failure;
-	}
-
-	if(!rlc_parser_data_consume(
+	rlc_parser_expect(
 		parser,
-		kRlcTokBraceClose))
-	{
-		error_code = kRlcParseErrorExpectedBraceClose;
-		goto failure;
-	}
+		NULL,
+		1,
+		kRlcTokBraceClose);
 
-	if(!rlc_parser_data_consume(
-		parser,
-		kRlcTokSemicolon))
-	{
-		error_code = kRlcParseErrorExpectedSemicolon;
-		goto failure;
-	}
-
-success:
-	RLC_BASE_CAST(out, RlcParsedScopeEntry)->fLocation.fEnd = parser->fIndex;
 	return 1;
-failure:
-	rlc_parser_data_add_error(
-		parser,
-		error_code);
-nonfatal_failure:
-	rlc_parsed_rawtype_destroy(out);
-	return 0;
 }
 
 void rlc_parsed_member_rawtype_create(
 	struct RlcParsedMemberRawtype * this,
-	enum RlcVisibility visibility,
-	size_t start_index)
+	struct RlcParsedMemberCommon const * member)
 {
 	RLC_DASSERT(this != NULL);
-	RLC_DASSERT(RLC_IN_ENUM(visibility, RlcVisibility));
+	RLC_DASSERT(member != NULL);
 
 	rlc_parsed_member_create(
 		RLC_BASE_CAST(this, RlcParsedMember),
 		kRlcParsedMemberRawtype,
-		visibility,
-		start_index);
-
-	rlc_parsed_rawtype_create(
-		RLC_BASE_CAST(this, RlcParsedRawtype),
-		0);
+		member);
 }
 
 void rlc_parsed_member_rawtype_destroy(
@@ -197,44 +142,24 @@ void rlc_parsed_member_rawtype_destroy(
 
 int rlc_parsed_member_rawtype_parse(
 	struct RlcParsedMemberRawtype * out,
-	enum RlcVisibility * default_visibility,
-	struct RlcParserData * parser,
+	struct RlcParser * parser,
 	struct RlcParsedMemberCommon const * member)
 {
 	RLC_DASSERT(out != NULL);
-	RLC_DASSERT(default_visibility != NULL);
 	RLC_DASSERT(parser != NULL);
+	RLC_DASSERT(member != NULL);
 
-	size_t const start_index = parser->fIndex;
-	enum RlcParseError error_code;
-	enum RlcVisibility visibility = rlc_visibility_parse(
-		default_visibility,
-		parser);
+	if(!rlc_parsed_rawtype_parse(
+		RLC_BASE_CAST(out, RlcParsedRawtype),
+		parser,
+		&member->templates))
+	{
+		return 0;
+	}
 
 	rlc_parsed_member_rawtype_create(
 		out,
 		member);
 
-	if(!rlc_parsed_rawtype_parse(
-		RLC_BASE_CAST(out, RlcParsedRawtype),
-		parser))
-	{
-		if(parser->fErrorCount)
-		{
-			error_code = kRlcParseErrorExpectedRawtype;
-			goto failure;
-		} else goto nonfatal_failure;
-	}
-
-success:
-	RLC_BASE_CAST(out, RlcParsedMember)->fLocation.fEnd = parser->fIndex;
 	return 1;
-failure:
-	rlc_parser_data_add_error(
-		parser,
-		error_code);
-	rlc_parsed_member_rawtype_destroy(out);
-nonfatal_failure:
-	parser->fIndex = start_index;
-	return 0;
 }

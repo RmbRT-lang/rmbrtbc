@@ -4,14 +4,16 @@
 
 void rlc_parsed_cast_expression_create(
 	struct RlcParsedCastExpression * this,
-	size_t first)
+	RlcSrcIndex first,
+	RlcSrcIndex last)
 {
 	RLC_DASSERT(this != NULL);
 
 	rlc_parsed_expression_create(
 		RLC_BASE_CAST(this, RlcParsedExpression),
 		kRlcParsedCastExpression,
-		first);
+		first,
+		last);
 
 	rlc_parsed_type_name_create(&this->fType);
 	this->fValue = NULL;
@@ -42,8 +44,7 @@ int rlc_parsed_cast_expression_parse(
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
 
-
-	rlc_parsed_cast_expression_create(out, rlc_parser_index(parser));
+	RlcSrcIndex const start = rlc_parser_index(parser);
 
 	if(!rlc_parser_consume(
 		parser,
@@ -67,15 +68,19 @@ int rlc_parsed_cast_expression_parse(
 		1,
 		kRlcTokParentheseOpen);
 
-	out->fValue = rlc_parsed_expression_parse(
+	struct RlcParsedExpression * value = rlc_parsed_expression_parse(
 		parser,
 		RLC_ALL_FLAGS(RlcParsedExpressionType));
 
+	struct RlcToken end;
 	rlc_parser_expect(
 		parser,
-		NULL,
+		&end,
 		1,
 		kRlcTokParentheseClose);
+
+	rlc_parsed_cast_expression_create(out, start, rlc_src_string_end(&end.content));
+	out->fValue = value;
 
 	return 1;
 }

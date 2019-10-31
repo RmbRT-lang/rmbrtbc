@@ -12,7 +12,6 @@ void rlc_parsed_switch_statement_create(
 		kRlcParsedSwitchStatement);
 
 	this->fSwitchValue = NULL;
-	rlc_control_label_create(&this->fLabel);
 	this->fCases = NULL;
 	this->fCaseCount = 0;
 }
@@ -28,8 +27,6 @@ void rlc_parsed_switch_statement_destroy(
 		rlc_free((void**)&this->fSwitchValue);
 	}
 
-	rlc_control_label_destroy(&this->fLabel);
-
 	if(this->fCases)
 	{
 		for(size_t i = 0; i < this->fCaseCount; i++)
@@ -44,57 +41,44 @@ void rlc_parsed_switch_statement_destroy(
 
 int rlc_parsed_switch_statement_parse(
 	struct RlcParsedSwitchStatement * out,
-	struct RlcParserData * parser)
+	struct RlcParser * parser)
 {
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
 
-	if(!rlc_parser_data_consume(
+	if(!rlc_parser_consume(
 		parser,
+		NULL,
 		kRlcTokSwitch))
 		return 0;
 
-	size_t const start = parser->fIndex;
-	enum RlcParseError error_code;
-
 	rlc_parsed_switch_statement_create(out);
-	if(!rlc_control_label_parse(&out->fLabel, parser))
-	{
-		error_code = kRlcParseErrorExpectedControlLabel;
-		goto failure;
-	}
+	rlc_control_label_parse(&out->fLabel, parser);
 
-	if(!rlc_parser_data_consume(
+	rlc_parser_expect(
 		parser,
-		kRlcTokParentheseOpen))
-	{
-		error_code = kRlcParseErrorExpectedParentheseOpen;
-		goto failure;
-	}
+		NULL,
+		1,
+		kRlcTokParentheseOpen);
 
 	if(!(out->fSwitchValue = rlc_parsed_expression_parse(
 		parser,
 		RLC_ALL_FLAGS(RlcParsedExpressionType))))
 	{
-		error_code = kRlcParseErrorExpectedExpression;
-		goto failure;
+		rlc_parser_fail(parser, "expected expression");
 	}
 
-	if(!rlc_parser_data_consume(
+	rlc_parser_expect(
 		parser,
-		kRlcTokParentheseClose))
-	{
-		error_code = kRlcParseErrorExpectedParentheseClose;
-		goto failure;
-	}
+		NULL,
+		1,
+		kRlcTokParentheseClose);
 
-	if(!rlc_parser_data_consume(
+	rlc_parser_expect(
 		parser,
-		kRlcTokBraceOpen))
-	{
-		error_code = kRlcParseErrorExpectedBraceOpen;
-		goto failure;
-	}
+		NULL,
+		1,
+		kRlcTokBraceOpen);
 
 	do {
 		struct RlcParsedCaseStatement case_stmt;
@@ -102,24 +86,17 @@ int rlc_parsed_switch_statement_parse(
 			&case_stmt,
 			parser))
 		{
-			error_code = kRlcParseErrorExpectedCaseStatement;
-			goto failure;
+			rlc_parser_fail(parser, "expected 'case' statement");
 		}
 		rlc_parsed_switch_statement_add_case(
 			out,
 			&case_stmt);
-	} while(!rlc_parser_data_consume(
+	} while(!rlc_parser_consume(
 		parser,
+		NULL,
 		kRlcTokBraceClose));
 
 	return 1;
-failure:
-	rlc_parser_data_add_error(
-		parser,
-		error_code);
-	parser->fIndex = start;
-	rlc_parsed_switch_statement_destroy(out);
-	return 0;
 }
 
 void rlc_parsed_switch_statement_add_case(

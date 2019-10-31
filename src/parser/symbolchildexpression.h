@@ -31,7 +31,7 @@ struct RlcParsedSymbolChildExpression
 	The expression's first token. */
 void rlc_parsed_symbol_child_expression_create(
 	struct RlcParsedSymbolChildExpression * this,
-	size_t first);
+	RlcSrcIndex first);
 /** Destroys a symbol child expression.
 @memberof RlcParsedSymbolChildExpression
 @param[in,out] this:

@@ -37,7 +37,7 @@ void rlc_parsed_statement_destroy_virtual(
 	RLC_DASSERT(this != NULL);
 
 	typedef void (*thiscall_t) (
-		uintptr_t this);
+		void * this);
 
 	static struct Destructor {
 		thiscall_t fAddress;
@@ -78,7 +78,7 @@ void rlc_parsed_statement_destroy_virtual(
 	RLC_DASSERT(RLC_IN_ENUM(RLC_DERIVING_TYPE(this), RlcParsedStatementType));
 
 	k_vtable[RLC_DERIVING_TYPE(this)].fAddress(
-		(uintptr_t)this + k_vtable[RLC_DERIVING_TYPE(this)].fOffset);
+		(void*)((uintptr_t)this + k_vtable[RLC_DERIVING_TYPE(this)].fOffset));
 }
 
 union RlcStatementStorage
@@ -95,7 +95,7 @@ union RlcStatementStorage
 };
 
 struct RlcParsedStatement * rlc_parsed_statement_parse(
-	struct RlcParserData * parser,
+	struct RlcParser * parser,
 	int flags)
 {
 	RLC_DASSERT(parser != NULL);
@@ -104,38 +104,35 @@ struct RlcParsedStatement * rlc_parsed_statement_parse(
 
 	typedef int (*parse_fn_t)(
 		union RlcStatementStorage *,
-		struct RlcParserData *);
+		struct RlcParser *);
 
 
-#define ENTRY(Type, parse, error) { \
+#define ENTRY(Type, parse) { \
 		k ## Type,\
 		(parse_fn_t)parse, \
-		error, \
 		sizeof(struct Type), \
 		RLC_DERIVE_OFFSET(RlcParsedStatement, struct Type) }
 
 	static struct {
 		enum RlcParsedStatementType fType;
 		parse_fn_t fParseFn;
-		enum RlcParseError fErrorCode;
 		size_t fTypeSize;
 		size_t fOffset;
 	} const k_parse_lookup[] = {
-		ENTRY(RlcParsedBlockStatement, &rlc_parsed_block_statement_parse, kRlcParseErrorExpectedBlockStatement),
-		ENTRY(RlcParsedReturnStatement, &rlc_parsed_return_statement_parse, kRlcParseErrorExpectedReturnStatement),
-		ENTRY(RlcParsedIfStatement, &rlc_parsed_if_statement_parse, kRlcParseErrorExpectedIfStatement),
-		ENTRY(RlcParsedLoopStatement, &rlc_parsed_loop_statement_parse, kRlcParseErrorExpectedLoopStatement),
-		ENTRY(RlcParsedVariableStatement, &rlc_parsed_variable_statement_parse, kRlcParseErrorExpectedVariableStatement),
-		ENTRY(RlcParsedSwitchStatement, &rlc_parsed_switch_statement_parse, kRlcParseErrorExpectedSwitchStatement),
-		ENTRY(RlcParsedCaseStatement, &rlc_parsed_case_statement_parse, kRlcParseErrorExpectedCaseStatement),
-		ENTRY(RlcParsedBreakStatement, &rlc_parsed_break_statement_parse, kRlcParseErrorExpectedBreakStatement),
+		ENTRY(RlcParsedBlockStatement, &rlc_parsed_block_statement_parse),
+		ENTRY(RlcParsedReturnStatement, &rlc_parsed_return_statement_parse),
+		ENTRY(RlcParsedIfStatement, &rlc_parsed_if_statement_parse),
+		ENTRY(RlcParsedLoopStatement, &rlc_parsed_loop_statement_parse),
+		ENTRY(RlcParsedVariableStatement, &rlc_parsed_variable_statement_parse),
+		ENTRY(RlcParsedSwitchStatement, &rlc_parsed_switch_statement_parse),
+		ENTRY(RlcParsedCaseStatement, &rlc_parsed_case_statement_parse),
+		ENTRY(RlcParsedBreakStatement, &rlc_parsed_break_statement_parse),
 		// expression has to come after variable.
-		ENTRY(RlcParsedExpressionStatement, &rlc_parsed_expression_statement_parse, kRlcParseErrorExpectedExpressionStatement),
+		ENTRY(RlcParsedExpressionStatement, &rlc_parsed_expression_statement_parse),
 	};
 
 	static_assert(RLC_COVERS_ENUM(k_parse_lookup, RlcParsedStatementType), "ill-sized parse table.");
 
-	enum RlcParseError error_code;
 	struct RlcParsedStatement * ret;
 
 	for(size_t i = 0; i < _countof(k_parse_lookup); i++)
@@ -154,20 +151,10 @@ struct RlcParsedStatement * rlc_parsed_statement_parse(
 				ret = (void*) ((uint8_t*)temp + k_parse_lookup[i].fOffset);
 
 				return ret;
-			} else if(parser->fErrorCount)
-			{
-				error_code = k_parse_lookup[i].fErrorCode;
-				goto failure;
 			}
 		}
 	}
 
-	return NULL;
-
-failure:
-	rlc_parser_data_add_error(
-		parser,
-		error_code);
 	return NULL;
 }
 

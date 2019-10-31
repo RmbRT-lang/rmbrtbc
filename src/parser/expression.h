@@ -43,9 +43,9 @@ struct RlcParsedExpression
 	RLC_ABSTRACT(RlcParsedExpression);
 
 	/** The expression's first token. */
-	size_t fFirst;
+	RlcSrcIndex fFirst;
 	/** The expression's last token.*/
-	size_t fLast;
+	RlcSrcIndex fLast;
 };
 
 /** Creates an expression.
@@ -59,7 +59,8 @@ struct RlcParsedExpression
 void rlc_parsed_expression_create(
 	struct RlcParsedExpression * this,
 	enum RlcParsedExpressionType type,
-	size_t first);
+	RlcSrcIndex first,
+	RlcSrcIndex end);
 
 /** Destroys an expression.
 @memberof RlcParsedExpression

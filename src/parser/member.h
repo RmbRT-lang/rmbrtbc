@@ -36,8 +36,6 @@ enum RlcParsedMemberType
 	kRlcParsedMemberVariable,
 	/** Corresponds to `RlcParsedMemberRawtype`. */
 	kRlcParsedMemberRawtype,
-	/** Corresponds to `RlcParsedMemberStruct`. */
-	kRlcParsedMemberStruct,
 	/** Corresponds to `RlcParsedMemberUnion`. */
 	kRlcParsedMemberUnion,
 	/** Corresponds to `RlcParsedMemberClass`. */

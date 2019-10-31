@@ -9,114 +9,107 @@ void rlc_parsed_symbol_child_create(
 {
 	RLC_DASSERT(this != NULL);
 
-	this->fNameToken = 0;
 	this->fTemplates = NULL;
 	this->fTemplateCount = 0;
 }
 
+static int rlc_parsed_symbol_child_template_parse(
+	struct RlcParsedSymbolChild * out,
+	struct RlcParser * parser)
+{
+	if(!rlc_parser_consume(
+		parser,
+		NULL,
+		kRlcTokBracketOpen))
+		return 0;
+
+	struct RlcParsedSymbolChildTemplate template;
+	do {
+		if((template.fIsExpression = rlc_parser_consume(
+			parser,
+			NULL,
+			kRlcTokHash)))
+		{
+			if(!(template.fExpression = rlc_parsed_expression_parse(
+				parser,
+				RLC_ALL_FLAGS(RlcParsedExpressionType))))
+			{
+				rlc_parser_fail(parser, "expected expression");
+			}
+			rlc_parsed_symbol_child_add_template(
+				out,
+				&template);
+		} else
+		{
+			template.fTypeName = NULL;
+			rlc_malloc(
+				(void**)&template.fTypeName,
+				sizeof(struct RlcParsedTypeName));
+
+			if(rlc_parsed_type_name_parse(
+				template.fTypeName,
+				parser))
+			{
+				rlc_parser_fail(parser, "expected type name");
+			}
+
+			rlc_parsed_symbol_child_add_template(
+				out,
+				&template);
+		}
+	} while(rlc_parser_consume(
+		parser,
+		NULL,
+		kRlcTokComma));
+
+	rlc_parser_expect(
+		parser,
+		NULL,
+		1,
+		kRlcTokBraceClose);
+
+	return 1;
+}
+
 int rlc_parsed_symbol_child_parse(
 	struct RlcParsedSymbolChild * out,
-	struct RlcParserData * parser)
+	struct RlcParser * parser)
 {
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
 
-	enum RlcParseError error_code;
-
 	rlc_parsed_symbol_child_create(out);
+	int hasTemplate = rlc_parsed_symbol_child_template_parse(out, parser);
 
-	if(rlc_parser_data_consume(
+	struct RlcToken name;
+	if(rlc_parser_consume(
 		parser,
+		&name,
 		kRlcTokIdentifier))
 	{
 		out->fType = kRlcParsedSymbolChildTypeIdentifier;
-	} else if(rlc_parser_data_consume(
+	} else if(rlc_parser_consume(
 		parser,
+		&name,
 		kRlcTokConstructor))
 	{
 		out->fType = kRlcParsedSymbolChildTypeConstructor;
-	} else if(rlc_parser_data_consume(
+	} else if(!hasTemplate
+	&& rlc_parser_consume(
 		parser,
+		&name,
 		kRlcTokDestructor))
 	{
 		out->fType = kRlcParsedSymbolChildTypeDestructor;
-	} else
-		goto nonfatal_failure;
-
-	out->fNameToken = rlc_parser_data_consumed_index(parser);
-
-	if(rlc_parser_data_consume(
-		parser,
-		kRlcTokBraceOpen))
+	} else if(hasTemplate)
 	{
-		if(out->fType == kRlcParsedSymbolChildTypeDestructor)
-		{
-			error_code = kRlcParseErrorDestructorTemplate;
-			goto failure;
-		}
+		rlc_parser_fail(parser, "expected name");
+	} else
+		return 0;
 
-		struct RlcParsedSymbolChildTemplate template;
-		do {
-			if((template.fIsExpression = rlc_parser_data_consume(
-				parser,
-				kRlcTokHash)))
-			{
-				if(template.fExpression = rlc_parsed_expression_parse(
-					parser,
-					RLC_ALL_FLAGS(RlcParsedExpressionType)))
-				{
-					rlc_parsed_symbol_child_add_template(
-						out,
-						&template);
-				} else
-				{
-					error_code = kRlcParseErrorExpectedExpression;
-					goto failure;
-				}
-			} else
-			{
-				template.fTypeName = NULL;
-				rlc_malloc(
-					(void**)&template.fTypeName,
-					sizeof(struct RlcParsedTypeName));
-
-				if(rlc_parsed_type_name_parse(
-					template.fTypeName,
-					parser))
-				{
-					rlc_parsed_symbol_child_add_template(
-						out,
-						&template);
-				} else
-				{
-					rlc_free((void**)&template.fTypeName);
-					error_code = kRlcParseErrorExpectedTypeNameExpression;
-					goto failure;
-				}
-			}
-		} while(rlc_parser_data_consume(
-			parser,
-			kRlcTokComma));
-
-		if(!rlc_parser_data_consume(
-			parser,
-			kRlcTokBraceClose))
-		{
-			error_code = kRlcParseErrorExpectedBraceClose;
-			goto failure;
-		}
-	}
+	out->fName = name.content;
 
 	return 1;
-
-failure:
-	rlc_parser_data_add_error(
-		parser,
-		error_code);
-nonfatal_failure:
-	rlc_parsed_symbol_child_destroy(out);
-
-	return 0;
 }
 
 void rlc_parsed_symbol_child_add_template(
@@ -138,7 +131,6 @@ void rlc_parsed_symbol_child_destroy(
 {
 	RLC_DASSERT(this != NULL);
 
-	this->fNameToken = 0;
 	if(this->fTemplates)
 	{
 		for(size_t i = 0; i < this->fTemplateCount; i++)
@@ -212,21 +204,17 @@ void rlc_parsed_symbol_create(
 
 int rlc_parsed_symbol_parse(
 	struct RlcParsedSymbol * out,
-	struct RlcParserData * parser)
+	struct RlcParser * parser)
 {
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
 
-
-	enum RlcParseError error_code;
-
 	rlc_parsed_symbol_create(out);
 
-	out->fIsRoot = rlc_parser_data_consume(
+	out->fIsRoot = rlc_parser_consume(
 		parser,
-		kRlcTokDoubleColon)
-	? 1
-	: 0;
+		NULL,
+		kRlcTokDoubleColon);
 
 	int parsed_any = 0;
 
@@ -242,24 +230,12 @@ int rlc_parsed_symbol_parse(
 				&child);
 		} else if(parsed_any || out->fIsRoot)
 		{
-			error_code = kRlcParseErrorExpectedSymbol;
-			goto failure;
+			rlc_parser_fail(parser, "expected symbol");
 		}
-	} while(rlc_parser_data_consume(
+	} while(rlc_parser_consume(
 		parser,
+		NULL,
 		kRlcTokDoubleColon));
 
-	if(!parsed_any)
-		goto nonfatal_failure;
-
-success:
-	return 1;
-failure:
-	rlc_parser_data_add_error(
-		parser,
-		error_code);
-nonfatal_failure:
-	rlc_parsed_symbol_destroy(
-		out);
-	return 0;
+	return parsed_any;
 }

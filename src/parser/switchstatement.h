@@ -56,7 +56,7 @@ void rlc_parsed_switch_statement_destroy(
 	Whether the switch statement could be parsed. */
 int rlc_parsed_switch_statement_parse(
 	struct RlcParsedSwitchStatement * out,
-	struct RlcParserData * parser);
+	struct RlcParser * parser);
 
 /** Adds a case to a switch statement.
 @memberof RlcParsedSwitchStatement

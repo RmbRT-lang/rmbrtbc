@@ -40,63 +40,55 @@ void rlc_parsed_template_decl_destroy(
 	}
 }
 
-int rlc_parsed_template_decl_parse(
+void rlc_parsed_template_decl_parse(
 	struct RlcParsedTemplateDecl * decl,
-	struct RlcParserData * parser)
+	struct RlcParser * parser)
 {
 	RLC_DASSERT(decl != NULL);
 	RLC_DASSERT(parser != NULL);
 
-	enum RlcParseError error_code;
-
 	rlc_parsed_template_decl_create(decl);
 
-	if(!rlc_parser_data_consume(
+	if(!rlc_parser_consume(
 		parser,
+		NULL,
 		kRlcTokBracketOpen))
-	{
-		return 1;
-	}
+		return;
 
-	int first = 1;
+	if(rlc_parser_consume(
+		parser,
+		NULL,
+		kRlcTokBracketClose))
+		return;
+
 	do
 	{
 		struct RlcParsedTemplateDeclChild child;
-
-		if(!rlc_parser_data_consume(
+		struct RlcToken name;
+		rlc_parser_expect(
 			parser,
-			kRlcTokIdentifier))
-		{
-			if(!first)
-			{
-				error_code = kRlcParseErrorExpectedIdentifier;
-				goto failure;
-			}
-			else
-				break;
-		}
+			&name,
+			1,
+			kRlcTokIdentifier);
 
-		if(first)
-			first = 0;
+		child.fName = name.content;
 
-		child.fNameToken = rlc_parser_data_consumed_index(parser);
-
-		if(!rlc_parser_data_consume(
+		rlc_parser_expect(
 			parser,
-			kRlcTokColon))
-		{
-			error_code = kRlcParseErrorExpectedColon;
-			goto failure;
-		}
+			NULL,
+			1,
+			kRlcTokColon);
 
 		// Expect either `type`, `number`, or a type name.
-		if(rlc_parser_data_consume(
+		if(rlc_parser_consume(
 			parser,
+			NULL,
 			kRlcTokType))
 		{
 			child.fType = kRlcParsedTemplateDeclTypeType;
-		} else if(rlc_parser_data_consume(
+		} else if(rlc_parser_consume(
 			parser,
+			NULL,
 			kRlcTokNumber))
 		{
 			child.fType = kRlcParsedTemplateDeclTypeNumber;
@@ -106,34 +98,17 @@ int rlc_parsed_template_decl_parse(
 		{
 			child.fType = kRlcParsedTemplateDeclTypeValue;
 		} else
-		{
-			error_code = kRlcParseErrorExpectedTemplateDeclType;
-			goto failure;
-		}
+			rlc_parser_fail(parser, "expected template type");
 
 		rlc_parsed_template_decl_add_child(
 			decl,
 			&child);
-	} while(rlc_parser_data_consume(
+	} while(kRlcTokComma == rlc_parser_expect(
 		parser,
-		kRlcTokComma));
-
-	if(!rlc_parser_data_consume(
-		parser,
-		kRlcTokBracketClose))
-	{
-		error_code = kRlcParseErrorExpectedBracketClose;
-		goto failure;
-	}
-
-success:
-	return 1;
-failure:
-	rlc_parsed_template_decl_destroy(decl);
-	rlc_parser_data_add_error(
-		parser,
-		error_code);
-	return 0;
+		NULL,
+		2,
+		kRlcTokComma,
+		kRlcTokBracketClose));
 }
 
 void rlc_parsed_template_decl_child_destroy(

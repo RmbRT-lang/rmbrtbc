@@ -5,6 +5,7 @@
 
 #include "scopeentry.h"
 #include "typename.h"
+#include "templatedecl.h"
 
 #include "../macros.h"
 
@@ -61,7 +62,8 @@ void rlc_parsed_external_symbol_destroy(
 	Whether the external symbol was successfully parsed. */
 _Nodiscard int rlc_parsed_external_symbol_parse(
 	struct RlcParsedExternalSymbol * out,
-	struct RlcParser * parser);
+	struct RlcParser * parser,
+	struct RlcParsedTemplateDecl const * templates);
 
 #ifdef __cplusplus
 }

@@ -1,7 +1,6 @@
 #include "scopeentry.h"
 
 #include "class.h"
-#include "struct.h"
 #include "rawtype.h"
 #include "union.h"
 #include "namespace.h"
@@ -23,11 +22,7 @@ void rlc_parsed_scope_entry_destroy_base(
 {
 	RLC_DASSERT(this != NULL);
 
-	if(this->fNames)
-	{
-		rlc_free((void**)&this->fNames);
-		this->fNameCount = 0;
-	}
+	;
 }
 
 
@@ -37,11 +32,10 @@ void rlc_parsed_scope_entry_destroy_virtual(
 	RLC_DASSERT(this != NULL);
 	RLC_DASSERT(RLC_IN_ENUM(RLC_DERIVING_TYPE(this), RlcParsedScopeEntryType));
 
-	typedef void const * (*destructor_t)(
+	typedef void (*destructor_t)(
 		void * this);
 	static destructor_t const k_vtable[] = {
 		(destructor_t)&rlc_parsed_class_destroy,
-		(destructor_t)&rlc_parsed_struct_destroy,
 		(destructor_t)&rlc_parsed_rawtype_destroy,
 		(destructor_t)&rlc_parsed_union_destroy,
 		(destructor_t)&rlc_parsed_namespace_destroy,
@@ -56,7 +50,6 @@ void rlc_parsed_scope_entry_destroy_virtual(
 
 	static intptr_t const k_offsets[] = {
 		RLC_DERIVE_OFFSET(RlcParsedScopeEntry, struct RlcParsedClass),
-		RLC_DERIVE_OFFSET(RlcParsedScopeEntry, struct RlcParsedStruct),
 		RLC_DERIVE_OFFSET(RlcParsedScopeEntry, struct RlcParsedRawtype),
 		RLC_DERIVE_OFFSET(RlcParsedScopeEntry, struct RlcParsedUnion),
 		RLC_DERIVE_OFFSET(RlcParsedScopeEntry, struct RlcParsedNamespace),
@@ -78,9 +71,8 @@ void rlc_parsed_scope_entry_create(
 	struct RlcSrcString const * name)
 {
 	RLC_DASSERT(this != NULL);
+	RLC_DASSERT(name != NULL);
 
-	this->fLocation.fBegin = start_index;
-	this->fLocation.fEnd = 0;
 	this->fName = *name;
 
 	RLC_DERIVING_TYPE(this) = derivingType;
@@ -88,35 +80,33 @@ void rlc_parsed_scope_entry_create(
 
 static int dummy_rlc_parsed_variable_parse(
 	struct RlcParsedVariable * variable,
-	struct RlcParserData * parser)
+	struct RlcParser * parser,
+	struct RlcParsedTemplateDecl const * templates)
 {
 	RLC_DASSERT(variable != NULL);
 	RLC_DASSERT(parser != NULL);
 
+	(void) templates;
+
 	if(rlc_parsed_variable_parse(variable, parser, 1, 0, 0, 1, 0))
 	{
-		if(!rlc_parser_data_consume(
+		if(rlc_parsed_template_decl_exists(templates))
+			rlc_parser_fail(parser, "variables must not have templates");
+
+		rlc_parser_expect(
 			parser,
-			kRlcTokSemicolon))
-		{
-			rlc_parsed_variable_destroy(variable);
-			rlc_parser_data_add_error(
-				parser,
-				kRlcParseErrorExpectedSemicolon);
-			return 0;
-		} else return 1;
-	} else if(parser->fErrorCount)
-	{
-		rlc_parser_data_add_error(
-			parser,
-			kRlcParseErrorExpectedVariable);
-		return 0;
+			NULL,
+			1,
+			kRlcTokSemicolon);
+		return 1;
 	}
+
+	return 0;
 }
 
 
 struct RlcParsedScopeEntry * rlc_parsed_scope_entry_parse(
-	struct RlcParserData * parser)
+	struct RlcParser * parser)
 {
 	RLC_DASSERT(parser != NULL);
 
@@ -125,7 +115,6 @@ struct RlcParsedScopeEntry * rlc_parsed_scope_entry_parse(
 		struct RlcParsedFunction fFunction;
 		struct RlcParsedClass fClass;
 		struct RlcParsedUnion fUnion;
-		struct RlcParsedStruct fStruct;
 		struct RlcParsedRawtype fRawtype;
 		struct RlcParsedTypedef fTypedef;
 		struct RlcParsedNamespace fNamespace;
@@ -134,40 +123,44 @@ struct RlcParsedScopeEntry * rlc_parsed_scope_entry_parse(
 
 	typedef int (*parse_fn_t)(
 		union Pack *,
-		struct RlcParserData *);
+		struct RlcParser *,
+		struct RlcParsedTemplateDecl const * templates);
 
 
-#define ENTRY(Type, parse, error) { \
+#define ENTRY(Type, parse) { \
 		(parse_fn_t)parse, \
-		error, \
 		sizeof(struct Type), \
 		RLC_DERIVE_OFFSET(RlcParsedScopeEntry, struct Type) }
 
 	static struct {
 		parse_fn_t fParseFn;
-		enum RlcParseError fErrorCode;
 		size_t fTypeSize;
 		size_t fOffset;
 	} const k_parse_lookup[] = {
-		ENTRY(RlcParsedVariable, &dummy_rlc_parsed_variable_parse, kRlcParseErrorExpectedVariable),
-		ENTRY(RlcParsedFunction, &rlc_parsed_function_parse, kRlcParseErrorExpectedFunction),
-		ENTRY(RlcParsedClass, &rlc_parsed_class_parse, kRlcParseErrorExpectedClass),
-		ENTRY(RlcParsedUnion, &rlc_parsed_union_parse, kRlcParseErrorExpectedUnion),
-		ENTRY(RlcParsedStruct, &rlc_parsed_struct_parse, kRlcParseErrorExpectedStruct),
-		ENTRY(RlcParsedRawtype, &rlc_parsed_rawtype_parse, kRlcParseErrorExpectedRawtype),
-		ENTRY(RlcParsedTypedef, &rlc_parsed_typedef_parse, kRlcParseErrorExpectedTypedef),
-		ENTRY(RlcParsedNamespace, &rlc_parsed_namespace_parse, kRlcParseErrorExpectedNamespace),
-		ENTRY(RlcParsedEnum, &rlc_parsed_enum_parse, kRlcParseErrorExpectedEnum),
-		ENTRY(RlcParsedExternalSymbol, &rlc_parsed_external_symbol_parse, kRlcParseErrorExpectedExternalSymbol)
+		ENTRY(RlcParsedVariable, &dummy_rlc_parsed_variable_parse),
+		ENTRY(RlcParsedFunction, &rlc_parsed_function_parse),
+		ENTRY(RlcParsedClass, &rlc_parsed_class_parse),
+		ENTRY(RlcParsedUnion, &rlc_parsed_union_parse),
+		ENTRY(RlcParsedRawtype, &rlc_parsed_rawtype_parse),
+		ENTRY(RlcParsedTypedef, &rlc_parsed_typedef_parse),
+		ENTRY(RlcParsedNamespace, &rlc_parsed_namespace_parse),
+		ENTRY(RlcParsedEnum, &rlc_parsed_enum_parse),
+		ENTRY(RlcParsedExternalSymbol, &rlc_parsed_external_symbol_parse)
 	};
 
 	static_assert(RLC_COVERS_ENUM(k_parse_lookup, RlcParsedScopeEntryType), "ill-sized parse table.");
 
-	for(int i = 0; i < _countof(k_parse_lookup); i++)
+	struct RlcParsedTemplateDecl templates;
+	rlc_parsed_template_decl_parse(
+		&templates,
+		parser);
+
+	for(size_t i = 0; i < _countof(k_parse_lookup); i++)
 	{
 		if(k_parse_lookup[i].fParseFn(
 			&pack,
-			parser))
+			parser,
+			&templates))
 		{
 			void * temp = NULL;
 			rlc_malloc(&temp, k_parse_lookup[i].fTypeSize);
@@ -177,12 +170,6 @@ struct RlcParsedScopeEntry * rlc_parsed_scope_entry_parse(
 			struct RlcParsedScopeEntry * ret;
 			ret = (void*) ((uint8_t*)temp + k_parse_lookup[i].fOffset);
 			return ret;
-		} else if(parser->fErrorCount)
-		{
-			rlc_parser_data_add_error(
-				parser,
-				k_parse_lookup[i].fErrorCode);
-			return NULL;
 		}
 	}
 

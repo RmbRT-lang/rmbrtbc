@@ -5,14 +5,16 @@
 
 void rlc_parsed_operator_expression_create(
 	struct RlcParsedOperatorExpression * this,
-	size_t first)
+	RlcSrcIndex first,
+	RlcSrcIndex last)
 {
 	RLC_DASSERT(this != NULL);
 
 	rlc_parsed_expression_create(
 		RLC_BASE_CAST(this,RlcParsedExpression),
 		kRlcParsedOperatorExpression,
-		first);
+		first,
+		last);
 
 	this->fExpressions = NULL;
 	this->fExpressionCount = 0;
@@ -118,13 +120,14 @@ static size_t const k_binary_groups[] = {
 
 static struct RlcParsedOperatorExpression * make_operator_expression(
 	enum RlcOperator type,
-	size_t first)
+	RlcSrcIndex first,
+	RlcSrcIndex last)
 {
 	struct RlcParsedOperatorExpression * out = NULL;
 	rlc_malloc(
 		(void**)&out,
 		sizeof(struct RlcParsedOperatorExpression));
-	rlc_parsed_operator_expression_create(out, first);
+	rlc_parsed_operator_expression_create(out, first, last);
 	out->fOperator = type;
 
 	return out;
@@ -156,7 +159,10 @@ static struct RlcParsedOperatorExpression * make_binary_expression(
 		return NULL;
 	}
 
-	struct RlcParsedOperatorExpression * out = make_operator_expression(type, lhs->fFirst);
+	struct RlcParsedOperatorExpression * out = make_operator_expression(
+		type,
+		lhs->fFirst,
+		rhs->fLast);
 	rlc_parsed_operator_expression_add(out, lhs);
 	rlc_parsed_operator_expression_add(out, rhs);
 
@@ -172,9 +178,8 @@ static struct RlcParsedOperatorExpression * make_unary_expression(
 	if(!operand)
 		return NULL;
 
-	(void) last;
-
-	struct RlcParsedOperatorExpression * out = make_operator_expression(type, first);
+	struct RlcParsedOperatorExpression * out =
+		make_operator_expression(type, first, last);
 	rlc_parsed_operator_expression_add(out, operand);
 
 	return out;

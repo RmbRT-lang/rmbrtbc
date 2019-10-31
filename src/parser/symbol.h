@@ -38,7 +38,7 @@ struct RlcParsedSymbolChild
 	/** The name token type. */
 	enum RlcParsedSymbolChildType fType;
 	/** The name token's index. */
-	size_t fNameToken;
+	struct RlcSrcString fName;
 	/** The template arguments. */
 	struct RlcParsedSymbolChildTemplate * fTemplates;
 	/** The template arguments' count. */

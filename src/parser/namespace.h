@@ -4,6 +4,7 @@
 #define __rlc_parser_namespace_h_defined
 
 #include "scopeentry.h"
+#include "templatedecl.h"
 #include "../macros.h"
 
 #ifdef __cplusplus
@@ -47,7 +48,8 @@ void rlc_parsed_namespace_destroy(
 	Whether the parsing succeeded. */
 _Nodiscard int rlc_parsed_namespace_parse(
 	struct RlcParsedNamespace * out,
-	struct RlcParser * parser);
+	struct RlcParser * parser,
+	struct RlcParsedTemplateDecl const * templates);
 
 #ifdef __cplusplus
 }

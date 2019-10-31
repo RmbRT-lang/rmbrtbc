@@ -74,7 +74,6 @@ struct RlcParsedMemberRawtype
 
 void rlc_parsed_member_rawtype_create(
 	struct RlcParsedMemberRawtype * this,
-	enum RlcVisibility visibility,
 	struct RlcParsedMemberCommon const * member);
 
 void rlc_parsed_member_rawtype_destroy(

@@ -4,7 +4,6 @@
 #include "class.h"
 #include "rawtype.h"
 #include "union.h"
-#include "struct.h"
 #include "typedef.h"
 #include "constructor.h"
 #include "destructor.h"
@@ -40,7 +39,6 @@ void rlc_parsed_member_destroy_virtual(
 		(destructor_t)&rlc_parsed_member_function_destroy,
 		(destructor_t)&rlc_parsed_member_variable_destroy,
 		(destructor_t)&rlc_parsed_member_rawtype_destroy,
-		(destructor_t)&rlc_parsed_member_struct_destroy,
 		(destructor_t)&rlc_parsed_member_union_destroy,
 		(destructor_t)&rlc_parsed_member_class_destroy,
 		(destructor_t)&rlc_parsed_member_typedef_destroy,
@@ -54,7 +52,6 @@ void rlc_parsed_member_destroy_virtual(
 		RLC_DERIVE_OFFSET(RlcParsedMember, struct RlcParsedMemberFunction),
 		RLC_DERIVE_OFFSET(RlcParsedMember, struct RlcParsedMemberVariable),
 		RLC_DERIVE_OFFSET(RlcParsedMember, struct RlcParsedMemberRawtype),
-		RLC_DERIVE_OFFSET(RlcParsedMember, struct RlcParsedMemberStruct),
 		RLC_DERIVE_OFFSET(RlcParsedMember, struct RlcParsedMemberUnion),
 		RLC_DERIVE_OFFSET(RlcParsedMember, struct RlcParsedMemberClass),
 		RLC_DERIVE_OFFSET(RlcParsedMember, struct RlcParsedMemberTypedef),
@@ -98,7 +95,6 @@ struct RlcSrcString const * rlc_parsed_member_name(
 		WITH_NAME(Function),
 		WITH_NAME(Variable),
 		WITH_NAME(Rawtype),
-		WITH_NAME(Struct),
 		WITH_NAME(Union),
 		WITH_NAME(Class),
 		WITH_NAME(Typedef),
@@ -201,7 +197,6 @@ struct RlcParsedMember * rlc_parsed_member_parse(
 		struct RlcParsedMemberFunction fFunction;
 		struct RlcParsedMemberClass fClass;
 		struct RlcParsedMemberUnion fUnion;
-		struct RlcParsedMemberStruct fStruct;
 		struct RlcParsedMemberRawtype fRawtype;
 		struct RlcParsedMemberTypedef fTypedef;
 		struct RlcParsedConstructor fConstructor;
@@ -232,7 +227,6 @@ struct RlcParsedMember * rlc_parsed_member_parse(
 		ENTRY(RlcParsedMemberVariable, &rlc_parsed_member_variable_parse),
 		ENTRY(RlcParsedMemberClass, &rlc_parsed_member_class_parse),
 		ENTRY(RlcParsedMemberUnion, &rlc_parsed_member_union_parse),
-		ENTRY(RlcParsedMemberStruct, &rlc_parsed_member_struct_parse),
 		ENTRY(RlcParsedMemberRawtype, &rlc_parsed_member_rawtype_parse),
 		ENTRY(RlcParsedMemberTypedef, &rlc_parsed_member_typedef_parse)
 	};

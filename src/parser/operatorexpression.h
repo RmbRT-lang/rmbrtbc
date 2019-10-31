@@ -59,7 +59,9 @@ struct RlcParsedOperatorExpression
 	The first token of the expression. */
 void rlc_parsed_operator_expression_create(
 	struct RlcParsedOperatorExpression * this,
-	size_t first);
+	RlcSrcIndex first,
+	RlcSrcIndex last);
+
 /** Destroys an operator expression.
 @memberof RlcParsedOperatorExpression
 @param[out] this:

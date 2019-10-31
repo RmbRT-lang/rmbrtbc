@@ -114,7 +114,8 @@ void rlc_parsed_enum_add_constant(
 
 int rlc_parsed_enum_parse(
 	struct RlcParsedEnum * out,
-	struct RlcParser * parser)
+	struct RlcParser * parser,
+	struct RlcParsedTemplateDecl const * templates)
 {
 	RLC_DASSERT(parser != NULL);
 	RLC_DASSERT(out != NULL);
@@ -124,6 +125,9 @@ int rlc_parsed_enum_parse(
 		NULL,
 		kRlcTokEnum))
 		return 0;
+
+	if(rlc_parsed_template_decl_exists(templates))
+		rlc_parser_fail(parser, "enums must have template declarations");
 
 	struct RlcToken name;
 	rlc_parser_expect(

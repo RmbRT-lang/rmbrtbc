@@ -4,14 +4,15 @@
 
 void rlc_this_expression_create(
 	struct RlcThisExpression * this,
-	size_t first)
+	struct RlcSrcString const * string)
 {
 	RLC_DASSERT(this != NULL);
 
 	rlc_parsed_expression_create(
 		RLC_BASE_CAST(this, RlcParsedExpression),
 		kRlcThisExpression,
-		first);
+		string->start,
+		rlc_src_string_end(string));
 }
 
 void rlc_this_expression_destroy(
@@ -25,18 +26,18 @@ void rlc_this_expression_destroy(
 
 int rlc_this_expression_parse(
 	struct RlcThisExpression * out,
-	struct RlcParserData * parser)
+	struct RlcParser * parser)
 {
 	int result;
-	size_t start = parser->fIndex;
-	if(result = rlc_parser_data_consume(
+	struct RlcToken token;
+	if((result = rlc_parser_consume(
 		parser,
-		kRlcTokThis))
+		&token,
+		kRlcTokThis)))
 	{
 		rlc_this_expression_create(
 			out,
-			start);
-		RLC_BASE_CAST(out, RlcParsedExpression)->fLast = start;
+			&token.content);
 	}
 	return result;
 }

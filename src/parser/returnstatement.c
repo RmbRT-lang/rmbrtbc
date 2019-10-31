@@ -32,37 +32,24 @@ void rlc_parsed_return_statement_destroy(
 
 int rlc_parsed_return_statement_parse(
 	struct RlcParsedReturnStatement * out,
-	struct RlcParserData * parser)
+	struct RlcParser * parser)
 {
-	if(!rlc_parser_data_consume(
+	if(!rlc_parser_consume(
 		parser,
+		NULL,
 		kRlcTokReturn))
 		return 0;
 
-	enum RlcParseError error_code;
-
 	rlc_parsed_return_statement_create(out);
-	if(!(out->fExpression = rlc_parsed_expression_parse(
+	out->fExpression = rlc_parsed_expression_parse(
 		parser,
-		RLC_ALL_FLAGS(RlcParsedExpressionType)))
-	&& parser->fErrorCount)
-	{
-		error_code = kRlcParseErrorExpectedExpression;
-		goto failure;
-	}
+		RLC_ALL_FLAGS(RlcParsedExpressionType));
 
-	if(!rlc_parser_data_consume(
+	rlc_parser_expect(
 		parser,
-		kRlcTokSemicolon))
-	{
-		error_code = kRlcParseErrorExpectedSemicolon;
-		goto failure;
-	}
+		NULL,
+		1,
+		kRlcTokSemicolon);
 
 	return 1;
-
-failure:
-	rlc_parser_data_add_error(parser, error_code);
-	rlc_parsed_return_statement_destroy(out);
-	return 0;
 }
