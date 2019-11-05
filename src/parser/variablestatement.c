@@ -4,18 +4,13 @@
 #include "../assert.h"
 
 void rlc_parsed_variable_statement_create(
-	struct RlcParsedVariableStatement * this,
-	size_t start_index)
+	struct RlcParsedVariableStatement * this)
 {
 	RLC_DASSERT(this != NULL);
 
 	rlc_parsed_statement_create(
 		RLC_BASE_CAST(this, RlcParsedStatement),
 		kRlcParsedVariableStatement);
-
-	rlc_parsed_variable_create(
-		&this->fVariable,
-		start_index);
 }
 
 void rlc_parsed_variable_statement_destroy(
@@ -30,44 +25,27 @@ void rlc_parsed_variable_statement_destroy(
 
 int rlc_parsed_variable_statement_parse(
 	struct RlcParsedVariableStatement * out,
-	struct RlcParserData * parser)
+	struct RlcParser * parser)
 {
-
-	rlc_parsed_variable_statement_create(
-		out,
-		rlc_parser_data_matched_index(parser));
-
-	enum RlcParseError error_code;
 	if(!rlc_parsed_variable_parse(
 		&out->fVariable,
 		parser,
+		NULL,
 		1,
 		1,
 		0,
 		0,
 		1))
 	{
-		if(parser->fErrorCount)
-		{
-			error_code = kRlcParseErrorExpectedVariable;
-			goto failure;
-		} else return 0;
+		return 0;
 	}
+	rlc_parsed_variable_statement_create(out);
 
-	if(!rlc_parser_data_consume(
+	rlc_parser_expect(
 		parser,
-		kRlcTokSemicolon))
-	{
-		rlc_parsed_variable_destroy(&out->fVariable);
-		error_code = kRlcParseErrorExpectedSemicolon;
-		goto failure;
-	}
+		NULL,
+		1,
+		kRlcTokSemicolon);
 
 	return 1;
-failure:
-	rlc_parser_data_add_error(
-		parser,
-		error_code);
-	// don't destroy the variable, it is already destroyed.
-	return 0;
 }

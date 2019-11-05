@@ -10,14 +10,16 @@ void rlc_parsed_variable_create(
 {
 	RLC_DASSERT(this != NULL);
 	RLC_DASSERT(name != NULL);
-	RLC_DASSERT(templates != NULL);
 
 	rlc_parsed_scope_entry_create(
 		RLC_BASE_CAST(this, RlcParsedScopeEntry),
 		kRlcParsedVariable,
 		name);
 
-	this->fTemplates = *templates;
+	if(!templates)
+		rlc_parsed_template_decl_create(&this->fTemplates);
+	else
+		this->fTemplates = *templates;
 
 	this->fHasType = 0;
 	this->fInitArgs = NULL;
@@ -193,8 +195,9 @@ int rlc_parsed_variable_parse(
 			{
 				// check for empty initialiser.
 				if(!isParenthese
-				|| !rlc_parser_data_consume(
+				|| !rlc_parser_consume(
 					parser,
+					NULL,
 					kRlcTokParentheseClose))
 				{
 					do {
@@ -234,20 +237,15 @@ int rlc_parsed_variable_parse(
 
 void rlc_parsed_member_variable_create(
 	struct RlcParsedMemberVariable * this,
-	enum RlcVisibility visibility,
-	enum RlcMemberAttribute attribute,
-	size_t start_index)
+	struct RlcParsedMemberCommon const * member)
 {
 	RLC_DASSERT(this != NULL);
-	RLC_DASSERT(RLC_IN_ENUM(attribute, RlcMemberAttribute));
+	RLC_DASSERT(member != NULL);
 
 	rlc_parsed_member_create(
 		RLC_BASE_CAST(this, RlcParsedMember),
 		kRlcParsedMemberVariable,
-		visibility,
-		start_index);
-
-	this->fAttribute = attribute;
+		member);
 }
 
 void rlc_parsed_member_variable_destroy(
@@ -264,64 +262,36 @@ void rlc_parsed_member_variable_destroy(
 
 int rlc_parsed_member_variable_parse(
 	struct RlcParsedMemberVariable * out,
-	enum RlcVisibility * default_visibility,
-	struct RlcParserData * parser)
+	struct RlcParser * parser,
+	struct RlcParsedMemberCommon const * member)
 {
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
 
-	size_t const start_index = parser->fIndex;
-	enum RlcParseError error_code;
-
-	enum RlcVisibility visibility = rlc_visibility_parse(
-		default_visibility,
-		parser);
-
-
-	rlc_parsed_member_variable_create(
-		out,
-		visibility,
-		rlc_member_attribute_parse(
-			parser),
-		start_index);
-
-
-	int const is_static = out->fAttribute == kRlcMemberAttributeStatic;
+	int const is_static = member->attribute == kRlcMemberAttributeStatic;
 
 	if(!rlc_parsed_variable_parse(
 		RLC_BASE_CAST(out, RlcParsedVariable),
 		parser,
+		&member->templates,
 		is_static, // needs name
 		is_static, // allow initialiser
 		0, // if static, force name and allow initialiser.
 		is_static, // if static, allow template declarations.
 		0)) // forbid references.
 	{
-		// something was parsed already?
-		if(parser->fErrorCount)
-		{
-			rlc_parser_data_add_error(
-				parser,
-				kRlcParseErrorExpectedVariable);
-			goto nonfatal_failure;
-		} else goto nonfatal_failure;
-	} else if(!rlc_parser_data_consume(
-		parser,
-		kRlcTokSemicolon))
-	{
-		error_code = kRlcParseErrorExpectedSemicolon;
-		goto failure;
+		return 0;
 	}
 
-success:
-	RLC_BASE_CAST(out, RlcParsedMember)->fLocation.fEnd = parser->fIndex;
-	return 1;
-failure:
-	rlc_parser_data_add_error(
+	rlc_parser_expect(
 		parser,
-		error_code);
-	rlc_parsed_member_variable_destroy(out);
-nonfatal_failure:
-	parser->fIndex = start_index;
-	return 0;
+		NULL,
+		1,
+		kRlcTokSemicolon);
+
+	rlc_parsed_member_variable_create(
+		out,
+		member);
+
+	return 1;
 }

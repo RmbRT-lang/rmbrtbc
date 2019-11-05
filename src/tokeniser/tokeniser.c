@@ -8,6 +8,43 @@
 #include <stdio.h>
 #include <stdint.h>
 
+static _Noreturn void tok_error(
+	struct RlcTokeniser const * this,
+	char const * message);
+
+static void skip(
+	struct RlcTokeniser * this);
+static int skip_whitespace(
+	struct RlcTokeniser * this);
+static int skip_comment(
+	struct RlcTokeniser * this);
+
+static int identifier(
+	struct RlcTokeniser * this);
+static int number(
+	struct RlcTokeniser * this);
+static int op(
+	struct RlcTokeniser * this);
+static int character(
+	struct RlcTokeniser * this);
+static int string(
+	struct RlcTokeniser * this);
+
+static char look(
+	struct RlcTokeniser * this);
+static char ahead(
+	struct RlcTokeniser * this);
+static int eof(
+	struct RlcTokeniser * this);
+static int take_str(
+	struct RlcTokeniser * this,
+	char const * string);
+static char take(
+	struct RlcTokeniser * this);
+static void ignore(
+	struct RlcTokeniser * this,
+	RlcSrcIndex count);
+
 void rlc_tokeniser_create(
 	struct RlcTokeniser * this,
 	struct RlcSrcFile const * file)
@@ -19,14 +56,30 @@ void rlc_tokeniser_create(
 	this->fIndex = 0;
 	this->fStart = 0;
 
-	rlc_tokeniser_skip(this);
+	skip(this);
 }
 
 int rlc_tokeniser_read(
 	struct RlcTokeniser * this,
 	struct RlcToken * token)
 {
-	token->
+	RLC_DASSERT(this != NULL);
+	RLC_DASSERT(token != NULL);
+
+	token->content.start = this->fStart = this->fIndex;
+
+	if(!identifier(this)
+	&& !string(this)
+	&& !character(this)
+	&& !number(this)
+	&& !op(this))
+		tok_error(this, "unexpected character");
+
+	token->content.length = this->fIndex - this->fStart;
+	token->type = this->fType;
+
+	skip(this);
+	return look(this) != '\0';
 }
 
 

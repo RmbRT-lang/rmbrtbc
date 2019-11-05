@@ -111,9 +111,6 @@ struct RlcParsedMemberVariable
 {
 	RLC_DERIVE(struct,RlcParsedMember);
 	RLC_DERIVE(struct,RlcParsedVariable);
-
-	/** Whether this variable has a modifier like `static` or `isolated`. */
-	enum RlcMemberAttribute fAttribute;
 };
 
 /** Creates a parsed member variable.
@@ -122,9 +119,7 @@ struct RlcParsedMemberVariable
 	@dassert @nonnull */
 void rlc_parsed_member_variable_create(
 	struct RlcParsedMemberVariable * this,
-	enum RlcVisibility visibility,
-	enum RlcMemberAttribute attribute,
-	size_t start_index);
+	struct RlcParsedMemberCommon const * member);
 
 /** Destroys a parsed member variable.
 @memberof RlcParsedMemberVariable
@@ -144,8 +139,8 @@ void rlc_parsed_member_variable_destroy(
 	Whether the parsing was successful. */
 int rlc_parsed_member_variable_parse(
 	struct RlcParsedMemberVariable * out,
-	enum RlcVisibility * default_visibility,
-	struct RlcParser * parser);
+	struct RlcParser * parser,
+	struct RlcParsedMemberCommon const * member);
 
 #ifdef __cplusplus
 }

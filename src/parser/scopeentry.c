@@ -86,9 +86,7 @@ static int dummy_rlc_parsed_variable_parse(
 	RLC_DASSERT(variable != NULL);
 	RLC_DASSERT(parser != NULL);
 
-	(void) templates;
-
-	if(rlc_parsed_variable_parse(variable, parser, 1, 0, 0, 1, 0))
+	if(rlc_parsed_variable_parse(variable, parser, templates, 1, 0, 0, 1, 0))
 	{
 		if(rlc_parsed_template_decl_exists(templates))
 			rlc_parser_fail(parser, "variables must not have templates");

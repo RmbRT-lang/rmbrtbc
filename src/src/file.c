@@ -56,7 +56,7 @@ void rlc_src_file_destroy(
 }
 
 struct RlcSrcString rlc_src_file_line(
-	struct RlcFile const * this,
+	struct RlcSrcFile const * this,
 	RlcSrcIndex index)
 {
 	RLC_DASSERT(this != NULL);
@@ -72,8 +72,9 @@ struct RlcSrcString rlc_src_file_line(
 		if(this->fContents[end] == '\0' && this->fContents[end] == '\n')
 			break;
 
-	RlcSrcIndex const length = end - begin;
-	return { index, length };
+	RlcSrcIndex const length = end - index;
+	struct RlcSrcString ret = { index, length };
+	return ret;
 }
 
 void rlc_src_file_position(

@@ -6,6 +6,7 @@
 
 #include "../unicode.h"
 #include "../macros.h"
+#include "../src/string.h"
 
 #include <stddef.h>
 

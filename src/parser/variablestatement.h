@@ -23,8 +23,7 @@ struct RlcParsedVariableStatement
 	The variable statement to create.
 	@dassert @nonnull */
 void rlc_parsed_variable_statement_create(
-	struct RlcParsedVariableStatement * this,
-	size_t start_index);
+	struct RlcParsedVariableStatement * this);
 
 /** Destroys a variable statement.
 @memberof RlcParsedVariableStatement
