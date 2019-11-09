@@ -164,7 +164,8 @@ static _Nodiscard int parse_while_head(
 		1,
 		kRlcTokParentheseOpen);
 
-	if((out->fIsVariableCondition =
+	if(!out->fIsPostCondition
+	&& (out->fIsVariableCondition =
 		rlc_parsed_variable_parse(
 			&out->fCondition.fVariable,
 			parser,
