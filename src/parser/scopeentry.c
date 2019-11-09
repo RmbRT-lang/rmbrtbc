@@ -88,6 +88,9 @@ static int dummy_rlc_parsed_variable_parse(
 
 	if(rlc_parsed_variable_parse(variable, parser, templates, 1, 0, 0, 1, 0))
 	{
+		struct RlcParserTracer tracer;
+		rlc_parser_trace(parser, "variable statement", &tracer);
+
 		if(rlc_parsed_template_decl_exists(templates))
 			rlc_parser_fail(parser, "variables must not have templates");
 
@@ -96,6 +99,7 @@ static int dummy_rlc_parsed_variable_parse(
 			NULL,
 			1,
 			kRlcTokSemicolon);
+		rlc_parser_untrace(parser, &tracer);
 		return 1;
 	}
 

@@ -47,6 +47,12 @@ void rlc_parsed_string_expression_destroy(
 
 	rlc_parsed_expression_destroy_base(
 		RLC_BASE_CAST(this, RlcParsedExpression));
+
+	if(this->fTokens)
+	{
+		rlc_free((void**)&this->fTokens);
+		this->fTokenCount = 0;
+	}
 }
 
 static int consume_string_literal(
@@ -57,12 +63,7 @@ static int consume_string_literal(
 	RLC_DASSERT(token != NULL);
 
 	static enum RlcTokenType const k_types[] = {
-		kRlcTokString,
-		kRlcTokUtf8String,
-		kRlcTokUtf16leString,
-		kRlcTokUtf16beString,
-		kRlcTokUtf32leString,
-		kRlcTokUtf32beString
+		kRlcTokStringLiteral
 	};
 
 	for(size_t i = _countof(k_types); i--;)

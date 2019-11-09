@@ -7,6 +7,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 static _Noreturn void tok_error(
 	struct RlcTokeniser const * this,
@@ -31,11 +32,12 @@ static int string(
 	struct RlcTokeniser * this);
 
 static char look(
-	struct RlcTokeniser * this);
+	struct RlcTokeniser const * this);
 static char ahead(
-	struct RlcTokeniser * this);
+	struct RlcTokeniser const * this,
+	size_t n);
 static int eof(
-	struct RlcTokeniser * this);
+	struct RlcTokeniser const * this);
 static int take_str(
 	struct RlcTokeniser * this,
 	char const * string);
@@ -82,623 +84,425 @@ int rlc_tokeniser_read(
 	return look(this) != '\0';
 }
 
+void tok_error(
+	struct RlcTokeniser const * this,
+	char const * message)
+{
+	struct RlcSrcPosition pos;
+	rlc_src_file_position(this->fSource, &pos, this->fIndex);
+
+	fprintf(stderr, "%s:%u:%u: error: %s\n",
+		this->fSource->fName,
+		pos.line,
+		pos.column,
+		message);
+
+	if(this->fStart != this->fIndex)
+	{
+		rlc_src_file_position(this->fSource, &pos, this->fStart);
+		fprintf(stderr, "%s:%u:%u: error: caused here.\n",
+			this->fSource->fName,
+			pos.line,
+			pos.column);
+	}
+
+	exit(EXIT_FAILURE);
+}
+
+void skip(
+	struct RlcTokeniser * this)
+{
+	RLC_DASSERT(this != NULL);
+
+	while(skip_whitespace(this) || skip_comment(this));
+}
+
+int skip_whitespace(
+	struct RlcTokeniser * this)
+{
+	int skipped = 0;
+	char c;
+	while((c = look(this)))
+	{
+		static char const k_chars[] = " \t\r\n\v";
+		for(size_t i = 0; i < sizeof(k_chars)-1; i++)
+		{
+			if(k_chars[i] == c)
+			{
+				skipped = 1;
+				ignore(this, 1);
+				continue;
+			}
+		}
+		break;
+	}
+	return skipped;
+}
+
+int skip_comment(
+	struct RlcTokeniser * this)
+{
+	if(take_str(this, "//"))
+	{
+		char c;
+		while((c = take(this)))
+			if(c == '\n')
+				break;
+		return 1;
+	} else if(take_str(this, "(/"))
+	{
+		while(!eof(this))
+		{
+			if(take_str(this, "/)"))
+				return 1;
+			else
+				ignore(this, 1);
+		}
+		tok_error(this, "unterminated block comment");
+	} else
+		return 0;
+}
+
 
 struct {
 	char const * str;
 	enum RlcTokenType kw;
 } const s_keywords [] = {
 	// keywords.
-	{"if", kRlcTokIf },
-	{"else", kRlcTokElse },
-	{"do", kRlcTokDo },
-	{"while", kRlcTokWhile },
-	{"for", kRlcTokFor },
-	{"continue", kRlcTokContinue },
-	{"break", kRlcTokBreak },
-	{"return", kRlcTokReturn },
-	{"switch", kRlcTokSwitch },
-	{"case", kRlcTokCase },
-	{"default", kRlcTokDefault },
-	{"inline", kRlcTokInline },
-	{"void", kRlcTokVoid },
-	{"namespace", kRlcTokNamespace },
-	{"class", kRlcTokClass },
-	{"struct", kRlcTokStruct },
-	{"rawtype", kRlcTokRawtype },
-	{"union", kRlcTokUnion },
-	{"enum", kRlcTokEnum},
-	{"public", kRlcTokPublic },
-	{"protected", kRlcTokProtected },
-	{"private", kRlcTokPrivate },
-	{"asm", kRlcTokAsm },
-	{"static", kRlcTokStatic },
-	{"virtual", kRlcTokVirtual },
-	{"const", kRlcTokConst },
-	{"volatile", kRlcTokVolatile },
-	{"isolated", kRlcTokIsolated },
-	{"this", kRlcTokThis },
-	{"constructor", kRlcTokConstructor },
-	{"destructor", kRlcTokDestructor },
-	{"type", kRlcTokType },
-	{"number", kRlcTokNumber },
-	{"operator", kRlcTokOperator },
-	{"extern", kRlcTokExtern },
-	{"include", kRlcTokInclude },
-	{"sizeof", kRlcTokSizeof }
-}, s_operators [] = {
-	// operators
-	{ "+=", kRlcTokPlusEqual },
-	{ "++", kRlcTokDoublePlus },
-	{ "+", kRlcTokPlus },
+		{"break", kRlcTokBreak },
+		{"case", kRlcTokCase },
+		{"constructor", kRlcTokConstructor },
+		{"continue", kRlcTokContinue },
+		{"default", kRlcTokDefault },
+		{"destructor", kRlcTokDestructor },
+		{"do", kRlcTokDo },
+		{"else", kRlcTokElse },
+		{"enum", kRlcTokEnum},
+		{"extern", kRlcTokExtern },
+		{"for", kRlcTokFor },
+		{"if", kRlcTokIf },
+		{"include", kRlcTokInclude },
+		{"inline", kRlcTokInline },
+		{"isolated", kRlcTokIsolated },
+		{"namespace", kRlcTokNamespace },
+		{"number", kRlcTokNumber },
+		{"operator", kRlcTokOperator },
+		{"private", kRlcTokPrivate },
+		{"protected", kRlcTokProtected },
+		{"public", kRlcTokPublic },
+		{"return", kRlcTokReturn },
+		{"sizeof", kRlcTokSizeof },
+		{"static", kRlcTokStatic },
+		{"switch", kRlcTokSwitch },
+		{"this", kRlcTokThis },
+		{"type", kRlcTokType },
+		{"union", kRlcTokUnion },
+		{"virtual", kRlcTokVirtual },
+		{"void", kRlcTokVoid },
+		{"while", kRlcTokWhile },
+	}, s_operators [] = {
+		// operators
+		{ "+=", kRlcTokPlusEqual },
+		{ "++", kRlcTokDoublePlus },
+		{ "+", kRlcTokPlus },
 
-	{ "-=", kRlcTokMinusEqual },
-	{ "-:", kRlcTokMinusColon },
-	{ "--", kRlcTokDoubleMinus },
-	{ "->*", kRlcTokMinusGreaterAsterisk },
-	{ "->", kRlcTokMinusGreater },
-	{ "-", kRlcTokMinus },
+		{ "-=", kRlcTokMinusEqual },
+		{ "-:", kRlcTokMinusColon },
+		{ "--", kRlcTokDoubleMinus },
+		{ "->*", kRlcTokMinusGreaterAsterisk },
+		{ "->", kRlcTokMinusGreater },
+		{ "-", kRlcTokMinus },
 
-	{ "*=", kRlcTokAsteriskEqual },
-	{ "*", kRlcTokAsterisk },
+		{ "*=", kRlcTokAsteriskEqual },
+		{ "*", kRlcTokAsterisk },
 
-	{ "\\", kRlcTokBackslash },
+		{ "\\", kRlcTokBackslash },
 
-	{ "/=", kRlcTokForwardSlashEqual },
-	{ "/", kRlcTokForwardSlash },
+		{ "/=", kRlcTokForwardSlashEqual },
+		{ "/", kRlcTokForwardSlash },
 
-	{ "%=", kRlcTokPercentEqual },
-	{ "%", kRlcTokPercent },
+		{ "%=", kRlcTokPercentEqual },
+		{ "%", kRlcTokPercent },
 
-	{ "!=", kRlcTokExclamationMarkEqual },
-	{ "!:", kRlcTokExclamationMarkColon },
-	{ "!", kRlcTokExclamationMark },
+		{ "!=", kRlcTokExclamationMarkEqual },
+		{ "!:", kRlcTokExclamationMarkColon },
+		{ "!", kRlcTokExclamationMark },
 
-	{ "^=", kRlcTokCircumflexEqual },
-	{ "^", kRlcTokCircumflex },
+		{ "^=", kRlcTokCircumflexEqual },
+		{ "^", kRlcTokCircumflex },
 
-	{ "~:", kRlcTokTildeColon },
-	{ "~", kRlcTokTilde },
+		{ "~:", kRlcTokTildeColon },
+		{ "~", kRlcTokTilde },
 
-	{ "&&=", kRlcTokDoubleAndEqual },
-	{ "&&", kRlcTokDoubleAnd },
-	{ "&=", kRlcTokAndEqual },
-	{ "&", kRlcTokAnd },
+		{ "&&=", kRlcTokDoubleAndEqual },
+		{ "&&", kRlcTokDoubleAnd },
+		{ "&=", kRlcTokAndEqual },
+		{ "&", kRlcTokAnd },
 
-	{ "||=", kRlcTokDoublePipeEqual },
-	{ "||", kRlcTokDoublePipe },
-	{ "|=", kRlcTokPipeEqual },
-	{ "|", kRlcTokPipe },
+		{ "||=", kRlcTokDoublePipeEqual },
+		{ "||", kRlcTokDoublePipe },
+		{ "|=", kRlcTokPipeEqual },
+		{ "|", kRlcTokPipe },
 
-	{ "?", kRlcTokQuestionMark },
+		{ "?", kRlcTokQuestionMark },
 
-	{ "::=", kRlcTokDoubleColonEqual },
-	{ ":=", kRlcTokColonEqual },
-	{ "::", kRlcTokDoubleColon },
-	{ ":", kRlcTokColon },
-	{ "@@", kRlcTokDoubleAt },
-	{ "@", kRlcTokAt },
-	{ "...!", kRlcTokTripleDotExclamationMark },
-	{ "...", kRlcTokTripleDot },
-	{ ".*", kRlcTokDotAsterisk },
-	{ ".", kRlcTokDot },
-	{ ",", kRlcTokComma },
-	{ ";", kRlcTokSemicolon },
-	{ "==", kRlcTokDoubleEqual },
+		{ "::=", kRlcTokDoubleColonEqual },
+		{ ":=", kRlcTokColonEqual },
+		{ "::", kRlcTokDoubleColon },
+		{ ":", kRlcTokColon },
+		{ "@@", kRlcTokDoubleAt },
+		{ "@", kRlcTokAt },
+		{ "..!", kRlcTokDoubleDotExclamationMark },
+		{ "..?", kRlcTokDoubleDotQuestionMark },
+		{ ".*", kRlcTokDotAsterisk },
+		{ ".", kRlcTokDot },
+		{ ",", kRlcTokComma },
+		{ ";", kRlcTokSemicolon },
+		{ "==", kRlcTokDoubleEqual },
 
-	{ "[", kRlcTokBracketOpen },
-	{ "]", kRlcTokBracketClose },
-	{ "{", kRlcTokBraceOpen },
-	{ "}", kRlcTokBraceClose },
-	{ "(", kRlcTokParentheseOpen },
-	{ ")", kRlcTokParentheseClose },
+		{ "[", kRlcTokBracketOpen },
+		{ "]", kRlcTokBracketClose },
+		{ "{", kRlcTokBraceOpen },
+		{ "}", kRlcTokBraceClose },
+		{ "(", kRlcTokParentheseOpen },
+		{ ")", kRlcTokParentheseClose },
 
-	{ "<<<=", kRlcTokTripleLessEqual },
-	{ "<<<", kRlcTokTripleLess },
-	{ "<<=", kRlcTokDoubleLessEqual },
-	{ "<<", kRlcTokDoubleLess },
-	{ "<=", kRlcTokLessEqual },
-	{ "<", kRlcTokLess },
+		{ "<<<=", kRlcTokTripleLessEqual },
+		{ "<<<", kRlcTokTripleLess },
+		{ "<<=", kRlcTokDoubleLessEqual },
+		{ "<<", kRlcTokDoubleLess },
+		{ "<=", kRlcTokLessEqual },
+		{ "<", kRlcTokLess },
 
-	{ ">>>=", kRlcTokTripleGreaterEqual },
-	{ ">>>", kRlcTokTripleGreater },
-	{ ">>=", kRlcTokDoubleGreaterEqual },
-	{ ">>", kRlcTokDoubleGreater },
-	{ ">=", kRlcTokGreaterEqual },
-	{ ">", kRlcTokGreater },
+		{ ">>>=", kRlcTokTripleGreaterEqual },
+		{ ">>>", kRlcTokTripleGreater },
+		{ ">>=", kRlcTokDoubleGreaterEqual },
+		{ ">>", kRlcTokDoubleGreater },
+		{ ">=", kRlcTokGreaterEqual },
+		{ ">", kRlcTokGreater },
 
-	{ "$", kRlcTokDollar },
-	{ "#", kRlcTokHash },
+		{ "$", kRlcTokDollar },
+		{ "#", kRlcTokHash },
 };
 
-int rlc_match_string(
-	rlc_char_t const * src,
-	rlc_char_t const * to_match)
+static int is_identifier_start(char c)
 {
-	size_t len = rlc_strlen(to_match);
-	return rlc_strncmp(src, to_match, len);
+	return (c >= 'A' && c <= 'Z')
+		|| (c >= 'a' && c <= 'z')
+		|| (c == '_');
+}
+static int is_identifier_end(char c)
+{
+	return (c >= 'A' && c <= 'Z')
+		|| (c >= 'a' && c <= 'z')
+		|| (c >= '0' && c <= '9')
+		|| (c == '_');
 }
 
-enum RlcTokResult rlc_finish_token(
-	struct RlcToken * tok,
-	size_t begin,
-	size_t end,
-	enum RlcTokenType type)
+int identifier(
+	struct RlcTokeniser * this)
 {
-	tok->fBegin = begin;
-	tok->fLength = end - begin;
-	tok->fType = type;
-
-	return kRlcTokResultOk;
-}
-
-int rlc_floating_type(
-	rlc_char_t suffix,
-	enum RlcTokenType * out)
-{
-	switch(suffix)
-	{
-	case 'h':
-	case 'H':
-		return (*out = kRlcTokBin16), 1;
-	case 's':
-	case 'S':
-		return (*out = kRlcTokBin32), 1;
-	case 'd':
-	case 'D':
-		return (*out = kRlcTokBin64), 1;
-	case 'q':
-	case 'Q':
-		return (*out = kRlcTokBin128), 1;
-	default:
+	if(!is_identifier_start(look(this)))
 		return 0;
-	}
-}
 
-enum RlcTokResult rlc_parse_character(
-	rlc_char_t const * src,
-	size_t index,
-	size_t * length)
-{
-	switch(src[index])
-	{
-	case '\0':
-	case '\n':
-		return kRlcTokResultUnclosedLiteral;
-	case '\\':
+	do ignore(this, 1); while(is_identifier_end(look(this)));
+
+	struct RlcSrcString str;
+	str.start = this->fStart;
+	str.length = this->fIndex - this->fStart;
+
+	for(size_t i = 0; i < _countof(s_keywords); i++)
+		if(0 == rlc_src_string_cmp_cstr(this->fSource, &str, s_keywords[i].str))
 		{
-			switch(src[index+1])
-			{
-			case 'x':
-			case 'X':
-				{
-					if(!rlc_is_hex(src[index+2]) || !rlc_is_hex(src[index+3]))
-						return kRlcTokResultInvalidHexEscape;
-					else
-						return
-							(*length = 3),
-							kRlcTokResultOk;
-				} break;
-			case 'o':
-			case 'O':
-				{
-					if(!rlc_is_octal(src[index+2])
-					|| !rlc_is_octal(src[index+3])
-					|| !rlc_is_octal(src[index+4])
-					|| src[index+2] > '3')
-						return kRlcTokResultInvalidOctalEscape;
-					else
-						return
-							(*length = 4),
-							kRlcTokResultOk;
-				} break;
-			case 'd':
-			case 'D':
-				{
-					if(!rlc_is_decimal(src[index+2])
-					|| !rlc_is_decimal(src[index+3])
-					|| !rlc_is_decimal(src[index+4])
-					|| src[index+2] > '2'
-					|| (src[index+2] == '2' && src[index+3] >'5')
-					|| (src[index+2] == '2' && src[index+3] == '5' && src[index+4] > '5'))
-						return kRlcTokResultInvalidDecimalEscape;
-					else
-						return
-							(*length = 4),
-							kRlcTokResultOk;
-				} break;
-			case '\\':
-			case 'n':
-			case 'r':
-			case 't':
-			case 'f':
-			case 'v':
-			case 'b':
-			case 'a':
-			case '"':
-			case '\'':
-			case '0':
-				{
-					return
-						(*length = 2),
-						kRlcTokResultOk;
-				} break;
-			default:
-				{
-					return kRlcTokResultInvalidEscape;
-				} break;
-			}
-		} break;
-	default:
-		{
-			return (*length = 1), kRlcTokResultOk;
-		} break;
-	}
-}
-
-enum RlcTokResult rlc_next_token(
-	rlc_char_t const * src,
-	size_t offset,
-	struct RlcToken * out,
-	size_t * error_index)
-{
-	size_t index = offset;
-
-	if(!src[index])
-		return kRlcTokResultEos;
-
-
-	enum RlcTokenType unicode_modifier;
-	int unicode_modifier_found = 0;
-
-	if(src[index] == '/')
-	{
-		if(src[index+1] == '*')
-		{
-			index += 2;
-			while(src[index])
-			{
-				if(src[index] == '*'
-				&& src[index+1] == '/')
-				{
-					return rlc_finish_token(out, offset, index + 2, kRlcTokComment);
-				}
-				else
-					++index;
-			}
-			return (*error_index = offset), kRlcTokResultUnclosedComment;
-		} else if(src[index+1] == '/')
-		{
-			index += 2;
-
-			while(src[index] && src[index] != '\n')
-				++index;
-
-			return rlc_finish_token(out, offset, index+1, kRlcTokComment);
+			this->fType = s_keywords[i].kw;
+			return 1;
 		}
-	}
 
+	this->fType = kRlcTokIdentifier;
+	return 1;
+}
 
-	static struct {
-		rlc_char_t const match[5];
-		enum RlcTokenType tokentype;
-		int skip;
-	} const utf_literals[] = {
-		// string literals.
-		{{'8','\"',0,0,0}, kRlcTokUtf8String, 1},
-		{{'1','6','\"',0,0}, kRlcTokUtf16String, 2},
-		{{'3','2','\"',0,0}, kRlcTokUtf32String, 2},
+inline static int is_decimal(char c)
+{
+	return (unsigned char)(c -'0') < 10;
+}
+inline static int is_octal(char c)
+{
+	return (unsigned char)(c -'0') < 8;
+}
+inline static int is_binary(char c)
+{
+	return (unsigned char)(c -'0') < 2;
+}
+static int is_hexadecimal(char c)
+{
+	return (unsigned char)(c - 'a') < 6
+		|| (unsigned char)(c - 'A') < 6
+		|| is_decimal(c);
+}
 
-		{{'1','6','L','\"',0}, kRlcTokUtf16leString, 3},
-		{{'1','6','l','\"',0}, kRlcTokUtf16leString, 3},
-		{{'1','6','B','\"',0}, kRlcTokUtf16beString, 3},
-		{{'1','6','b','\"',0}, kRlcTokUtf16beString, 3},
+int number(
+	struct RlcTokeniser * this)
+{
+	char c = look(this);
+	if(c >= '1' && c <= '9')
+	{
+		do ignore(this, 1); while(is_decimal(look(this)));
+	} else if(c == '0')
+	{
+		ignore(this, 1);
 
-		{{'3','2','L','\"',0}, kRlcTokUtf32leString, 3},
-		{{'3','2','l','\"',0}, kRlcTokUtf32leString, 3},
-		{{'3','2','B','\"',0}, kRlcTokUtf32beString, 3},
-		{{'3','2','b','\"',0}, kRlcTokUtf32beString, 3},
+		switch(look(this))
+		{
+		case 'x':
+		case 'X':
+			{
+				do ignore(this, 1); while(is_hexadecimal(look(this)));
+			} break;
+		case 'b':
+		case 'B':
+			{
+				do ignore(this, 1); while(is_binary(look(this)));
+			} break;
+		default:
+			while(is_octal(look(this))) ignore(this, 1);
+		}
+	} else
+		return 0;
 
-		// char literals.
-		{{'8','\'',0,0,0}, kRlcTokUtf8CharNumber, 1},
-		{{'1','6','\'',0,0}, kRlcTokUtf16CharNumber, 2},
-		{{'3','2','\'',0,0}, kRlcTokUtf32CharNumber, 2},
+	this->fType = kRlcTokNumberLiteral;
+	return 1;
+}
 
-		{{'1','6','L','\'',0}, kRlcTokUtf16leCharNumber, 3},
-		{{'1','6','l','\'',0}, kRlcTokUtf16leCharNumber, 3},
-		{{'1','6','B','\'',0}, kRlcTokUtf16beCharNumber, 3},
-		{{'1','6','b','\'',0}, kRlcTokUtf16beCharNumber, 3},
+int op(
+	struct RlcTokeniser * this)
+{
+	for(size_t i = 0; i < _countof(s_operators); i++)
+		if(take_str(this, s_operators[i].str))
+		{
+			this->fType = s_operators[i].kw;
+			return 1;
+		}
+	return 0;
+}
 
-		{{'3','2','L','\'',0}, kRlcTokUtf32leCharNumber, 3},
-		{{'3','2','l','\'',0}, kRlcTokUtf32leCharNumber, 3},
-		{{'3','2','b','\'',0}, kRlcTokUtf32beCharNumber, 3},
-		{{'3','2','B','\'',0}, kRlcTokUtf32beCharNumber, 3},
+int character(
+	struct RlcTokeniser * this)
+{
+	static char const * k_start[] =
+	{
+		"32L\'", "32B\'", "32\'"
+		"16L\'", "16B\'", "16\'",
+		"32l\'", "32b\'",
+		"16l\'", "16b\'",
+		"8\'",
+		"\'"
 	};
 
-
-	for(int i = 0; i<_countof(utf_literals); i++)
-	{
-		if(rlc_match_string(src+index, utf_literals[i].match) == 0)
+	for(size_t i = 0; i < _countof(k_start); i++)
+		if(take_str(this, k_start[i]))
 		{
-			unicode_modifier = utf_literals[i].tokentype;
-			unicode_modifier_found = 1;
-			index += utf_literals[i].skip;
-			break;
+			char c;
+			while((c = take(this)))
+			{
+				if(c == '\'')
+				{
+					this->fType = kRlcTokCharacterLiteral;
+					return 1;
+				}
+				else if(c == '\\')
+					take(this);
+				else if(c == '\n')
+					tok_error(this, "forbidden newline in character literal");
+			}
+			tok_error(this, "unterminated character literal");
 		}
-	}
-
-	switch(src[index])
-	{
-	case '"':
-		{
-			++index;
-			while(src[index] != '"')
-			{
-				size_t length;
-				enum RlcTokResult result = rlc_parse_character(
-					src,
-					index,
-					&length);
-
-				if(result != kRlcTokResultOk)
-					return (*error_index = index), result;
-				else
-					index += length;
-			}
-			++index;
-
-			return rlc_finish_token(out, offset, index,
-				unicode_modifier_found
-					? unicode_modifier
-					: kRlcTokString);
-		} break;
-	case '\'':
-		{
-			if(src[++index] == '\'')
-				return kRlcTokResultEmptyCharLiteral;
-			while(src[index] != '\'')
-			{
-				size_t length;
-				enum RlcTokResult result = rlc_parse_character(
-					src,
-					index,
-					&length);
-
-				if(result != kRlcTokResultOk)
-					return (*error_index = index), result;
-				else
-					index += length;
-			}
-
-			++index;
-
-			return rlc_finish_token(out, offset, index,
-				unicode_modifier_found
-				? unicode_modifier
-				: kRlcTokCharNumber);
-		} break;
-	default:
-		{
-			if(rlc_is_whitespace(src[index]))
-			{
-				while(rlc_is_whitespace(src[++index]));
-				return rlc_finish_token(out, offset, index, kRlcTokWhitespace);
-			} else if(rlc_is_ident_first_char(src[index]))
-			{
-				while(rlc_is_ident_last_char(src[++index]));
-
-				for(int i = 0; i < _countof(s_keywords); i++)
-				{
-					int len_to_cmp = strlen(s_keywords[i].str);
-					if(index-offset > len_to_cmp)
-						len_to_cmp = index-offset;
-
-					if(!rlc_strncmp_utf8(src+offset, s_keywords[i].str, len_to_cmp))
-					{
-						return rlc_finish_token(out, offset, index, s_keywords[i].kw);
-					}
-				}
-
-				return rlc_finish_token(out, offset, index, kRlcTokIdentifier);
-			} else if(rlc_is_decimal(src[index]))
-			{
-				if(src[index] == '0')
-				{
-					++index;
-					if(src[index] == 'x' || src[index] == 'X')
-					{
-						if(!rlc_is_hex(src[++index]))
-							return (*error_index = index), kRlcTokResultInvalidHexDigit;
-						while(rlc_is_hex(src[++index]));
-
-						if(src[index] == '.')
-						{
-							while(rlc_is_hex(src[++index]));
-							enum RlcTokenType type;
-							if(src[index == '\''] && ++index
-							&& rlc_floating_type(src[index], &type) && ++index)
-								if(rlc_is_ident_first_char(src[index]))
-									return (*error_index = index), kRlcTokResultInvalidHexDigit;
-								else
-									return rlc_finish_token(out, offset, index, type);
-							else
-								return (*error_index = index),
-									kRlcTokResultInvalidFloatingSpecifier;
-						}
-
-						if(rlc_is_ident_first_char(src[index]))
-							return (*error_index = index), kRlcTokResultInvalidHexDigit;
-						else
-							return rlc_finish_token(out, offset, index, kRlcTokHexNumber);
-					} else if(rlc_is_octal(src[index]))
-					{
-						while(rlc_is_octal(src[++index]));
-						if(rlc_is_decimal(src[index]) || rlc_is_ident_first_char(src[index]))
-							return (*error_index = index), kRlcTokResultInvalidOctalDigit;
-						else if(src[index] == '.')
-						{
-							while(rlc_is_octal(src[++index]));
-							enum RlcTokenType type;
-							if(src[index == '\''] && ++index
-							&& rlc_floating_type(src[index], &type) && ++index)
-								if(rlc_is_ident_first_char(src[index]))
-									return (*error_index = index), kRlcTokResultInvalidHexDigit;
-								else
-									return rlc_finish_token(out, offset, index, type);
-							else
-								return (*error_index = index),
-									kRlcTokResultInvalidFloatingSpecifier;
-						}
-						else
-							return rlc_finish_token(out, offset, index, kRlcTokOctalNumber);
-					} else if(rlc_is_ident_first_char(src[index]))
-						return (*error_index = index),
-							kRlcTokResultInvalidOctalDigit;
-					else if(src[index] == '.')
-					{
-						while(rlc_is_decimal(src[++index]));
-						enum RlcTokenType type;
-						if(src[index == '\''] && ++index
-						&& rlc_floating_type(src[index], &type) && ++index)
-							if(rlc_is_ident_first_char(src[index]))
-								return (*error_index = index), kRlcTokResultInvalidHexDigit;
-							else
-								return rlc_finish_token(out, offset, index, type);
-						else
-							return (*error_index = index),
-								kRlcTokResultInvalidFloatingSpecifier;
-					}
-					else
-						return rlc_finish_token(out, offset, index, kRlcTok0);
-				} else
-				{
-					while(rlc_is_decimal(src[index]))
-						index++;
-					if(rlc_is_ident_first_char(src[index]))
-						return (*error_index = index), kRlcTokResultInvalidDecimalDigit;
-					else if(src[index] == '.')
-					{
-						while(rlc_is_decimal(src[++index]));
-						enum RlcTokenType type;
-						if(src[index == '\''] && ++index
-						&& rlc_floating_type(src[index], &type) && ++index)
-							if(rlc_is_ident_first_char(src[index]))
-								return (*error_index = index), kRlcTokResultInvalidHexDigit;
-							else
-								return rlc_finish_token(out, offset, index, type);
-						else
-							return (*error_index = index),
-								kRlcTokResultInvalidFloatingSpecifier;
-					} else
-						return rlc_finish_token(out, offset, index, kRlcTokDecimalNumber);
-				}
-			} else
-			{
-				for(int i = 0; i < _countof(s_operators); i++)
-				{
-					int len_to_cmp = strlen(s_operators[i].str);
-
-					if(!rlc_strncmp_utf8(src+offset, s_operators[i].str, len_to_cmp))
-						return rlc_finish_token(out, offset, index+len_to_cmp, s_operators[i].kw);
-				}
-
-				return (*error_index = index), kRlcTokResultUnexpected;
-			}
-		} break;
-	}
+	return 0;
 }
 
-
-static size_t get_line_number(
-	rlc_char_t const * src,
-	size_t const index,
-	size_t * col,
-	size_t * line_len)
+int string(
+	struct RlcTokeniser * this)
 {
-	size_t line = 0;
-	size_t lastline = 0;
-	for(size_t i = 0; i < index; i++)
+	static char const * k_start[] =
 	{
-		if(src[i] == '\n')
+		"32L\"", "32B\"", "32\""
+		"16L\"", "16B\"", "16\"",
+		"32l\"", "32b\"",
+		"16l\"", "16b\"",
+		"8\"",
+		"\""
+	};
+
+	for(size_t i = 0; i < _countof(k_start); i++)
+		if(take_str(this, k_start[i]))
 		{
-			++line;
-			lastline = i+1;
+			char c;
+			while((c = take(this)))
+			{
+				if(c == '"')
+				{
+					this->fType = kRlcTokStringLiteral;
+					return 1;
+				}
+				else if(c == '\\')
+					ignore(this, 1);
+				else if(c == '\n')
+					tok_error(this, "forbidden newline in string literal");
+			}
+			tok_error(this, "unterminated string literal");
 		}
-	}
+
+	return 0;
+}
+char ahead(
+	struct RlcTokeniser const * this,
+	size_t n)
+{
+	if(this->fIndex + n < this->fSource->fContentLength)
+		return this->fSource->fContents[this->fIndex+n];
+	else
+		return '\0';
+}
+
+int eof(
+	struct RlcTokeniser const * this)
+{
+	return this->fIndex >= this->fSource->fContentLength;
+}
+
+char look(
+	struct RlcTokeniser const * this)
+{
+	return ahead(this, 0);
+}
+
+int take_str(
+	struct RlcTokeniser * this,
+	char const * string)
+{
 	size_t i;
-	for(i = lastline; src[i] && src[i] != '\n'; i++) { ; }
-
-	if(src[i] == '\n')
-		--i;
-
-	* col = index - lastline + 1;
-	* line_len = i - lastline + 1;
-	return line+1;
-}
-
-enum RlcTokResult rlc_tokenise(
-	rlc_char_t const * src,
-	struct RlcFile * out,
-	int skip_whitespaces,
-	int skip_comments,
-	size_t * error_index)
-{
-
-	size_t const len = src ? rlc_strlen(src) : 0;
-
-	out->fTokenCount = 0;
-	out->fTokens = NULL;
-
-	if(!len)
-		return kRlcTokResultOk;
-
-	size_t index = 0;
-	struct RlcToken tok;
-	enum RlcTokResult result;
-	while(index < len)
+	for(i = 0; string[i]; i++)
 	{
-		tok.fFile = out;
-		if((result=rlc_next_token(src, index, &tok, error_index)) == kRlcTokResultOk)
-		{
-			if(!(tok.fType == kRlcTokWhitespace && skip_whitespaces)
-			&& !(tok.fType == kRlcTokComment && skip_comments))
-			{
-				rlc_realloc((void**)&out->fTokens, ++out->fTokenCount * sizeof(struct RlcToken));
-				out->fTokens[out->fTokenCount-1] = tok;
-			}
-			index += tok.fLength;
-		}
-		else
-		{
-			size_t col;
-			size_t len;
-			size_t line = get_line_number(
-				src,
-				*error_index,
-				&col,
-				&len);
-
-			rlc_char_t * content = NULL;
-			rlc_malloc(
-				(void**) &content,
-				sizeof(rlc_char_t) * len + 1);
-
-			memcpy(content, src + (*error_index - col + 1), sizeof(rlc_char_t) * len);
-			content[len] = '\0';
-
-			rlc_report_lexical_error(
-				out->fName,
-				line,
-				col,
-				content,
-				result);
-
-			if(out->fTokens)
-				rlc_free((void**)&out->fTokens);
-			out->fTokenCount = 0;
-
-			return result;
-		}
+		if(string[i] != ahead(this, i))
+			return 0;
 	}
 
-	return kRlcTokResultOk;
+	ignore(this, i);
+	return 1;
+}
+
+char take(
+	struct RlcTokeniser * this)
+{
+	char c = look(this);
+	if(c) ignore(this, 1);
+	return c;
+}
+
+void ignore(
+	struct RlcTokeniser * this,
+	RlcSrcIndex n)
+{
+	this->fIndex += n;
+	RLC_DASSERT(this->fIndex <= this->fSource->fContentLength);
 }

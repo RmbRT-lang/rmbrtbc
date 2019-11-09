@@ -34,10 +34,14 @@ int rlc_parsed_namespace_parse(
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
 
-	if(!rlc_parser_is_ahead(
+	if(!rlc_parser_consume(
 		parser,
+		NULL,
 		kRlcTokDoubleColon))
 		return 0;
+
+	struct RlcParserTracer tracer;
+	rlc_parser_trace(parser, "namespace", &tracer);
 
 	if(rlc_parsed_template_decl_exists(templates))
 		rlc_parser_fail(parser, "namespaces must not have template declarations");
@@ -91,5 +95,7 @@ int rlc_parsed_namespace_parse(
 			1,
 			kRlcTokBraceClose);
 	}
+
+	rlc_parser_untrace(parser, &tracer);
 	return 1;
 }

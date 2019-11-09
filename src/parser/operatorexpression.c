@@ -57,8 +57,8 @@ const k_unary[] = {
 	{ kRlcTokAsterisk, kDereference },
 	{ kRlcTokDoublePlus, kPreIncrement },
 	{ kRlcTokDoubleMinus, kPreDecrement },
-	{ kRlcTokTripleDotExclamationMark, kExpectDynamic },
-	{ kRlcTokTripleDot, kMaybeDynamic },
+	{ kRlcTokDoubleDotExclamationMark, kExpectDynamic },
+	{ kRlcTokDoubleDotQuestionMark, kMaybeDynamic },
 	{ kRlcTokAt, kAsync },
 	{ kRlcTokDoubleAt, kFullAsync }
 },

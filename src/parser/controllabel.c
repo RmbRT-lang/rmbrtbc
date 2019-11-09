@@ -19,7 +19,7 @@ void rlc_control_label_parse(
 		parser,
 		&out->fLabel,
 		2,
-		kRlcTokIdentifier, kRlcTokString);
+		kRlcTokIdentifier, kRlcTokStringLiteral);
 
 	rlc_parser_expect(
 		parser,

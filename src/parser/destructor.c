@@ -41,13 +41,14 @@ int rlc_parsed_destructor_parse(
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
 
-	rlc_parsed_destructor_create(out, member);
 
 	if(!rlc_parser_consume(
 		parser,
 		NULL,
 		kRlcTokDestructor))
 		return 0;
+
+	rlc_parsed_destructor_create(out, member);
 
 	out->fIsInline = rlc_parser_consume(
 		parser,

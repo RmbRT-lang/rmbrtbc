@@ -58,7 +58,7 @@ char const * rlc_src_string_cstr(
 	@dassert @nonnull
 @return
 	The source string's end. */
-inline RlcSrcIndex rlc_src_string_end(
+static inline RlcSrcIndex rlc_src_string_end(
 	struct RlcSrcString const * this);
 
 #include "string.inl"

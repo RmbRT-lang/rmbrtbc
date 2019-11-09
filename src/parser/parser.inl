@@ -27,7 +27,7 @@ struct RlcToken const * rlc_parser_ahead(
 	struct RlcParser const * this)
 {
 	RLC_DASSERT(this != NULL);
-	RLC_DASSERT(!rlc_parser_ahead_eof(this));
+	RLC_DASSERT(this->fLookaheadSize == 2);
 
 	return &this->fLookahead[this->fToken ^ 1];
 }

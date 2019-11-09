@@ -87,7 +87,7 @@ unsigned rlc_character_length(rlc_utf8_t character)
 		return 3;
 	else if(rlc_is_utf8_group_4_start(character))
 		return 4;
-	else RLC_DASSERT(!"invalid utf-8 character!");
+	else RLC_ASSERT(!"invalid utf-8 character!");
 }
 
 int rlc_utf8_char_to_utf32_char(
@@ -196,6 +196,7 @@ int rlc_strcmp_utf8(
 
 		b += len;
 	}
+	return b[i] ? -i : i;
 }
 
 int rlc_strncmp(

@@ -35,7 +35,7 @@ extern "C" {
 	The line.
 @param[in] function:
 	The function. */
-void rlc_assertion_failure(
+_Noreturn void rlc_assertion_failure(
 	char const * expression,
 	char const * file,
 	int line,

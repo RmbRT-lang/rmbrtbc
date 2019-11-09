@@ -186,6 +186,8 @@ struct RlcTypeModifier const * rlc_parsed_type_name_top_modifier(
 /** A function signature. */
 struct RlcParsedFunctionSignature
 {
+	/** Whether the function is a closure. */
+	int fIsClosure;
 	/** Whether the function is asynchronous. */
 	int fIsAsync;
 	/** The argument types. */

@@ -113,9 +113,10 @@ _Nodiscard int rlc_parsed_member_common_parse(
 	struct RlcParser * parser);
 
 /** Parses a visibility modifier. */
-enum RlcVisibility rlc_visibility_parse(
-	enum RlcVisibility * default_visibility,
-	struct RlcParser * parser);
+_Nodiscard int rlc_visibility_parse(
+	enum RlcVisibility * visibility,
+	struct RlcParser * parser,
+	enum RlcVisibility default_visibility);
 
 /** Creates a member.
 @memberof RlcParsedMember

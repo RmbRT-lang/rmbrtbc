@@ -139,13 +139,83 @@ enum RlcMemberAttribute rlc_member_attribute_parse(
 	}
 }
 
-enum RlcVisibility rlc_visibility_parse(
+void rlc_parsed_member_common_create(
+	struct RlcParsedMemberCommon * this,
+	enum RlcVisibility default_visibility)
+{
+	RLC_DASSERT(this != NULL);
+	RLC_DASSERT(RLC_IN_ENUM(default_visibility, RlcVisibility));
+
+	this->visibility = default_visibility;
+	this->default_visibility = default_visibility;
+	this->attribute = kRlcMemberAttributeNone;
+	rlc_parsed_template_decl_create(&this->templates);
+}
+
+void rlc_visibility_parse_default(
 	enum RlcVisibility * default_visibility,
 	struct RlcParser * parser)
 {
 	RLC_DASSERT(default_visibility != NULL);
 	RLC_DASSERT(parser != NULL);
 
+continue_outer:
+	while(rlc_parser_is_ahead(parser, kRlcTokColon))
+	{
+		static struct {
+			enum RlcTokenType fToken;
+			enum RlcVisibility fVisibility;
+		} const k_lookup[] = {
+			{kRlcTokPrivate, kRlcVisibilityPrivate},
+			{kRlcTokProtected, kRlcVisibilityProtected},
+			{kRlcTokPublic, kRlcVisibilityPublic}
+		};
+
+		for(size_t i = 0; i < _countof(k_lookup); i++)
+		{
+			if(rlc_parser_consume(
+				parser,
+				NULL,
+				k_lookup[i].fToken))
+			{
+				*default_visibility = k_lookup[i].fVisibility;
+				rlc_parser_expect(
+					parser,
+					NULL,
+					1,
+					kRlcTokColon);
+				goto continue_outer;
+			}
+		}
+		return;
+	}
+}
+
+int rlc_parsed_member_common_parse(
+	struct RlcParsedMemberCommon * out,
+	struct RlcParser * parser)
+{
+	RLC_DASSERT(out != NULL);
+	RLC_DASSERT(parser != NULL);
+
+	rlc_visibility_parse_default(&out->default_visibility, parser);
+	rlc_parsed_template_decl_parse(&out->templates, parser);
+	int vis = rlc_visibility_parse(&out->visibility, parser, out->default_visibility);
+	out->attribute = rlc_member_attribute_parse(parser);
+
+	return rlc_parsed_template_decl_exists(&out->templates)
+		|| vis
+		|| out->attribute != kRlcMemberAttributeNone;
+}
+
+
+int rlc_visibility_parse(
+	enum RlcVisibility * visibility,
+	struct RlcParser * parser,
+	enum RlcVisibility default_visibility)
+{
+	RLC_DASSERT(visibility != NULL);
+	RLC_DASSERT(parser != NULL);
 
 	static struct {
 		enum RlcTokenType fToken;
@@ -156,10 +226,6 @@ enum RlcVisibility rlc_visibility_parse(
 		{kRlcTokPublic, kRlcVisibilityPublic}
 	};
 
-	enum RlcVisibility ret = *default_visibility;
-
-	// parse (Modifier ":")* Modifier?
-accept_once_more:
 	for(size_t i = 0; i < _countof(k_lookup); i++)
 	{
 		if(rlc_parser_consume(
@@ -167,21 +233,14 @@ accept_once_more:
 			NULL,
 			k_lookup[i].fToken))
 		{
-			ret = k_lookup[i].fVisibility;
-			break;
+			*visibility = k_lookup[i].fVisibility;
+			return 1;
 		}
 	}
 
-	if(rlc_parser_consume(
-		parser,
-		NULL,
-		kRlcTokColon))
-	{
-		*default_visibility = ret;
-		goto accept_once_more;
-	}
+	*visibility = default_visibility;
 
-	return ret;
+	return 0;
 }
 
 struct RlcParsedMember * rlc_parsed_member_parse(

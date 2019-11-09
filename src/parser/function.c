@@ -106,7 +106,14 @@ int rlc_parsed_function_parse(
 		kRlcTokIdentifier))
 		return 0;
 
-	rlc_parser_skip(parser);
+	struct RlcParserTracer tracer;
+	rlc_parser_trace(parser, "function", &tracer);
+	rlc_parser_expect(
+		parser,
+		NULL,
+		1,
+		kRlcTokParentheseOpen);
+
 
 	rlc_parsed_function_create(
 		out,
@@ -142,96 +149,60 @@ int rlc_parsed_function_parse(
 		1,
 		kRlcTokParentheseClose);
 
-	int accept_block_statement = 1;
-	int accept_expression = 0;
-	int expect_semicolon = 1;
-
 	out->fIsAsync = rlc_parser_consume(
 		parser,
 		NULL,
 		kRlcTokAt);
-
-	if((out->fHasReturnType = rlc_parser_consume(
-		parser,
-		NULL,
-		kRlcTokColon)))
-	{
-		// parse return type.
-
-		if(!rlc_parsed_type_name_parse(
-			&out->fReturnType,
-			parser))
-		{
-			rlc_parser_fail(parser, "expected type name.");
-		}
-
-		if(rlc_parser_consume(
-			parser,
-			NULL,
-			kRlcTokSemicolon))
-		{
-			out->fHasBody = 0;
-			return 1;
-		}
-
-		if(!rlc_parser_consume(
-			parser,
-			NULL,
-			kRlcTokColonEqual))
-		{
-			rlc_parser_fail(parser,
-				(out->fHasReturnType)
-				? "expected ':='"
-				: "expected '::=' or ':'");
-		}
-
-		accept_expression = 1;
-	} else if(rlc_parser_consume(
-		parser,
-		NULL,
-		kRlcTokDoubleColonEqual))
-	{
-		accept_expression = 1;
-		accept_block_statement = 0;
-	} else expect_semicolon = 0;
 
 	out->fIsInline = rlc_parser_consume(
 		parser,
 		NULL,
 		kRlcTokInline);
 
-
-	// parse function body.
-
-	if(accept_block_statement
-	&& rlc_parsed_block_statement_parse(
-		&out->fBodyStatement,
-		parser))
+	if((out->fHasReturnType = rlc_parsed_type_name_parse(
+		&out->fReturnType,
+		parser)))
 	{
-		out->fHasBody = 1;
-		out->fIsShortHandBody = 0;
-	} else if(accept_expression
-	&& (out->fReturnValue = rlc_parsed_expression_parse(
-		parser,
-		RLC_ALL_FLAGS(RlcParsedExpressionType))))
-	{
-		out->fHasBody = 1;
-		out->fIsShortHandBody = 1;
-	} else
-	{
-		if(!accept_expression)
-			rlc_parser_fail(parser,
-				accept_expression
-				? "expected expression"
-				: "expected block statement");
+		if(rlc_parser_consume(
+			parser,
+			NULL,
+			kRlcTokSemicolon))
+		{
+			out->fHasBody = 0;
+			rlc_parser_untrace(parser, &tracer);
+			return 1;
+		}
 	}
 
-	if(expect_semicolon)
+	out->fHasBody = 1;
+
+	if((out->fIsShortHandBody = !rlc_parsed_block_statement_parse(
+		&out->fBodyStatement,
+		parser)))
+	{
+		rlc_parser_expect(
+			parser,
+			NULL,
+			1,
+			(out->fHasReturnType)
+				? kRlcTokColonEqual
+				: kRlcTokDoubleColonEqual);
+
+		if(!(out->fReturnValue = rlc_parsed_expression_parse(
+			parser,
+			RLC_ALL_FLAGS(RlcParsedExpressionType))))
+		{
+			rlc_parser_fail(parser, "expected expression");
+		}
+
 		rlc_parser_expect(
 			parser,
 			NULL,
 			1,
 			kRlcTokSemicolon);
+	}
+
+	rlc_parser_untrace(parser, &tracer);
 	return 1;
 }
 
@@ -249,8 +220,8 @@ void rlc_parsed_member_function_create(
 
 int rlc_parsed_member_function_parse(
 	struct RlcParsedMemberFunction * out,
-	struct RlcParsedMemberCommon const * member,
-	struct RlcParser * parser)
+	struct RlcParser * parser,
+	struct RlcParsedMemberCommon const * member)
 {
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);

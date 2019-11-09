@@ -4,6 +4,7 @@
 
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 int rlc_src_file_read(
 	struct RlcSrcFile * this,
@@ -19,6 +20,14 @@ int rlc_src_file_read(
 	fseek(f, 0, SEEK_END);
 	size_t size = ftell(f);
 	fseek(f, 0, SEEK_SET);
+
+	size_t const k_file_limit = ((size_t)1u << (8*sizeof(RlcSrcIndex)));
+	if(size >= k_file_limit)
+	{
+		fprintf(stderr, "%s:1:1: error: file exceeds limit of %zu KiB.\n",
+			file, k_file_limit / 1024);
+		exit(EXIT_FAILURE);
+	}
 
 	this->fContentLength = size;
 	this->fContents = NULL;
@@ -97,7 +106,7 @@ void rlc_src_file_position(
 		++out->line;
 
 		size_t skip = found - frame;
-		line_start = found - this->fContents;
+		line_start = found+1 - this->fContents;
 		frame = found + 1;
 		frame_length = frame_length - (skip + 1);
 	}

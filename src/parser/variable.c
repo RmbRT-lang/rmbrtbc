@@ -81,6 +81,9 @@ int rlc_parsed_variable_parse(
 	int needs_type = 1;
 	int has_name = 0;
 
+	struct RlcParserTracer tracer;
+	rlc_parser_trace(parser, "variable", &tracer);
+
 	struct RlcToken name;
 	if(rlc_parser_is_current(
 		parser,
@@ -129,6 +132,7 @@ int rlc_parsed_variable_parse(
 	if(!has_name
 	&& needs_name)
 	{
+		rlc_parser_untrace(parser, &tracer);
 		return 0;
 	}
 
@@ -158,7 +162,10 @@ int rlc_parsed_variable_parse(
 			if(needs_name)
 				rlc_parser_fail(parser, "expected type name");
 			else
+			{
+				rlc_parser_untrace(parser, &tracer);
 				return 0;
+			}
 		}
 
 		out->fHasType = 1;
@@ -232,6 +239,7 @@ int rlc_parsed_variable_parse(
 	&& rlc_parsed_template_decl_exists(&out->fTemplates))
 		rlc_parser_fail(parser, "variable had forbidden template declaration");
 
+	rlc_parser_untrace(parser, &tracer);
 	return 1;
 }
 

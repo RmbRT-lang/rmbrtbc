@@ -61,6 +61,9 @@ void rlc_parsed_template_decl_parse(
 		kRlcTokBracketClose))
 		return;
 
+	struct RlcParserTracer tracer;
+	rlc_parser_trace(parser, "template declaration", &tracer);
+
 	do
 	{
 		struct RlcParsedTemplateDeclChild child;
@@ -109,6 +112,8 @@ void rlc_parsed_template_decl_parse(
 		2,
 		kRlcTokComma,
 		kRlcTokBracketClose));
+
+	rlc_parser_untrace(parser, &tracer);
 }
 
 void rlc_parsed_template_decl_child_destroy(

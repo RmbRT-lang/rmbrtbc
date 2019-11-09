@@ -128,8 +128,8 @@ void rlc_parsed_member_function_destroy(
 
 _Nodiscard int rlc_parsed_member_function_parse(
 	struct RlcParsedMemberFunction * out,
-	struct RlcParsedMemberCommon const * member,
-	struct RlcParser * parser);
+	struct RlcParser * parser,
+	struct RlcParsedMemberCommon const * member);
 
 #ifdef __cplusplus
 }

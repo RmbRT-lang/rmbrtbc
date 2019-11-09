@@ -52,9 +52,6 @@ int rlc_parsed_class_parse(
 	RLC_DASSERT(parser != NULL);
 	RLC_DASSERT(templates != NULL);
 
-	struct RlcParserTracer tracer;
-	rlc_parser_trace(parser, "class", &tracer);
-
 	struct RlcToken name;
 	if((!rlc_parser_is_ahead(parser, kRlcTokBraceOpen)
 		&& !rlc_parser_is_ahead(parser, kRlcTokMinusGreater))
@@ -62,6 +59,9 @@ int rlc_parsed_class_parse(
 	{
 		return 0;
 	}
+
+	struct RlcParserTracer tracer;
+	rlc_parser_trace(parser, "class", &tracer);
 
 	rlc_parsed_class_create(out, &name.content, templates);
 
@@ -72,7 +72,7 @@ int rlc_parsed_class_parse(
 		kRlcTokBraceOpen);
 
 	struct RlcParsedMemberCommon common;
-	rlc_parsed_member_common_create(&common, kRlcVisibilityPrivate);
+	rlc_parsed_member_common_create(&common, kRlcVisibilityPublic);
 
 	struct RlcParsedMember * member;
 	while((member = rlc_parsed_member_parse(
@@ -104,6 +104,8 @@ int rlc_parsed_class_parse(
 		NULL,
 		1,
 		kRlcTokBraceClose);
+
+	rlc_parser_untrace(parser, &tracer);
 
 	return 1;
 }

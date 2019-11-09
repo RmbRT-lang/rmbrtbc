@@ -31,13 +31,13 @@ int rlc_type_indirection_parse(
 	} else if(rlc_parser_consume(
 		parser,
 		NULL,
-		kRlcTokTripleDotExclamationMark))
+		kRlcTokDoubleDotExclamationMark))
 	{
 		*out = kRlcTypeIndirectionExpectDynamic;
 	} else if(rlc_parser_consume(
 		parser,
 		NULL,
-		kRlcTokTripleDot))
+		kRlcTokDoubleDotQuestionMark))
 	{
 		*out = kRlcTypeIndirectionMaybeDynamic;
 	} else
@@ -319,24 +319,18 @@ int rlc_parsed_function_signature_parse(
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
 
-	int is_async = rlc_parser_consume(
-			parser,
-			NULL,
-			kRlcTokAt);
-
 	if(!rlc_parser_consume(
 		parser,
 		NULL,
 		kRlcTokParentheseOpen))
 	{
-		if(is_async)
-			rlc_parser_fail(parser, "expected '('");
-		else
-			return 0;
+		return 0;
 	}
 
+	struct RlcParserTracer tracer;
+	rlc_parser_trace(parser, "signature", &tracer);
+
 	rlc_parsed_function_signature_create(out);
-	out->fIsAsync = is_async;
 
 	rlc_parser_expect(
 		parser,
@@ -386,6 +380,20 @@ int rlc_parsed_function_signature_parse(
 			kRlcTokParentheseClose);
 	}
 
+	if((out->fIsAsync = rlc_parser_consume(
+		parser,
+		NULL,
+		kRlcTokAt)))
+	{
+		out->fIsClosure = 0;
+	} else
+	{
+		out->fIsClosure = rlc_parser_consume(
+			parser,
+			NULL,
+			kRlcTokAnd);
+	}
+
 	if(!rlc_parsed_type_name_parse(
 		&out->fResult,
 		parser))
@@ -399,5 +407,6 @@ int rlc_parsed_function_signature_parse(
 		1,
 		kRlcTokParentheseClose);
 
+	rlc_parser_untrace(parser, &tracer);
 	return 1;
 }

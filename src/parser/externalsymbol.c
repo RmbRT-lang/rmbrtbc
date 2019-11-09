@@ -61,7 +61,7 @@ int rlc_parsed_external_symbol_parse(
 			parser,
 			&linkname,
 			1,
-			kRlcTokString);
+			kRlcTokStringLiteral);
 
 		rlc_parser_expect(
 			parser,

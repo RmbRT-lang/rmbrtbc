@@ -67,7 +67,8 @@ void rlc_parser_trace(
 /** Destroys the parser's current context.
 @memberof RlcParserTracer */
 void rlc_parser_untrace(
-	struct RlcParser * this);
+	struct RlcParser * this,
+	struct RlcParserTracer * tracer);
 
 /** Retrieves a parser's current context.
 @memberof RlcParser */
@@ -76,12 +77,12 @@ _Nodiscard char const * rlc_parser_context(
 
 /** Whether the end of the file is reached.
 @memberof RlcParser */
-_Nodiscard inline int rlc_parser_eof(
+_Nodiscard static inline int rlc_parser_eof(
 	struct RlcParser const * this);
 
 /** Whether the end of the file is directly after the current token.
 @memberof RlcParser */
-_Nodiscard inline int rlc_parser_ahead_eof(
+_Nodiscard static inline int rlc_parser_ahead_eof(
 	struct RlcParser const * this);
 
 /** Returns the address of the current token, if not at the end of the token stream.
@@ -89,12 +90,12 @@ _Nodiscard inline int rlc_parser_ahead_eof(
 @param[in] this:
 	The parser data.
 	@dassert @nonnull */
-_Nodiscard inline struct RlcToken const * rlc_parser_current(
+_Nodiscard static inline struct RlcToken const * rlc_parser_current(
 	struct RlcParser const * this);
 
 /** Retrieves the parser's next token.
 @memberof RlcParser */
-_Nodiscard inline struct RlcToken const * rlc_parser_ahead(
+_Nodiscard static inline struct RlcToken const * rlc_parser_ahead(
 	struct RlcParser const * this);
 
 /** Retrieves the parser's current source index.

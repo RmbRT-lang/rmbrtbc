@@ -46,7 +46,7 @@ static int rlc_parsed_symbol_child_template_parse(
 				(void**)&template.fTypeName,
 				sizeof(struct RlcParsedTypeName));
 
-			if(rlc_parsed_type_name_parse(
+			if(!rlc_parsed_type_name_parse(
 				template.fTypeName,
 				parser))
 			{
@@ -66,7 +66,7 @@ static int rlc_parsed_symbol_child_template_parse(
 		parser,
 		NULL,
 		1,
-		kRlcTokBraceClose);
+		kRlcTokBracketClose);
 
 	return 1;
 }

@@ -18,6 +18,7 @@ void rlc_parser_create(
 		&this->fTokeniser,
 		file);
 
+	this->fToken = 0;
 	this->fTracer = NULL;
 
 	if(rlc_tokeniser_read(&this->fTokeniser, &this->fLookahead[0]))
@@ -51,6 +52,9 @@ void rlc_parser_destroy(
 			rlc_src_string_cstr(
 				&rlc_parser_current(this)->content,
 				this->fTokeniser.fSource));
+
+		fflush(stderr);
+		fflush(stdout);
 		exit(1);
 	}
 }
@@ -70,10 +74,12 @@ void rlc_parser_trace(
 }
 
 void rlc_parser_untrace(
-	struct RlcParser * this)
+	struct RlcParser * this,
+	struct RlcParserTracer * tracer)
 {
 	RLC_DASSERT(this != NULL);
 	RLC_DASSERT(this->fTracer != NULL);
+	RLC_DASSERT(tracer == this->fTracer);
 
 	this->fTracer = this->fTracer->fPrevious;
 }
@@ -102,9 +108,10 @@ int rlc_parser_is_current(
 	enum RlcTokenType type)
 {
 	RLC_DASSERT(this != NULL);
-	RLC_DASSERT(!rlc_parser_eof(this));
-
-	return rlc_parser_current(this)->type == type;
+	if(rlc_parser_eof(this))
+		return 0;
+	else
+		return rlc_parser_current(this)->type == type;
 }
 
 int rlc_parser_is_ahead(
@@ -112,9 +119,10 @@ int rlc_parser_is_ahead(
 	enum RlcTokenType type)
 {
 	RLC_DASSERT(this != NULL);
-	RLC_DASSERT(!rlc_parser_ahead_eof(this));
-
-	return rlc_parser_ahead(this)->type == type;
+	if(rlc_parser_ahead_eof(this))
+		return 0;
+	else
+		return rlc_parser_ahead(this)->type == type;
 }
 
 _Noreturn void rlc_parser_fail(
@@ -154,7 +162,8 @@ _Noreturn void rlc_parser_fail(
 	}
 
 	fflush(stderr);
-	exit(EXIT_FAILURE);
+	fflush(stdout);
+	abort();
 }
 
 int rlc_parser_consume(
@@ -182,28 +191,9 @@ enum RlcTokenType rlc_parser_expect(
 	struct RlcParser * this,
 	struct RlcToken * token,
 	size_t count,
-	enum RlcTokenType types, ...)
+	enum RlcTokenType const types, ...)
 {
-	va_list args;
-	va_start(args, types);
-
-	struct RlcToken const * current = rlc_parser_current(this);
-
-
-	size_t const count_ = count;
-check:
-	if(current->type == types)
-	{
-		if(token)
-			*token = *current;
-		return types;
-	}
-
-	if(count--)
-	{
-		types = va_arg(args, enum RlcTokenType);
-		goto check;
-	}
+	RLC_DASSERT(count >= 1);
 
 	struct RlcSrcPosition pos;
 	if(rlc_parser_eof(this))
@@ -217,39 +207,59 @@ check:
 			this->fTokeniser.fSource->fName,
 			pos.line,
 			pos.column);
-	} else
-	{
-		rlc_src_file_position(
-			this->fTokeniser.fSource,
-			&pos,
-			rlc_parser_index(this));
-
-		fprintf(stderr, "%s:%u:%u: error: unexpected '%s'",
-			this->fTokeniser.fSource->fName,
-			pos.line,
-			pos.column,
-			rlc_src_string_cstr(
-				&rlc_parser_current(this)->content,
-				this->fTokeniser.fSource));
+		goto print_expected;
 	}
 
+	va_list args;
+	va_start(args, types);
+
+	size_t const count_ = count;
+	enum RlcTokenType type = types;
+
+	while(count--)
+	{
+		if(rlc_parser_consume(this, token, type))
+			return type;
+		if(count)
+			type = va_arg(args, enum RlcTokenType);
+	}
+
+	rlc_src_file_position(
+		this->fTokeniser.fSource,
+		&pos,
+		rlc_parser_index(this));
+
+	fprintf(stderr, "%s:%u:%u: error: unexpected '%s'",
+		this->fTokeniser.fSource->fName,
+		pos.line,
+		pos.column,
+		rlc_src_string_cstr(
+			&rlc_parser_current(this)->content,
+			this->fTokeniser.fSource));
+
+print_expected:
 	fprintf(stderr, " in %s: expected %s",
 		rlc_parser_context(this),
 		rlc_token_type_name(types));
 
+	type = types;
 	va_start(args, types);
-	for(size_t i = 0; i < count_; i++)
+	for(size_t i = 1; i < count_; i++)
 	{
-		types = va_arg(args, enum RlcTokenType);
+		type = va_arg(args, enum RlcTokenType);
 		fprintf(
 			stderr,
-			(i == count-1)
+			(i == count_-1)
 				? ", or %s"
 				: ", %s",
-			rlc_token_type_name(types));
+			rlc_token_type_name(type));
 	}
 
-	exit(EXIT_FAILURE);
+	fputs(".\n", stderr);
+	fflush(stdout);
+	fflush(stderr);
+
+	abort();
 }
 
 void rlc_parser_skip(

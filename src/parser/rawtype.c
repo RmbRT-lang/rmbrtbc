@@ -56,6 +56,9 @@ int rlc_parsed_rawtype_parse(
 		kRlcTokParentheseOpen))
 		return 0;
 
+	struct RlcParserTracer tracer;
+	rlc_parser_trace(parser, "rawtype", &tracer);
+
 	if(!(out->fSize = rlc_parsed_expression_parse(
 		parser,
 		RLC_ALL_FLAGS(RlcParsedExpressionType))))
@@ -84,7 +87,10 @@ int rlc_parsed_rawtype_parse(
 		2,
 		kRlcTokSemicolon,
 		kRlcTokBraceOpen))
+	{
+		rlc_parser_untrace(parser, &tracer);
 		return 1;
+	}
 
 	struct RlcParsedMemberCommon common;
 	rlc_parsed_member_common_create(&common, kRlcVisibilityPublic);
@@ -112,6 +118,7 @@ int rlc_parsed_rawtype_parse(
 		1,
 		kRlcTokBraceClose);
 
+	rlc_parser_untrace(parser, &tracer);
 	return 1;
 }
 

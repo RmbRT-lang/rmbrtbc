@@ -58,5 +58,7 @@ int main(
 		fprintf(stderr, "Warning: leaked allocations: %zu.\n", allocs);
 	}
 
+	fflush(stdout);
+	fflush(stderr);
 	return status ? 0 : 1;
 }
