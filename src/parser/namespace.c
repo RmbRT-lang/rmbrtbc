@@ -57,30 +57,12 @@ int rlc_parsed_namespace_parse(
 		out,
 		&name.content);
 
-	// Nested namespace?
-	if(rlc_parser_is_current(
+
+	if(rlc_parser_consume(
 		parser,
-		kRlcTokDoubleColon))
+		NULL,
+		kRlcTokBraceOpen))
 	{
-		struct RlcParsedNamespace * inner = NULL;
-		rlc_malloc(
-			(void**)&inner,
-			sizeof(struct RlcParsedNamespace));
-
-		RLC_ASSERT(rlc_parsed_namespace_parse(inner, parser, templates));
-
-		rlc_parsed_scope_entry_list_add(
-			&out->fEntryList,
-			RLC_BASE_CAST(inner, RlcParsedScopeEntry));
-	} else
-	{
-		rlc_parser_expect(
-			parser,
-			NULL,
-			2,
-			kRlcTokBraceOpen,
-			kRlcTokDoubleColon);
-
 		for(struct RlcParsedScopeEntry * scopeEntry;
 			(scopeEntry = rlc_parsed_scope_entry_parse(parser));)
 		{
@@ -94,6 +76,15 @@ int rlc_parsed_namespace_parse(
 			NULL,
 			1,
 			kRlcTokBraceClose);
+	} else
+	{
+		struct RlcParsedScopeEntry * inner;
+		if(!(inner = rlc_parsed_scope_entry_parse(parser)))
+			rlc_parser_fail(parser, "expected scope entry");
+
+		rlc_parsed_scope_entry_list_add(
+			&out->fEntryList,
+			inner);
 	}
 
 	rlc_parser_untrace(parser, &tracer);

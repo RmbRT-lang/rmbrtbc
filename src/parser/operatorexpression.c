@@ -431,7 +431,7 @@ static struct RlcParsedExpression * parse_binary(
 						? parse_binary(parser, group)
 						: parse_prefix(parser));
 			if(!op)
-				rlc_parser_fail(parser, "expeected expression");
+				rlc_parser_fail(parser, "expected expression");
 			return RLC_BASE_CAST(op, RlcParsedExpression);
 		}
 	}

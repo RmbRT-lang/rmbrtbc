@@ -78,6 +78,29 @@ int rlc_parsed_variable_parse(
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
 
+	if(rlc_parser_is_current(
+		parser,
+		kRlcTokIdentifier))
+	{
+		static enum RlcTokenType const k_needed_ahead[] = {
+			kRlcTokColon,
+			kRlcTokColonEqual,
+			kRlcTokDoubleColonEqual,
+			kRlcTokSemicolon,
+		};
+		int found = 0;
+		for(size_t i = 0; i < _countof(k_needed_ahead); i++)
+			if(rlc_parser_is_ahead(
+				parser,
+				k_needed_ahead[i]))
+			{
+				found = 1;
+				break;
+			}
+		if(!found)
+			return 0;
+	}
+
 	int needs_type = 1;
 	int has_name = 0;
 

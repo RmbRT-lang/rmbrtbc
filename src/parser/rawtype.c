@@ -15,8 +15,6 @@ void rlc_parsed_rawtype_create(
 		kRlcParsedRawtype,
 		name);
 
-	this->fSize = NULL;
-
 	rlc_parsed_member_list_create(
 		&this->fMembers);
 	this->fTemplates = *templates;
@@ -97,7 +95,7 @@ int rlc_parsed_rawtype_parse(
 	while(!rlc_parser_consume(
 		parser,
 		NULL,
-		kRlcTokParentheseClose))
+		kRlcTokBraceClose))
 	{
 		struct RlcParsedMember * member = rlc_parsed_member_parse(
 			parser,
@@ -111,12 +109,6 @@ int rlc_parsed_rawtype_parse(
 			&out->fMembers,
 			member);
 	}
-
-	rlc_parser_expect(
-		parser,
-		NULL,
-		1,
-		kRlcTokBraceClose);
 
 	rlc_parser_untrace(parser, &tracer);
 	return 1;

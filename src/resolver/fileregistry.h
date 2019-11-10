@@ -18,7 +18,8 @@ void rlc_resolved_file_registry_create(
 void rlc_resolved_file_registry_destroy(
 	struct RlcResolvedFileRegistry * this);
 
-/**  */
+/** Queries a file from the registry.
+	If the file was not registered, tries to parse and resolve it. */
 struct RlcResolvedFile const * rlc_resolved_file_registry_get(
 	struct RlcResolvedFileRegistry * this,
 	char const * file);

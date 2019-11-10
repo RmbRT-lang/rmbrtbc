@@ -5,12 +5,10 @@
 
 struct RlcResolvedString
 {
-	/** The string's raw data (with byte order). */
-	char const * fRawData;
-	/** The string's character content. */
-	rlc_char_t const * fRlcContent;
-	/** The string's character content length. */
-	size_t fLength;
+	/** The string's raw data (with correct byte order). */
+	char const * fBytes;
+	/** The byte size of the string. */
+	size_t fByteCount;
 };
 
 #endif

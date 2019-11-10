@@ -127,7 +127,7 @@ int rlc_parsed_enum_parse(
 		return 0;
 
 	if(rlc_parsed_template_decl_exists(templates))
-		rlc_parser_fail(parser, "enums must have template declarations");
+		rlc_parser_fail(parser, "enums must not have template declarations");
 
 	struct RlcToken name;
 	rlc_parser_expect(
@@ -166,12 +166,6 @@ int rlc_parsed_enum_parse(
 		NULL,
 		1,
 		kRlcTokBraceClose);
-
-	rlc_parser_expect(
-		parser,
-		NULL,
-		1,
-		kRlcTokSemicolon);
 
 	return 1;
 }
