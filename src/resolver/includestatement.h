@@ -5,6 +5,7 @@
 
 #include "../macros.h"
 #include "../parser/includestatement.h"
+#include "string.h"
 
 #include <stddef.h>
 
@@ -14,7 +15,8 @@ extern "C" {
 
 struct RlcResolvedIncludeStatement
 {
-	char * fPath;
+	struct RlcResolvedText fPath;
+	int fIsRelative;
 };
 
 
@@ -56,6 +58,11 @@ void rlc_include_path_list_add(
 	struct RlcIncludePathList * this,
 	char const * path,
 	int needs_free);
+
+void rlc_resolve_include_statement(
+	struct RlcResolvedIncludeStatement * this,
+	struct RlcParsedIncludeStatement const * in,
+	struct RlcSrcFile const * src);
 
 #ifdef __cplusplus
 }

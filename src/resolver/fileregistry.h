@@ -8,6 +8,7 @@ extern "C" {
 
 struct RlcResolvedFileRegistry
 {
+	char const * fBaseDir;
 	struct RlcResolvedFile * fFiles;
 	size_t fFileCount;
 };

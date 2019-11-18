@@ -20,27 +20,28 @@ enum RlcEndian
 	kRlcEndianBig
 };
 
-/** A string's contents. */
-struct RlcResolvedString
+/** A string's or character literal's contents. */
+struct RlcResolvedText
 {
+	/** Whether the string is a string or a character literal. */
+	int fIsString;
 	/** The string's raw byte representation, excluding 0-terminator. */
 	void const * fRaw;
 	/** The element count (fSymbolSize) in the string, excluding 0-terminator. */
 	RlcSrcSize fElements;
-	/** The string's raw data. */
-	rlc_utf32_t const * fCodepoints;
-	/** The string's code point count. */
-	RlcSrcSize fCodePointCount;
 	/** The string's character size, in bytes. */
 	uint8_t fSymbolSize;
 	/** The string's endianness. */
 	enum RlcEndian fEndian;
 };
 
-void rlc_resolve_string(
-	struct RlcResolvedString * out,
+void rlc_resolve_text(
+	struct RlcResolvedText * out,
 	struct RlcSrcFile const * file,
 	struct RlcToken const * token);
+
+void rlc_resolved_text_destroy(
+	struct RlcResolvedText * this);
 
 #ifdef __cplusplus
 }

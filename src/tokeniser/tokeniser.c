@@ -25,9 +25,7 @@ static int number(
 	struct RlcTokeniser * this);
 static int op(
 	struct RlcTokeniser * this);
-static int character(
-	struct RlcTokeniser * this);
-static int string(
+static int string_or_character(
 	struct RlcTokeniser * this);
 
 static char look(
@@ -70,8 +68,7 @@ int rlc_tokeniser_read(
 	token->content.start = this->fStart = this->fIndex;
 
 	if(!identifier(this)
-	&& !string(this)
-	&& !character(this)
+	&& !string_or_character(this)
 	&& !number(this)
 	&& !op(this))
 		tok_error(this, "unexpected character");
@@ -385,74 +382,113 @@ int op(
 	return 0;
 }
 
-int character(
+int string_or_character(
 	struct RlcTokeniser * this)
 {
-	static char const * k_start[] =
+	static struct {
+		int size;
+		enum RlcTokenType type;
+		char const * string;
+		char delim;
+	} const k_start[] =
 	{
-		"32L\'", "32B\'", "32\'"
-		"16L\'", "16B\'", "16\'",
-		"32l\'", "32b\'",
-		"16l\'", "16b\'",
-		"8\'",
-		"\'"
+		{4, kRlcTokCharacterLiteral, "32L\'", '\''},
+		{4, kRlcTokCharacterLiteral, "32B\'", '\''},
+		{4, kRlcTokCharacterLiteral, "32\'", '\''},
+
+		{2, kRlcTokCharacterLiteral, "16L\'", '\''},
+		{2, kRlcTokCharacterLiteral, "16B\'", '\''},
+		{2, kRlcTokCharacterLiteral, "16\'", '\''},
+
+		{4, kRlcTokCharacterLiteral, "32l\'", '\''},
+		{4, kRlcTokCharacterLiteral, "32b\'", '\''},
+
+		{2, kRlcTokCharacterLiteral, "16l\'", '\''},
+		{2, kRlcTokCharacterLiteral, "16b\'", '\''},
+
+		{1, kRlcTokCharacterLiteral, "8\'", '\''},
+
+		{1, kRlcTokCharacterLiteral, "\'", '\''},
+
+
+		{4, kRlcTokStringLiteral, "32L\"", '\"'},
+		{4, kRlcTokStringLiteral, "32B\"", '\"'},
+		{4, kRlcTokStringLiteral, "32\"", '\"'},
+
+		{2, kRlcTokStringLiteral, "16L\"", '\"'},
+		{2, kRlcTokStringLiteral, "16B\"", '\"'},
+		{2, kRlcTokStringLiteral, "16\"", '\"'},
+
+		{4, kRlcTokStringLiteral, "32l\"", '\"'},
+		{4, kRlcTokStringLiteral, "32b\"", '\"'},
+
+		{2, kRlcTokStringLiteral, "16l\"", '\"'},
+		{2, kRlcTokStringLiteral, "16b\"", '\"'},
+
+		{1, kRlcTokStringLiteral, "8\"", '\"'},
+
+		{1, kRlcTokStringLiteral, "\"", '\"'}
 	};
 
 	for(size_t i = 0; i < _countof(k_start); i++)
-		if(take_str(this, k_start[i]))
+		if(take_str(this, k_start[i].string))
 		{
 			char c;
 			while((c = take(this)))
 			{
-				if(c == '\'')
+				if(c == k_start[i].delim)
 				{
-					this->fType = kRlcTokCharacterLiteral;
+					this->fType = k_start[i].type;
 					return 1;
 				}
 				else if(c == '\\')
-					take(this);
+					switch((c = take(this)))
+					{
+					case 'a': case 'e':
+					case 'b': case 'f':
+					case 'n': case 't':
+					case 'r': case 'v':
+					case '\\': case '\'':
+					case '"': case 'z':
+						break;
+					case '0': case '1': case '2': case '3':
+					case '4': case '5': case '6': case '7':
+						{
+							int length = 3;
+							char max = '3';
+
+							if(!is_octal(c))
+								tok_error(this, "expected octal character");
+							if(c > max)
+								tok_error(this, "leading octal digit too large");
+							for(int i = 1; i < length; i++)
+								if(!is_octal(take(this)))
+									tok_error(this, "expected octal character");
+						} break;
+					case 'x':
+					case 'u':
+					case 'U':
+						{
+							c = take(this);
+							int length = (c == 'x')
+								? 2 : (c == 'u')
+								? 4
+								: 8;
+							for(int i = 0; i < length; i++)
+								if(!is_hexadecimal(take(this)))
+									tok_error(this, "expected hexadecimal character");
+						} break;
+					default:
+						tok_error(this, "invalid escape sequence");
+					}
 				else if(c == '\n')
-					tok_error(this, "forbidden newline in character literal");
+					tok_error(this, "forbidden newline in character/string literal");
 			}
-			tok_error(this, "unterminated character literal");
+			tok_error(this, "unterminated character/string literal");
 		}
 	return 0;
 }
 
-int string(
-	struct RlcTokeniser * this)
-{
-	static char const * k_start[] =
-	{
-		"32L\"", "32B\"", "32\""
-		"16L\"", "16B\"", "16\"",
-		"32l\"", "32b\"",
-		"16l\"", "16b\"",
-		"8\"",
-		"\""
-	};
-
-	for(size_t i = 0; i < _countof(k_start); i++)
-		if(take_str(this, k_start[i]))
-		{
-			char c;
-			while((c = take(this)))
-			{
-				if(c == '"')
-				{
-					this->fType = kRlcTokStringLiteral;
-					return 1;
-				}
-				else if(c == '\\')
-					ignore(this, 1);
-				else if(c == '\n')
-					tok_error(this, "forbidden newline in string literal");
-			}
-			tok_error(this, "unterminated string literal");
-		}
-
-	return 0;
-}
 char ahead(
 	struct RlcTokeniser const * this,
 	size_t n)

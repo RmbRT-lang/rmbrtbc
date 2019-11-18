@@ -93,7 +93,6 @@ int rlc_strncmp_utf8(
 	The converted string, if successful, otherwise null. The returned pointer has to be released by the caller. */
 rlc_utf32_t * rlc_utf8_to_utf32(
 	rlc_utf8_t const * str,
-	size_t len,
 	size_t * out_len);
 /** Converts an UTF-8 string to an UTF-16 string.
 	Fails if the given string is not a valid UTF-8 string.
@@ -103,7 +102,6 @@ rlc_utf32_t * rlc_utf8_to_utf32(
 	The converted string, if successful, otherwise null. The returned pointer has to be released by the caller. */
 rlc_utf16_t * rlc_utf8_to_utf16(
 	rlc_utf8_t const * str,
-	size_t length,
 	size_t * out_len);
 /** Converts an UTF-32 string to an UTF-8 string.
 @param[in] str:

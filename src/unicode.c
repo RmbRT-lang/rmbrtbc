@@ -284,27 +284,21 @@ int rlc_strncmp_utf8(
 
 rlc_utf32_t * rlc_utf8_to_utf32(
 	rlc_utf8_t const * str,
-	size_t len,
 	size_t * out_len)
 {
 	RLC_DASSERT(str != NULL);
 	RLC_DASSERT(out_len != NULL);
 
-	*out_len = 0;
-	{
-		rlc_utf8_t const * it = str;
-		for(size_t i = 0; i < len; i++)
-		{
-			it += rlc_character_length(*it);
-			++*out_len;
-		}
-	}
+	if(!(*out_len = rlc_utf8_is_valid_string(str)))
+		return NULL;
+	--*out_len;
 
 	rlc_utf32_t * buffer = 0, * ret;
 	rlc_malloc(
 		(void**)&buffer,
 		sizeof(rlc_utf32_t) * (*out_len+1));
 	ret = buffer;
+	size_t len = *out_len;
 	while(len--)
 		str += rlc_utf8_char_to_utf32_char(str, buffer++);
 	*buffer = '\0';
@@ -313,13 +307,16 @@ rlc_utf32_t * rlc_utf8_to_utf32(
 }
 
 rlc_utf16_t * rlc_utf8_to_utf16(
-	rlc_utf8_t const * str)
+	rlc_utf8_t const * str,
+	size_t * out_len)
 {
 	size_t len;
 	if(!(len = rlc_utf8_is_valid_string(str)))
 		return 0;
+	--len;
+	*out_len = 0;
 	rlc_utf16_t * buffer = NULL, * ret;
-	rlc_malloc((void**)&buffer, len-- * sizeof(rlc_utf16_t));
+	rlc_malloc((void**)&buffer, (2*len + 1)*sizeof(rlc_utf16_t));
 	ret = buffer;
 	while(len--)
 	{
@@ -328,13 +325,127 @@ rlc_utf16_t * rlc_utf8_to_utf16(
 		for(unsigned i = 0; i < ch.size; i++)
 			buffer[i] = ch.data[i];
 		buffer += ch.size;
+		*out_len += ch.size;
 	}
 	*buffer = 0;
 
 	return ret;
 }
 
-rlc_utf8_t * rlc_utf32_to_utf8(
-	rlc_utf32_t const * str)
+static size_t rlc_utf8_codepoint_length(
+	rlc_utf32_t codepoint)
 {
+	RLC_DASSERT(codepoint <= 0x10ffff);
+
+	if(codepoint <= 0x7f)
+		return 1;
+	else if(codepoint <= 0x7ff)
+		return 2;
+	else if(codepoint <= 0xffff)
+		return 3;
+	else
+		return 4;
+}
+
+static int rlc_utf32_char_to_utf8_char(
+	rlc_utf32_t codepoint,
+	rlc_utf8_t * out)
+{
+	RLC_DASSERT(codepoint <= 0x10ffff);
+
+	if(codepoint <= 0x7f)
+	{
+		*out = codepoint;
+		return 1;
+	}
+	else if(codepoint <= 0x7ff)
+	{
+		out[0] = codepoint >> 6;
+		out[1] = 0x80 | (codepoint & 0x7f);
+		return 2;
+	}
+	else if(codepoint <= 0xffff)
+	{
+		out[0] = 0xc0 | (codepoint >> 12);
+		out[1] = 0x80 | ((codepoint >> 6) & 0x7f);
+		out[2] = 0x80 | (codepoint & 0x7f);
+		return 3;
+	}
+	else
+	{
+		out[0] = 0xf0 | (codepoint >> 18);
+		out[1] = 0x80 | ((codepoint >> 12) & 0x7f);
+		out[2] = 0x80 | ((codepoint >> 6) & 0x7f);
+		out[2] = 0x80 | (codepoint & 0x7f);
+		return 4;
+	}
+}
+
+rlc_utf8_t * rlc_utf32_to_utf8(
+	rlc_utf32_t const * str,
+	size_t length,
+	size_t * out_len)
+{
+	*out_len = 0;
+	for(size_t i = 0; i < length; i++)
+		*out_len += rlc_utf8_codepoint_length(str[i]);
+
+	rlc_utf8_t * ret = NULL, * buf;
+	rlc_malloc((void**)&ret, *out_len);
+	buf = ret;
+	for(size_t i = 0; i < length; i++)
+		buf += rlc_utf32_char_to_utf8_char(str[i], buf);
+	*buf = '\0';
+
+	return ret;
+}
+
+int rlc_utf32_char_to_utf16_char(
+	rlc_utf32_t codepoint,
+	rlc_utf16_t * out)
+{
+	RLC_DASSERT(out != NULL);
+	RLC_DASSERT(codepoint <= 0x10ffff);
+
+	if(codepoint < 0xD800)
+	{
+		*out = codepoint;
+		return 1;
+	} else
+	{
+		out[0] = 0xD800 + (codepoint >> 10);
+		out[1] = 0xDC00 + (codepoint & ((1<<10) -1));
+		return 2;
+	}
+}
+
+int rlc_utf16_codepoint_length(
+	rlc_utf32_t codepoint)
+{
+	if(codepoint < 0xD800)
+		return 1;
+	else
+		return 2;
+}
+
+rlc_utf16_t * rlc_utf32_to_utf16(
+	rlc_utf32_t const * str,
+	size_t length,
+	size_t * out_len)
+{
+	RLC_DASSERT(str != NULL);
+	RLC_DASSERT(out_len != NULL);
+
+	*out_len = 0;
+	for(size_t i = 0; i < length; i++)
+		*out_len += rlc_utf16_codepoint_length(str[i]);
+
+	rlc_utf16_t * ret = NULL, * buf;
+	rlc_malloc((void**)&ret, sizeof(rlc_utf16_t) * (*out_len + 1));
+	buf = ret;
+	for(size_t i = 0; i < length; i++)
+		buf += rlc_utf32_char_to_utf16_char(str[i], buf);
+	*buf = '\0';
+
+	return ret;
 }

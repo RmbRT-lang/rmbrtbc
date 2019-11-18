@@ -32,8 +32,8 @@ static int hexdigit(char c)
 		return c - '0';
 }
 
-static size_t parse_string_codepoints(
-	struct RlcResolvedString * const out,
+static void parse_string_codepoints(
+	struct RlcResolvedText * const out,
 	char const * const string_contents,
 	rlc_utf32_t * * const codepoints,
 	size_t * const codepoints_len)
@@ -115,7 +115,7 @@ static size_t parse_string_codepoints(
 }
 
 static void convert_codepoints(
-	struct RlcResolvedString * const out,
+	struct RlcResolvedText * const out,
 	rlc_utf32_t * const codepoints,
 	size_t codepoints_len)
 {
@@ -124,12 +124,15 @@ static void convert_codepoints(
 
 	size_t elements = codepoints_len;
 	if(out->fSymbolSize == 1)
+	{
 		out->fRaw = rlc_utf32_to_utf8(codepoints, codepoints_len, &elements);
+		rlc_free((void**)&codepoints);
+	}
 	else if(out->fSymbolSize == 2)
 	{
 		rlc_utf16_t * utf16 = rlc_utf32_to_utf16(codepoints, codepoints_len, &elements);
 		if(out->fEndian == kRlcEndianLittle)
-			for(int i = 0; utf16[i]; i++)
+			for(size_t i = 0; i < elements; i++)
 			{
 				char low = (utf16[i]>>8);
 				char high = (utf16[i]&0xff);
@@ -138,7 +141,7 @@ static void convert_codepoints(
 				ptr[1] = high;
 			}
 		if(out->fEndian == kRlcEndianBig)
-			for(int i = 0; utf16[i]; i++)
+			for(size_t i = 0; i < elements; i++)
 			{
 				char low = (utf16[i]>>8);
 				char high = (utf16[i]&0xff);
@@ -147,39 +150,40 @@ static void convert_codepoints(
 				ptr[1] = low;
 			}
 		out->fRaw = utf16;
+		rlc_free((void**)&codepoints);
 	} else
 	{
 		rlc_utf32_t * utf32 = codepoints;
 		if(out->fEndian == kRlcEndianLittle)
-			for(int i = 0; i < utf32[i]; i++)
+			for(size_t i = 0; i < codepoints_len; i++)
 			{
 				char chars[4] = {
 					utf32[i],
 					utf32[i] >> 8,
 					utf32[i] >> 16,
-					utf32[i] >> 32
+					utf32[i] >> 24
 				};
 				memcpy(utf32+i, chars, 4);
 			}
 		if(out->fEndian == kRlcEndianBig)
-			for(int i = 0; i < utf32[i]; i++)
+			for(size_t i = 0; i < codepoints_len; i++)
 			{
 				char chars[4] = {
-					utf32[i] >> 32
+					utf32[i] >> 24,
 					utf32[i] >> 16,
 					utf32[i] >> 8,
-					utf32[i],
+					utf32[i]
 				};
 				memcpy(utf32+i, chars, 4);
 			}
 		out->fRaw = utf32;
 	}
 
-	out->fRawSize = elements;
+	out->fElements = elements;
 }
 
 void rlc_resolve_text(
-	struct RlcResolvedString * out,
+	struct RlcResolvedText * out,
 	struct RlcSrcFile const * file,
 	struct RlcToken const * token)
 {
@@ -188,6 +192,8 @@ void rlc_resolve_text(
 	RLC_DASSERT(token != NULL);
 	RLC_DASSERT(token->type == kRlcTokStringLiteral
 			|| token->type == kRlcTokCharacterLiteral);
+
+	out->fIsString = token->type == kRlcTokStringLiteral;
 
 	char const * const source = rlc_src_string_cstr(&token->content, file);
 	char const * after_prefix = source;
@@ -219,7 +225,7 @@ void rlc_resolve_text(
 
 	rlc_utf32_t * codepoints;
 	size_t codepoints_len;
-	size_t chars = parse_string_codepoints(
+	(void) parse_string_codepoints(
 		out,
 		after_prefix,
 		&codepoints,
@@ -229,4 +235,18 @@ void rlc_resolve_text(
 		out,
 		codepoints,
 		codepoints_len);
+
+	rlc_free((void**)&source);
+}
+
+void rlc_resolved_text_destroy(
+	struct RlcResolvedText * this)
+{
+	RLC_DASSERT(this != NULL);
+
+	if(this->fRaw)
+	{
+		rlc_free((void**)&this->fRaw);
+		this->fElements = 0;
+	}
 }

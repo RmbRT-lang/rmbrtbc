@@ -15,7 +15,6 @@ void rlc_parsed_cast_expression_create(
 		first,
 		last);
 
-	rlc_parsed_type_name_create(&this->fType);
 	this->fValue = NULL;
 }
 
