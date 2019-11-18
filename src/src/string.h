@@ -14,12 +14,13 @@ struct RlcSrcFile;
 
 /** Source character index type. */
 typedef uint16_t RlcSrcIndex;
+typedef uint16_t RlcSrcSize;
 
 /** A string inside a source file. */
 struct RlcSrcString
 {
 	RlcSrcIndex start;
-	RlcSrcIndex length;
+	RlcSrcSize length;
 } const kRlcSrcStringEmpty;
 
 /** Checks whether a source string is a valid range inside a file.

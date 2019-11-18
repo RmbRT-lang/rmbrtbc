@@ -1,6 +1,7 @@
 #include "file.h"
 #include "../assert.h"
 #include "../malloc.h"
+#include "../unicode.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -26,15 +27,16 @@ int rlc_src_file_read(
 	{
 		fprintf(stderr, "%s:1:1: error: file exceeds limit of %zu KiB.\n",
 			file, k_file_limit / 1024);
+		fflush(stderr);
 		exit(EXIT_FAILURE);
 	}
 
 	this->fContentLength = size;
-	this->fContents = NULL;
-	rlc_malloc((void**)&this->fContents, size);
+	this->fContentData = NULL;
+	rlc_malloc((void**)&this->fContentData, size+1);
 
 	size_t const read = fread(
-		this->fContents,
+		this->fContentData,
 		1,
 		size,
 		f);
@@ -42,8 +44,26 @@ int rlc_src_file_read(
 
 	if(read != size)
 	{
-		rlc_free((void**)&this->fContents);
+		rlc_free((void**)&this->fContentData);
 		return 0;
+	}
+
+	this->fContentData[this->fContentLength] = '\0';
+
+	// Detect and skip UTF-8 BOM.
+	if(!strncmp(this->fContentData, "\xEF\xBB\xBF", 3))
+	{
+		this->fContents = this->fContentData + 3;
+		this->fContentLength -= 3;
+	}
+	else
+		this->fContents = this->fContentData;
+
+	if(!rlc_utf8_is_valid_string((rlc_utf8_t const *)this->fContents))
+	{
+		fprintf(stderr, "%s:1:1: error: file is not UTF-8 encoded.\n", file);
+		fflush(stderr);
+		exit(EXIT_FAILURE);
 	}
 
 	size_t name_len = strlen(file);
@@ -60,7 +80,8 @@ void rlc_src_file_destroy(
 	RLC_DASSERT(this != NULL);
 
 	rlc_free((void**)&this->fName);
-	rlc_free((void**)&this->fContents);
+	rlc_free((void**)&this->fContentData);
+	this->fContents = NULL;
 	this->fContentLength = 0;
 }
 

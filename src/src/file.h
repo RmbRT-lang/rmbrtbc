@@ -16,7 +16,8 @@ extern "C" {
 struct RlcSrcFile
 {
 	char * fName;
-	char * fContents;
+	char * fContents; // Used for parsing, does not contain BOM.
+	char * fContentData; // Used for freeing, may contain BOM.
 	size_t fContentLength;
 };
 

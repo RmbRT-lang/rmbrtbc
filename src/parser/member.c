@@ -360,5 +360,5 @@ void rlc_parsed_member_list_destroy(
 		rlc_free((void**)&this->fEntries);
 	}
 
-	this->fEntryCount = 0;
+	this->fEntryCount = 0;	
 }

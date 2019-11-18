@@ -9,10 +9,6 @@ inline int rlc_is_utf8_group_3_start(rlc_utf8_t character);
 inline int rlc_is_utf8_group_4_start(rlc_utf8_t character);
 inline int rlc_is_utf8_group_start(rlc_utf8_t character);
 inline int rlc_is_utf8_follow(rlc_utf8_t character);
-int rlc_is_utf8_valid(rlc_utf8_t character);
-int rlc_is_utf8_valid_seq(rlc_utf8_t const * character);
-unsigned rlc_character_length(rlc_utf8_t character);
-int rlc_utf8_char_to_utf32_char(rlc_utf8_t const * str, rlc_char_t * out);
 
 int rlc_is_ascii(rlc_utf8_t character)
 {
@@ -92,7 +88,7 @@ unsigned rlc_character_length(rlc_utf8_t character)
 
 int rlc_utf8_char_to_utf32_char(
 	rlc_utf8_t const * str,
-	rlc_char_t * out)
+	rlc_utf32_t * out)
 {
 	RLC_DASSERT(str != NULL);
 	RLC_DASSERT(out != NULL);
@@ -115,13 +111,46 @@ int rlc_utf8_char_to_utf32_char(
 	for(uint8_t i = 0; i < len; i++)
 	{
 		uint8_t index = i < len-1 ? 0 : len;
-		rlc_char_t bitstowrite_mask = (rlc_char_t)bitmasks[index] << bits;
+		rlc_utf32_t bitstowrite_mask = (rlc_utf32_t)bitmasks[index] << bits;
 
-		*out |= bitstowrite_mask & ((rlc_char_t)temp[i] << bits);
+		*out |= bitstowrite_mask & ((rlc_utf32_t)temp[i] << bits);
 		bits += bitmask_count[i];
 	}
 
 	return len;
+}
+
+int rlc_utf8_char_to_utf16_char(
+	rlc_utf8_t const * str,
+	struct RlcUtf16Buf * out)
+{
+	RLC_DASSERT(str != NULL);
+	RLC_DASSERT(out != NULL);
+
+	rlc_utf32_t u32;
+	if(!rlc_utf8_char_to_utf32_char(str, &u32))
+		return 0;
+
+	if(u32 >= (1<<20))
+		return 0;
+
+	static rlc_utf16_t const kW1 = 0xD800;
+	static rlc_utf16_t const kW2 = 0xDC00;
+	static rlc_utf16_t const kMask = (1<<10)-1;
+
+	if(u32 >= (1<<10))
+	{
+		out->data[0] = kW1 | (u32 >> 10);
+		out->data[1] = kW2 | (u32 & kMask);
+		out->size = 2;
+	} else
+	{
+		out->data[0] = u32;
+		out->data[1] = 0;
+		out->size = 1;
+	}
+
+	return 1;
 }
 
 size_t rlc_utf8_is_valid_string(rlc_utf8_t const * str)
@@ -143,7 +172,7 @@ size_t rlc_utf8_is_valid_string(rlc_utf8_t const * str)
 	return len+1;
 }
 
-size_t rlc_strlen(rlc_char_t const * str)
+size_t rlc_strlen(rlc_utf32_t const * str)
 {
 	RLC_DASSERT(str != NULL);
 
@@ -163,8 +192,8 @@ signed sign(signed n)
 }
 
 int rlc_strcmp(
-	rlc_char_t const * a,
-	rlc_char_t const * b)
+	rlc_utf32_t const * a,
+	rlc_utf32_t const * b)
 {
 	RLC_DASSERT(a != NULL);
 	RLC_DASSERT(b != NULL);
@@ -176,7 +205,7 @@ int rlc_strcmp(
 }
 
 int rlc_strcmp_utf8(
-	rlc_char_t const * a,
+	rlc_utf32_t const * a,
 	rlc_utf8_t const * b)
 {
 	RLC_DASSERT(a != NULL);
@@ -186,7 +215,7 @@ int rlc_strcmp_utf8(
 	size_t i = 0;
 	while(a[i])
 	{
-		rlc_char_t conv_b;
+		rlc_utf32_t conv_b;
 		int len = rlc_utf8_char_to_utf32_char(b, &conv_b);
 
 		if(a[i] == conv_b)
@@ -200,8 +229,8 @@ int rlc_strcmp_utf8(
 }
 
 int rlc_strncmp(
-	rlc_char_t const * a,
-	rlc_char_t const * b,
+	rlc_utf32_t const * a,
+	rlc_utf32_t const * b,
 	size_t n)
 {
 	RLC_DASSERT(a != NULL);
@@ -226,7 +255,7 @@ int rlc_strncmp(
 }
 
 int rlc_strncmp_utf8(
-	rlc_char_t const * a,
+	rlc_utf32_t const * a,
 	rlc_utf8_t const * b,
 	size_t len)
 {
@@ -237,7 +266,7 @@ int rlc_strncmp_utf8(
 	size_t i = 0;
 	while(i<len)
 	{
-		rlc_char_t conv_b;
+		rlc_utf32_t conv_b;
 		int len = rlc_utf8_char_to_utf32_char(b, &conv_b);
 		if(!a[i])
 		{
@@ -253,23 +282,59 @@ int rlc_strncmp_utf8(
 	return 0;
 }
 
-rlc_char_t * rlc_utf8_to_utf32(
-	rlc_utf8_t const * str)
+rlc_utf32_t * rlc_utf8_to_utf32(
+	rlc_utf8_t const * str,
+	size_t len,
+	size_t * out_len)
 {
 	RLC_DASSERT(str != NULL);
+	RLC_DASSERT(out_len != NULL);
 
+	*out_len = 0;
+	{
+		rlc_utf8_t const * it = str;
+		for(size_t i = 0; i < len; i++)
+		{
+			it += rlc_character_length(*it);
+			++*out_len;
+		}
+	}
+
+	rlc_utf32_t * buffer = 0, * ret;
+	rlc_malloc(
+		(void**)&buffer,
+		sizeof(rlc_utf32_t) * (*out_len+1));
+	ret = buffer;
+	while(len--)
+		str += rlc_utf8_char_to_utf32_char(str, buffer++);
+	*buffer = '\0';
+
+	return ret;
+}
+
+rlc_utf16_t * rlc_utf8_to_utf16(
+	rlc_utf8_t const * str)
+{
 	size_t len;
 	if(!(len = rlc_utf8_is_valid_string(str)))
 		return 0;
-
-	rlc_char_t * buffer = 0, * ret;
-	rlc_malloc((void**)&buffer, len-- * sizeof(rlc_char_t));
+	rlc_utf16_t * buffer = NULL, * ret;
+	rlc_malloc((void**)&buffer, len-- * sizeof(rlc_utf16_t));
 	ret = buffer;
 	while(len--)
 	{
-		str += rlc_utf8_char_to_utf32_char(str, buffer++);
+		struct RlcUtf16Buf ch;
+		str += rlc_utf8_char_to_utf16_char(str, &ch);
+		for(unsigned i = 0; i < ch.size; i++)
+			buffer[i] = ch.data[i];
+		buffer += ch.size;
 	}
 	*buffer = 0;
 
 	return ret;
+}
+
+rlc_utf8_t * rlc_utf32_to_utf8(
+	rlc_utf32_t const * str)
+{
 }

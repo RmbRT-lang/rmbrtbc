@@ -1,7 +1,6 @@
 #include "tokeniser.h"
 #include "../malloc.h"
 #include "../macros.h"
-#include "../chartype.h"
 #include "../error.h"
 
 #include <string.h>
