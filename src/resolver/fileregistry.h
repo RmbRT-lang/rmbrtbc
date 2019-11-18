@@ -1,6 +1,10 @@
 #ifndef __rlc_resolver_fileregistry_h_defined
 #define __rlc_resolver_fileregistry_h_defined
 
+#include <stddef.h>
+
+#include "../parser/fileregistry.h"
+#include "file.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -9,8 +13,10 @@ extern "C" {
 struct RlcResolvedFileRegistry
 {
 	char const * fBaseDir;
-	struct RlcResolvedFile * fFiles;
+	struct RlcResolvedFile * * fFiles;
 	size_t fFileCount;
+
+	struct RlcParsedFileRegistry fParseRegistry;
 };
 
 void rlc_resolved_file_registry_create(

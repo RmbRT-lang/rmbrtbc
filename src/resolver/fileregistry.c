@@ -1,5 +1,6 @@
 #include "fileregistry.h"
 #include "../assert.h"
+#include "../malloc.h"
 
 #include <limits.h>
 #include <stdlib.h>
@@ -16,7 +17,7 @@ static char const * to_absolute_path(char const * path)
 		return NULL;
 
 	int abs_path_len = strlen(abs_path);
-	char const * ret = NULL;
+	char * ret = NULL;
 	rlc_malloc((void**)&ret, abs_path_len + 1);
 	memcpy(ret, abs_path, abs_path_len + 1);
 
@@ -50,7 +51,7 @@ static char const * concat_paths(
 	int need_slash = (base_file[base_file_length] != '/');
 	size_t relative_path_length = strlen(relative_path);
 
-	char const * concat = NULL;
+	char * concat = NULL;
 	rlc_malloc((void**)&concat, base_file_length + need_slash + relative_path_length + 1);
 
 	memcpy(concat, base_file, base_file_length);
@@ -103,5 +104,27 @@ struct RlcResolvedFile const * rlc_resolved_file_registry_get(
 	struct RlcResolvedFileRegistry * this,
 	char const * file)
 {
-	to be continue'd;
+	for(size_t i = 0; i < this->fFileCount; i++)
+	{
+		if(!strcmp(this->fFiles[i]->path, file))
+			return this->fFiles[i];
+	}
+
+	struct RlcParsedFile * parsed = rlc_parsed_file_registry_get(
+		&this->fParseRegistry,
+		file);
+
+	if(!parsed)
+		return NULL;
+
+	rlc_realloc(
+		(void**)&this->fFiles,
+		sizeof(struct RlcResolvedFile *) * ++this->fFileCount);
+	struct RlcResolvedFile * resolved = NULL;
+	rlc_malloc((void**)&resolved, sizeof(struct RlcResolvedFile));
+	this->fFiles[this->fFileCount-1] = resolved;
+
+	RLC_ASSERT(!"Now resolve the file");
+
+	return resolved;
 }
