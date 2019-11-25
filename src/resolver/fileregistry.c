@@ -2,9 +2,12 @@
 #include "../assert.h"
 #include "../malloc.h"
 
-#include <limits.h>
+#include <linux/limits.h>
 #include <stdlib.h>
 #include <string.h>
+
+// External declaration.
+char const * realpath(char const * path, char * buffer);
 
 /** Retrieves the absolute path of a file path.
 @return
@@ -27,6 +30,7 @@ static char const * to_absolute_path(char const * path)
 /** Finds the parent directory name of a file or directory.
 @return
 	0 on failure, otherwise, the index of the '/' after the parent directory. */
+/*
 static size_t parent_dir(char const * file)
 {
 	RLC_DASSERT(file != NULL);
@@ -36,7 +40,6 @@ static size_t parent_dir(char const * file)
 		--len;
 	return len;
 }
-
 static char const * concat_paths(
 	char const * base_file,
 	size_t base_file_length,
@@ -65,14 +68,14 @@ static char const * concat_paths(
 	concat[base_file_length + need_slash + relative_path_length] = '\0';
 
 	return concat;
-}
+}*/
 
 /** Resolves a relative file path with respect to a base file path.
 @param[in] base_file:
 	The base file path.
 @param[in] base_file_length:
 	The string length of base_file to use. 0 if it should be detected automatically. */
-static char const * resolve_relative_path(
+/*static char const * resolve_relative_path(
 	char const * base_file,
 	size_t base_file_length,
 	char const * relative_path)
@@ -82,7 +85,7 @@ static char const * resolve_relative_path(
 	char const * ret = to_absolute_path(concat);
 	rlc_free((void**)&concat);
 	return ret;
-}
+}*/
 
 void rlc_resolved_file_registry_create(
 	struct RlcResolvedFileRegistry * this)
@@ -110,7 +113,7 @@ struct RlcResolvedFile const * rlc_resolved_file_registry_get(
 			return this->fFiles[i];
 	}
 
-	struct RlcParsedFile * parsed = rlc_parsed_file_registry_get(
+	struct RlcParsedFile const * parsed = rlc_parsed_file_registry_get(
 		&this->fParseRegistry,
 		file);
 
