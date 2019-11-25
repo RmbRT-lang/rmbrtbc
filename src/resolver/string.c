@@ -207,7 +207,8 @@ void rlc_resolve_text(
 	} else if(has_prefix(source, "8", &after_prefix))
 	{
 		out->fSymbolSize = 1;
-	}
+	} else
+		out->fSymbolSize = 1;
 
 	switch(toupper(*after_prefix))
 	{

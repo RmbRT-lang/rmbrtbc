@@ -12,6 +12,6 @@ add_executable(rlc ${rlc_sources})
 
 # Creates an include directory containing all header files used in the RmbRT Language Compiler.
 # Add /rlc/include/ to your include directories and access the files via #include <rlc/*>
-file(COPY "src/" DESTINATION "include/rlc/" FILES_MATCHING PATTERN "*.h")
+#file(COPY "src/" DESTINATION "include/rlc/" FILES_MATCHING PATTERN "*.h")
 # Set up the rlc include directory.
 #include_directories(include/)

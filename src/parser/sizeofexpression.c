@@ -13,8 +13,6 @@ void rlc_parsed_sizeof_expression_create(
 		kRlcParsedSizeofExpression,
 		start,
 		end);
-
-	rlc_parsed_type_name_create(&this->fType);
 }
 
 void rlc_parsed_sizeof_expression_destroy(

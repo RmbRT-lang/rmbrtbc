@@ -12,12 +12,19 @@ extern "C" {
 struct RlcResolvedFile
 {
 	char const * path;
+	/** Whether the file is resolved. */
+	int fResolved;
 
 	/** The source file's includes. */
 	struct RlcIncludePathList includes;
 	/** The source file's global namespace entries. */
 	struct RlcResolvedScope * globalScope;
 };
+
+void rlc_resolved_file_create(
+	struct RlcResolvedFile * this);
+void rlc_resolved_file_destroy(
+	struct RlcResolvedFile * this);
 
 #ifdef __cplusplus
 }

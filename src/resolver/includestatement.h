@@ -19,6 +19,9 @@ struct RlcResolvedIncludeStatement
 	int fIsRelative;
 };
 
+void rlc_resolved_include_statement_destroy(
+	struct RlcResolvedIncludeStatement * this);
+
 
 /** An include path. */
 struct RlcIncludePath
@@ -43,6 +46,13 @@ struct RlcIncludePathList
 	@dassert @nonnull */
 void rlc_include_path_list_create(
 	struct RlcIncludePathList * this);
+/** Destroys an include path list.
+@memberof RlcIncludePathList
+@param[in,out] this:
+	The include path list to destroy.
+	@dassert @nonnull */
+void rlc_include_path_list_destroy(
+	struct RlcIncludePathList * this);
 
 /** Adds an include path to an include path list.
 @memberof RlcIncludePathList
@@ -59,10 +69,13 @@ void rlc_include_path_list_add(
 	char const * path,
 	int needs_free);
 
+struct RlcResolvedFileRegistry;
+
 void rlc_resolve_include_statement(
 	struct RlcResolvedIncludeStatement * this,
 	struct RlcParsedIncludeStatement const * in,
-	struct RlcSrcFile const * src);
+	struct RlcSrcFile const * src,
+	struct RlcResolvedFileRegistry const * registry);
 
 #ifdef __cplusplus
 }

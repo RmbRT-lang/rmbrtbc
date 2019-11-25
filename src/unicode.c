@@ -391,7 +391,7 @@ rlc_utf8_t * rlc_utf32_to_utf8(
 		*out_len += rlc_utf8_codepoint_length(str[i]);
 
 	rlc_utf8_t * ret = NULL, * buf;
-	rlc_malloc((void**)&ret, *out_len);
+	rlc_malloc((void**)&ret, *out_len+1);
 	buf = ret;
 	for(size_t i = 0; i < length; i++)
 		buf += rlc_utf32_char_to_utf8_char(str[i], buf);

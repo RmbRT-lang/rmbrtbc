@@ -12,7 +12,8 @@ extern "C" {
 _Noreturn void rlc_resolver_fail(
 	struct RlcToken const * token,
 	struct RlcSrcFile const * file,
-	char const * msg);
+	char const * msg,
+	...);
 
 
 #ifdef __cplusplus

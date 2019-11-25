@@ -1,4 +1,4 @@
-#include "parser/fileregistry.h"
+#include "resolver/fileregistry.h"
 #include "unicode.h"
 #include "malloc.h"
 
@@ -8,14 +8,14 @@ int main(
 	int argc,
 	char ** argv)
 {
-	struct RlcParsedFileRegistry parsed_registry;
-	rlc_parsed_file_registry_create(&parsed_registry);
+	struct RlcResolvedFileRegistry resolved_registry;
+	rlc_resolved_file_registry_create(&resolved_registry);
 
 	int status = 1;
 	for(int i = 1; i < argc; i++)
 	{
-		if(rlc_parsed_file_registry_get(
-			&parsed_registry,
+		if(rlc_resolved_file_registry_get(
+			&resolved_registry,
 			argv[i]))
 		{
 			printf("parsed file %s\n",
@@ -29,7 +29,7 @@ int main(
 		}
 	}
 
-	rlc_parsed_file_registry_destroy(&parsed_registry);
+	rlc_resolved_file_registry_destroy(&resolved_registry);
 
 	size_t allocs;
 	if((allocs = rlc_allocations()))

@@ -12,9 +12,13 @@ extern "C" {
 
 struct RlcResolvedFileRegistry
 {
-	char const * fBaseDir;
 	struct RlcResolvedFile * * fFiles;
 	size_t fFileCount;
+
+	/** Include directories. */
+	char const ** fIncludeDirs;
+	/** Include directory count. */
+	RlcSrcSize fIncludeDirCount;
 
 	struct RlcParsedFileRegistry fParseRegistry;
 };
