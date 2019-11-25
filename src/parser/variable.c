@@ -82,17 +82,22 @@ int rlc_parsed_variable_parse(
 		parser,
 		kRlcTokIdentifier))
 	{
-		static enum RlcTokenType const k_needed_ahead[] = {
-			kRlcTokColon,
-			kRlcTokColonEqual,
-			kRlcTokDoubleColonEqual,
-			kRlcTokSemicolon,
+		static struct {
+			enum RlcTokenType token;
+			int allowIfNeedsName;
+		} const k_needed_ahead[] = {
+			{ kRlcTokColon, 1 },
+			{ kRlcTokColonEqual, 1 },
+			{ kRlcTokDoubleColonEqual, 1 },
+			{ kRlcTokSemicolon, 0 },
+			{ kRlcTokComma, 0 }
 		};
 		int found = 0;
 		for(size_t i = 0; i < _countof(k_needed_ahead); i++)
-			if(rlc_parser_is_ahead(
+			if(needs_name <= k_needed_ahead[i].allowIfNeedsName
+			&& rlc_parser_is_ahead(
 				parser,
-				k_needed_ahead[i]))
+				k_needed_ahead[i].token))
 			{
 				found = 1;
 				break;
@@ -126,29 +131,42 @@ int rlc_parsed_variable_parse(
 			rlc_parser_skip(parser);
 		} else if(allow_initialiser)
 		{
-			rlc_parser_expect(
-				parser,
-				&name,
-				1,
-				kRlcTokIdentifier);
-			enum RlcTypeQualifier qualifier;
-			int has_qualifier = rlc_type_qualifier_parse(
-				&qualifier,
-				parser);
+			static enum RlcTokenType const k_need_ahead[] = {
+				kRlcTokHash,
+				kRlcTokDollar,
+				kRlcTokDoubleColonEqual
+			};
 
-			// "name ::=" style variable?
-			if(rlc_parser_consume(
-				parser,
-				NULL,
-				kRlcTokDoubleColonEqual))
+			for(size_t i = 0; i < _countof(k_need_ahead); i++)
 			{
-				has_name = 1;
-				needs_type = 0;
-				out->fHasType = 0;
-				out->fTypeQualifier = qualifier;
-			} else if(has_qualifier)
-			{
-				rlc_parser_fail(parser, "expected '::='");
+				if(rlc_parser_is_ahead(
+					parser,
+					k_need_ahead[i]))
+				{
+					rlc_parser_expect(
+						parser,
+						&name,
+						1,
+						kRlcTokIdentifier);
+
+					enum RlcTypeQualifier qualifier;
+					rlc_type_qualifier_parse(
+						&qualifier,
+						parser);
+
+					// "name ::=" style variable?
+					rlc_parser_expect(
+						parser,
+						NULL,
+						1,
+						kRlcTokDoubleColonEqual);
+
+					has_name = 1;
+					needs_type = 0;
+					out->fHasType = 0;
+					out->fTypeQualifier = qualifier;
+					break;
+				}
 			}
 		}
 	} // If !isArgument, "name: type" is expected.

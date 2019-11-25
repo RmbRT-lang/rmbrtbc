@@ -2,11 +2,12 @@
 
 In RL, functions are defined via the following syntax:
 
-	name(arg1: type1, arg2: type2, type3, type4, arg5: type5): type := {
+	name(arg1: type1, arg2: type2, type3, type4, arg5: type5) type6
+	{
 		statements;
-	};
+	}
 
-	name(): type := expression;
+	name() Type := expression;
 
 	name() ::= expression;
 
@@ -28,7 +29,8 @@ This enables the use of the `yield` statement.
 
 ## Example
 
-	max{T:type} (a: T, b: T) : T := (b<a) ? a : b;
+	[T: type]
+	max(a: T, b: T) inline T := (b<a) ? a : b;
 
 	strlen(string: char \) : size_t :=
 	{
