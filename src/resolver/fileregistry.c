@@ -80,7 +80,10 @@ struct RlcResolvedFile const * rlc_resolved_file_registry_get(
 	for(size_t i = 0; i < this->fFileCount; i++)
 	{
 		if(!strcmp(this->fFiles[i]->path, file))
+		{
+			rlc_free((void*)&file);
 			return this->fFiles[i];
+		}
 	}
 
 	struct RlcParsedFile const * parsed = rlc_parsed_file_registry_get(
@@ -97,7 +100,8 @@ struct RlcResolvedFile const * rlc_resolved_file_registry_get(
 	rlc_malloc((void**)&resolved, sizeof(struct RlcResolvedFile));
 	this->fFiles[this->fFileCount-1] = resolved;
 
-	resolved->path = to_absolute_path(file);
+	resolved->fResolved = 0;
+	resolved->path = file;
 	rlc_include_path_list_create(&resolved->includes);
 	{
 		struct RlcResolvedIncludeStatement inc_stmt;
@@ -112,5 +116,6 @@ struct RlcResolvedFile const * rlc_resolved_file_registry_get(
 			rlc_resolved_include_statement_destroy(&inc_stmt);
 		}
 	}
+
 	return resolved;
 }

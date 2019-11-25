@@ -1,6 +1,7 @@
 #include "resolver/fileregistry.h"
 #include "unicode.h"
 #include "malloc.h"
+#include "fs.h"
 
 #include <stdio.h>
 
@@ -14,9 +15,10 @@ int main(
 	int status = 1;
 	for(int i = 1; i < argc; i++)
 	{
+		char const * abs = to_absolute_path(argv[i]);
 		if(rlc_resolved_file_registry_get(
 			&resolved_registry,
-			argv[i]))
+			abs))
 		{
 			printf("parsed file %s\n",
 				argv[i]);
