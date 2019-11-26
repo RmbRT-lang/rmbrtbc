@@ -147,10 +147,16 @@ int skip_comment(
 		return 1;
 	} else if(take_str(this, "(/"))
 	{
+		int level = 1;
 		while(!eof(this))
 		{
 			if(take_str(this, "/)"))
-				return 1;
+			{
+				if(!--level)
+					return 1;
+			}
+			else if(take_str(this, "(/"))
+				++level;
 			else
 				ignore(this, 1);
 		}
