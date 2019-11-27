@@ -88,7 +88,6 @@ int rlc_parsed_class_parse(
 				member,
 				RlcParsedMember,
 				struct RlcParsedDestructor);
-			rlc_parsed_member_destroy_virtual(member);
 			rlc_free((void**)&member);
 		} else
 		{

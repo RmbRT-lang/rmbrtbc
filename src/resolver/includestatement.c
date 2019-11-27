@@ -70,6 +70,11 @@ void rlc_resolve_include_statement(
 	if(this->fPath.fSymbolSize != 1)
 		rlc_resolver_fail(&in->fFileName, src, "include path must be UTF-8");
 
+	if(!this->fPath.fElements)
+		rlc_resolver_fail(&in->fFileName, src, "invalid empty include path");
+	if(((char const*)this->fPath.fRaw)[0] == '/')
+		rlc_resolver_fail(&in->fFileName, src, "include paths must not start with /");
+
 	this->fIsRelative = in->fIsRelative;
 
 	char const * inc_path = NULL;
