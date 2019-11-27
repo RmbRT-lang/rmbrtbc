@@ -146,6 +146,7 @@ int rlc_parsed_constructor_parse(
 	}
 
 	out->fIsDefinition = 1;
+	rlc_parsed_block_statement_create(&out->fBody);
 	if(rlc_parser_consume(
 		parser,
 		NULL,
