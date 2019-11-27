@@ -14,7 +14,7 @@ int rlc_src_string_valid(
 	RLC_DASSERT(this != NULL);
 	RLC_DASSERT(file != NULL);
 
-	return this->start + this->length < file->fContentLength;
+	return this->start + this->length <= file->fContentLength;
 }
 
 int rlc_src_string_cmp(
