@@ -7,11 +7,23 @@
 #include "scopeentry.h"
 #include "templatedecl.h"
 #include "member.h"
+#include "symbol.h"
 
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/** A single inheritance list entry. */
+struct RlcParsedInheritance
+{
+	/** Whether the inheritance is virtual. */
+	int fVirtual;
+	/** The inheritance's visibility. */
+	enum RlcVisibility fVisibility;
+	/** The base class to inherit. */
+	struct RlcParsedSymbol fBase;
+};
 
 /** The class type as used by the parser.
 @extends RlcParsedScopeEntry */
@@ -21,6 +33,9 @@ struct RlcParsedClass
 
 	/** The template declarations of the class. */
 	struct RlcParsedTemplateDecl fTemplateDecl;
+
+	struct RlcParsedInheritance * fInheritances;
+	RlcSrcSize fInheritanceCount;
 
 	/** The list of members. */
 	struct RlcParsedMemberList fMembers;

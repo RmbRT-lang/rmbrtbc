@@ -20,6 +20,9 @@ void rlc_parsed_class_create(
 	else
 		rlc_parsed_template_decl_create(&this->fTemplateDecl);
 
+	this->fInheritances = NULL;
+	this->fInheritanceCount = 0;
+
 	rlc_parsed_member_list_create(&this->fMembers);
 
 	this->fHasDestructor = 0;
@@ -65,11 +68,37 @@ int rlc_parsed_class_parse(
 
 	rlc_parsed_class_create(out, &name.content, templates);
 
-	rlc_parser_expect(
+	if(kRlcTokMinusGreater == rlc_parser_expect(
 		parser,
 		NULL,
-		1,
-		kRlcTokBraceOpen);
+		2,
+		kRlcTokMinusGreater,
+		kRlcTokBraceOpen))
+	{
+		do
+		{
+			rlc_realloc(
+				(void**)&out->fInheritances,
+				++out->fInheritanceCount * sizeof(struct RlcParsedInheritance));
+			struct RlcParsedInheritance * in =
+				&out->fInheritances[out->fInheritanceCount-1];
+
+			int _ = rlc_visibility_parse(&in->fVisibility, parser, kRlcVisibilityPublic);
+			(void) _;
+
+			in->fVirtual = rlc_parser_consume(
+				parser,
+				NULL,
+				kRlcTokVirtual);
+			if(!rlc_parsed_symbol_parse(&in->fBase, parser))
+				rlc_parser_fail(parser, "expected symbol");
+		} while(kRlcTokComma == rlc_parser_expect(
+			parser,
+			NULL,
+			2,
+			kRlcTokComma,
+			kRlcTokBraceOpen));
+	}
 
 	struct RlcParsedMemberCommon common;
 	rlc_parsed_member_common_create(&common, kRlcVisibilityPublic);
