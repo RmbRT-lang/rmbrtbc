@@ -12,6 +12,7 @@ char const * rlc_token_type_name(
 		"character",
 		"string",
 
+		"'abstract'",
 		"'break'",
 		"'case'",
 		"'constructor'",
@@ -22,6 +23,7 @@ char const * rlc_token_type_name(
 		"'else'",
 		"'enum'",
 		"'extern'",
+		"'final'",
 		"'for'",
 		"'if'",
 		"'include'",
@@ -30,6 +32,7 @@ char const * rlc_token_type_name(
 		"'noinit'",
 		"'number'",
 		"'operator'",
+		"'override'",
 		"'private'",
 		"'protected'",
 		"'public'",

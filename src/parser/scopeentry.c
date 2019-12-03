@@ -106,6 +106,17 @@ static int dummy_rlc_parsed_variable_parse(
 	return 0;
 }
 
+static int dummy_rlc_parsed_function_parse(
+	struct RlcParsedFunction * function,
+	struct RlcParser * parser,
+	struct RlcParsedTemplateDecl const * templates)
+{
+	RLC_DASSERT(function != NULL);
+	RLC_DASSERT(parser != NULL);
+
+	return rlc_parsed_function_parse(function, parser, templates, 1);
+}
+
 
 struct RlcParsedScopeEntry * rlc_parsed_scope_entry_parse(
 	struct RlcParser * parser)
@@ -140,7 +151,7 @@ struct RlcParsedScopeEntry * rlc_parsed_scope_entry_parse(
 		size_t fOffset;
 	} const k_parse_lookup[] = {
 		ENTRY(RlcParsedVariable, &dummy_rlc_parsed_variable_parse),
-		ENTRY(RlcParsedFunction, &rlc_parsed_function_parse),
+		ENTRY(RlcParsedFunction, &dummy_rlc_parsed_function_parse),
 		ENTRY(RlcParsedClass, &rlc_parsed_class_parse),
 		ENTRY(RlcParsedUnion, &rlc_parsed_union_parse),
 		ENTRY(RlcParsedRawtype, &rlc_parsed_rawtype_parse),

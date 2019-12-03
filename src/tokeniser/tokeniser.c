@@ -171,6 +171,7 @@ struct {
 	enum RlcTokenType kw;
 } const s_keywords [] = {
 	// keywords.
+		{"abstract", kRlcTokAbstract },
 		{"break", kRlcTokBreak },
 		{"case", kRlcTokCase },
 		{"constructor", kRlcTokConstructor },
@@ -181,6 +182,7 @@ struct {
 		{"else", kRlcTokElse },
 		{"enum", kRlcTokEnum},
 		{"extern", kRlcTokExtern },
+		{"final", kRlcTokFinal },
 		{"for", kRlcTokFor },
 		{"if", kRlcTokIf },
 		{"include", kRlcTokInclude },
@@ -188,6 +190,7 @@ struct {
 		{"namespace", kRlcTokNamespace },
 		{"number", kRlcTokNumber },
 		{"operator", kRlcTokOperator },
+		{"override", kRlcTokOverride },
 		{"private", kRlcTokPrivate },
 		{"protected", kRlcTokProtected },
 		{"public", kRlcTokPublic },

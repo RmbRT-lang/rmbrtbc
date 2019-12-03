@@ -91,7 +91,8 @@ void rlc_parsed_function_add_argument(
 int rlc_parsed_function_parse(
 	struct RlcParsedFunction * out,
 	struct RlcParser * parser,
-	struct RlcParsedTemplateDecl const * templates)
+	struct RlcParsedTemplateDecl const * templates,
+	int allow_body)
 {
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
@@ -171,8 +172,10 @@ int rlc_parsed_function_parse(
 			out->fHasBody = 0;
 			rlc_parser_untrace(parser, &tracer);
 			return 1;
-		}
-	}
+		} else if(!allow_body)
+			rlc_parser_fail(parser, "expected ';'");
+	} else if(!allow_body)
+		rlc_parser_fail(parser, "expected return type");
 
 	out->fHasBody = 1;
 
@@ -227,11 +230,42 @@ int rlc_parsed_member_function_parse(
 	RLC_DASSERT(parser != NULL);
 	RLC_DASSERT(member != NULL);
 
+	static struct {
+		enum RlcTokenType token;
+		enum RlcMemberFunctionAbstractness value;
+	} k_lookup[] = {
+		{ kRlcTokVirtual, kRlcMemberFunctionAbstractnessVirtual },
+		{ kRlcTokAbstract, kRlcMemberFunctionAbstractnessAbstract },
+		{ kRlcTokOverride, kRlcMemberFunctionAbstractnessOverride },
+		{ kRlcTokFinal, kRlcMemberFunctionAbstractnessFinal }
+	};
+
+	int any = 0;
+	for(size_t i = 0; i < _countof(k_lookup); i++)
+		if(rlc_parser_consume(
+			parser,
+			NULL,
+			k_lookup[i].token))
+		{
+			out->fAbstractness = k_lookup[i].value;
+			any = 1;
+			break;
+		}
+
+	if(!any)
+		out->fAbstractness = kRlcMemberFunctionAbstractnessNone;
+
 	if(!rlc_parsed_function_parse(
 		RLC_BASE_CAST(out, RlcParsedFunction),
 		parser,
-		&member->templates))
-		return 0;
+		&member->templates,
+		out->fAbstractness != kRlcMemberFunctionAbstractnessAbstract))
+	{
+		if(any)
+			rlc_parser_fail(parser, "expected function after 'abstract'");
+		else
+			return 0;
+	}
 
 	rlc_parsed_member_function_create(
 		out,

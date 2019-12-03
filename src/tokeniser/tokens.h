@@ -23,6 +23,7 @@ enum RlcTokenType
 	kRlcTokStringLiteral,
 
 	// Keywords.
+	kRlcTokAbstract,
 	kRlcTokBreak,
 	kRlcTokCase,
 	kRlcTokConstructor,
@@ -33,6 +34,7 @@ enum RlcTokenType
 	kRlcTokElse,
 	kRlcTokEnum,
 	kRlcTokExtern,
+	kRlcTokFinal,
 	kRlcTokFor,
 	kRlcTokIf,
 	kRlcTokInclude,
@@ -41,6 +43,7 @@ enum RlcTokenType
 	kRlcTokNoinit,
 	kRlcTokNumber,
 	kRlcTokOperator,
+	kRlcTokOverride,
 	kRlcTokPrivate,
 	kRlcTokProtected,
 	kRlcTokPublic,

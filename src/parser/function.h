@@ -98,7 +98,17 @@ void rlc_parsed_function_add_argument(
 _Nodiscard int rlc_parsed_function_parse(
 	struct RlcParsedFunction * out,
 	struct RlcParser * parser,
-	struct RlcParsedTemplateDecl const * templates);
+	struct RlcParsedTemplateDecl const * templates,
+	int allow_body);
+
+enum RlcMemberFunctionAbstractness
+{
+	kRlcMemberFunctionAbstractnessNone,
+	kRlcMemberFunctionAbstractnessVirtual,
+	kRlcMemberFunctionAbstractnessAbstract,
+	kRlcMemberFunctionAbstractnessOverride,
+	kRlcMemberFunctionAbstractnessFinal
+};
 
 /** Member function type used by the parser.
 @extends RlcParsedMember
@@ -107,6 +117,9 @@ struct RlcParsedMemberFunction
 {
 	RLC_DERIVE(struct,RlcParsedMember);
 	RLC_DERIVE(struct,RlcParsedFunction);
+
+	/** Whether the member function is virtual. */
+	enum RlcMemberFunctionAbstractness fAbstractness;
 };
 
 /** Creates a member function.
