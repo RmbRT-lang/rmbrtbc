@@ -26,7 +26,6 @@ char const * rlc_token_type_name(
 		"'if'",
 		"'include'",
 		"'inline'",
-		"'isolated'",
 		"'namespace'",
 		"'noinit'",
 		"'number'",

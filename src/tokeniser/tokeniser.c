@@ -185,7 +185,6 @@ struct {
 		{"if", kRlcTokIf },
 		{"include", kRlcTokInclude },
 		{"inline", kRlcTokInline },
-		{"isolated", kRlcTokIsolated },
 		{"namespace", kRlcTokNamespace },
 		{"number", kRlcTokNumber },
 		{"operator", kRlcTokOperator },

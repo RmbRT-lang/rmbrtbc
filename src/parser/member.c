@@ -124,7 +124,7 @@ enum RlcMemberAttribute rlc_member_attribute_parse(
 	if(rlc_parser_consume(
 		parser,
 		NULL,
-		kRlcTokIsolated))
+		kRlcTokHash))
 	{
 		return kRlcMemberAttributeIsolated;
 	} else if(rlc_parser_consume(
