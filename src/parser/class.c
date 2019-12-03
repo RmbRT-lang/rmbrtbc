@@ -44,6 +44,14 @@ void rlc_parsed_class_destroy(
 		rlc_parsed_destructor_destroy(&this->fDestructor);
 		this->fHasDestructor = 0;
 	}
+
+	if(this->fInheritanceCount)
+	{
+		for(RlcSrcSize i = 0; i < this->fInheritanceCount; i++)
+			rlc_parsed_symbol_destroy(&this->fInheritances[i].fBase);
+		rlc_free((void**)&this->fInheritances);
+		this->fInheritanceCount = 0;
+	}
 }
 
 int rlc_parsed_class_parse(
