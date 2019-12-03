@@ -55,7 +55,7 @@ void rlc_parser_destroy(
 
 		fflush(stderr);
 		fflush(stdout);
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 }
 
@@ -163,7 +163,7 @@ _Noreturn void rlc_parser_fail(
 
 	fflush(stderr);
 	fflush(stdout);
-	abort();
+	exit(EXIT_FAILURE);
 }
 
 int rlc_parser_consume(
@@ -259,7 +259,7 @@ print_expected:
 	fflush(stdout);
 	fflush(stderr);
 
-	abort();
+	exit(EXIT_FAILURE);
 }
 
 void rlc_parser_skip(
