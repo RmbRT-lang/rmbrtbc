@@ -91,6 +91,15 @@ int rlc_parsed_variable_parse(
 			{ kRlcTokDoubleColonEqual, 1 },
 			{ kRlcTokHash, 1 },
 			{ kRlcTokDollar, 1 },
+			{ kRlcTokAnd, 0 },
+			{ kRlcTokDoubleAnd, 0 },
+			{ kRlcTokAsterisk, 0 },
+			{ kRlcTokBackslash, 0 },
+			{ kRlcTokAt, 0 },
+			{ kRlcTokDoubleAt, 0 },
+			{ kRlcTokDoubleDotExclamationMark, 0 },
+			{ kRlcTokDoubleDotQuestionMark, 0 },
+			{ kRlcTokDoubleColon, 0 },
 			{ kRlcTokSemicolon, 0 },
 			{ kRlcTokComma, 0 }
 		};
