@@ -24,6 +24,7 @@ enum RlcParsedStatementType
 	kRlcParsedCaseStatement,
 	kRlcParsedBreakStatement,
 	kRlcParsedTryStatement,
+	kRlcParsedThrowStatement,
 	RLC_ENUM_END(RlcParsedStatementType)
 };
 

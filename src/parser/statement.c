@@ -9,6 +9,7 @@
 #include "switchstatement.h"
 #include "breakstatement.h"
 #include "trystatement.h"
+#include "throwstatement.h"
 
 #include "../assert.h"
 #include "../malloc.h"
@@ -74,6 +75,9 @@ void rlc_parsed_statement_destroy_virtual(
 		}, {
 			(thiscall_t)&rlc_parsed_try_statement_destroy,
 			RLC_DERIVE_OFFSET(RlcParsedStatement, struct RlcParsedTryStatement)
+		}, {
+			(thiscall_t)&rlc_parsed_throw_statement_destroy,
+			RLC_DERIVE_OFFSET(RlcParsedStatement, struct RlcParsedThrowStatement)
 		}
 	};
 
@@ -97,6 +101,7 @@ union RlcStatementStorage
 	struct RlcParsedCaseStatement fRlcParsedCaseStatement;
 	struct RlcParsedBreakStatement fRlcParsedBreakStatement;
 	struct RlcParsedTryStatement fRlcParsedTryStatement;
+	struct RlcParsedTryStatement fRlcParsedThrowStatement;
 };
 
 struct RlcParsedStatement * rlc_parsed_statement_parse(
@@ -133,6 +138,7 @@ struct RlcParsedStatement * rlc_parsed_statement_parse(
 		ENTRY(RlcParsedCaseStatement, &rlc_parsed_case_statement_parse),
 		ENTRY(RlcParsedBreakStatement, &rlc_parsed_break_statement_parse),
 		ENTRY(RlcParsedTryStatement, &rlc_parsed_try_statement_parse),
+		ENTRY(RlcParsedThrowStatement, &rlc_parsed_throw_statement_parse),
 		// expression has to come after variable.
 		ENTRY(RlcParsedExpressionStatement, &rlc_parsed_expression_statement_parse),
 	};
