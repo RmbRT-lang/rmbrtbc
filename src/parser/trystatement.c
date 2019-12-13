@@ -118,16 +118,31 @@ int rlc_parsed_catch_statement_parse(
 		1,
 		kRlcTokParentheseOpen);
 
-	if(!rlc_parsed_variable_parse(
-		&out->fException,
+	if(rlc_parser_is_current(
 		parser,
-		NULL,
-		0,
-		0,
-		0,
-		0,
-		1))
-		rlc_parser_fail(parser, "expected variable");
+		kRlcTokParentheseClose)
+	|| (rlc_parser_is_ahead(parser, kRlcTokParentheseClose)
+		&& rlc_parser_consume(parser, NULL, kRlcTokVoid)))
+	{
+		out->fIsVoid = 1;
+	} else
+	{
+		out->fIsVoid = 0;
+
+		if(!rlc_parsed_variable_parse(
+			&out->fException,
+			parser,
+			NULL,
+			0,
+			0,
+			0,
+			0,
+			1))
+			rlc_parser_fail(parser, "expected variable");
+		if(out->fException.fType.fValue == kRlcParsedTypeNameValueVoid
+		&& !out->fException.fType.fTypeModifierCount)
+			rlc_parser_fail(parser, "void catches must not name a variable");
+	}
 
 	rlc_parser_expect(
 		parser,
@@ -151,7 +166,8 @@ void rlc_parsed_catch_statement_destroy(
 {
 	RLC_DASSERT(this != NULL);
 
-	rlc_parsed_variable_destroy(&this->fException);
+	if(!this->fIsVoid)
+		rlc_parsed_variable_destroy(&this->fException);
 	rlc_parsed_statement_destroy_virtual(this->fBody);
 	rlc_free((void**)&this->fBody);
 }
