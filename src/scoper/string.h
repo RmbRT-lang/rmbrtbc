@@ -1,7 +1,7 @@
 /** @file strings.h
 	Contains the utilities to retrieve the string contents of strings and character constants. */
-#ifndef __rlc_resolver_strings_h_defined
-#define __rlc_resolver_strings_h_defined
+#ifndef __rlc_scoper_strings_h_defined
+#define __rlc_scoper_strings_h_defined
 
 #include "../src/string.h"
 #include "../tokeniser/tokens.h"
@@ -21,7 +21,7 @@ enum RlcEndian
 };
 
 /** A string's or character literal's contents. */
-struct RlcResolvedText
+struct RlcScopedText
 {
 	/** Whether the string is a string or a character literal. */
 	int fIsString;
@@ -35,13 +35,13 @@ struct RlcResolvedText
 	enum RlcEndian fEndian;
 };
 
-void rlc_resolve_text(
-	struct RlcResolvedText * out,
+void rlc_scoped_text_create(
+	struct RlcScopedText * out,
 	struct RlcSrcFile const * file,
 	struct RlcToken const * token);
 
-void rlc_resolved_text_destroy(
-	struct RlcResolvedText * this);
+void rlc_scoped_text_destroy(
+	struct RlcScopedText * this);
 
 #ifdef __cplusplus
 }

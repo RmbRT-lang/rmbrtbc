@@ -7,7 +7,7 @@
 #include <stdlib.h>
 
 static void read_include_dirs(
-	struct RlcResolvedFileRegistry * this)
+	struct RlcScopedFileRegistry * this)
 {
 	char const * dirs = getenv("RLINCLUDE");
 	if(!dirs)
@@ -36,8 +36,8 @@ static void read_include_dirs(
 	} while(dirs);
 }
 
-void rlc_resolved_file_registry_create(
-	struct RlcResolvedFileRegistry * this)
+void rlc_scoped_file_registry_create(
+	struct RlcScopedFileRegistry * this)
 {
 	RLC_DASSERT(this != NULL);
 
@@ -49,8 +49,8 @@ void rlc_resolved_file_registry_create(
 	rlc_parsed_file_registry_create(&this->fParseRegistry);
 }
 
-void rlc_resolved_file_registry_destroy(
-	struct RlcResolvedFileRegistry * this)
+void rlc_scoped_file_registry_destroy(
+	struct RlcScopedFileRegistry * this)
 {
 	rlc_parsed_file_registry_destroy(&this->fParseRegistry);
 	for(RlcSrcIndex i = 0; i < this->fIncludeDirCount; i++)
@@ -62,7 +62,7 @@ void rlc_resolved_file_registry_destroy(
 
 	for(RlcSrcIndex i = 0; i < this->fFileCount; i++)
 	{
-		rlc_resolved_file_destroy(this->fFiles[i]);
+		rlc_scoped_file_destroy(this->fFiles[i]);
 		rlc_free((void**)&this->fFiles[i]);
 	}
 
@@ -72,9 +72,9 @@ void rlc_resolved_file_registry_destroy(
 }
 
 /** Queries a file from the registry.
-	If the file was not registered, tries to parse and resolve it. */
-struct RlcResolvedFile const * rlc_resolved_file_registry_get(
-	struct RlcResolvedFileRegistry * this,
+	If the file was not registered, tries to parse and scope it. */
+struct RlcScopedFile const * rlc_scoped_file_registry_get(
+	struct RlcScopedFileRegistry * this,
 	char const * file)
 {
 	for(size_t i = 0; i < this->fFileCount; i++)
@@ -95,28 +95,28 @@ struct RlcResolvedFile const * rlc_resolved_file_registry_get(
 
 	rlc_realloc(
 		(void**)&this->fFiles,
-		sizeof(struct RlcResolvedFile *) * ++this->fFileCount);
-	struct RlcResolvedFile * resolved = NULL;
-	rlc_malloc((void**)&resolved, sizeof(struct RlcResolvedFile));
-	this->fFiles[this->fFileCount-1] = resolved;
+		sizeof(struct RlcScopedFile *) * ++this->fFileCount);
+	struct RlcScopedFile * scoped = NULL;
+	rlc_malloc((void**)&scoped, sizeof(struct RlcScopedFile));
+	this->fFiles[this->fFileCount-1] = scoped;
 
-	resolved->globalScope = rlc_resolved_scope_new(NULL);
-	resolved->fResolved = 0;
-	resolved->path = file;
-	rlc_include_path_list_create(&resolved->includes);
+	scoped->globalScope = rlc_scoped_scope_new(NULL);
+	scoped->fScoped = 0;
+	scoped->path = file;
+	rlc_include_path_list_create(&scoped->includes);
 	{
-		struct RlcResolvedIncludeStatement inc_stmt;
+		struct RlcScopedIncludeStatement inc_stmt;
 		for(size_t i = 0; i < parsed->fIncludeCount; i++)
 		{
-			rlc_resolve_include_statement(
+			rlc_scope_include_statement(
 				&inc_stmt,
 				&parsed->fIncludes[i],
 				&parsed->fSource,
 				this);
 
-			rlc_resolved_include_statement_destroy(&inc_stmt);
+			rlc_scoped_include_statement_destroy(&inc_stmt);
 		}
 	}
 
-	return resolved;
+	return scoped;
 }

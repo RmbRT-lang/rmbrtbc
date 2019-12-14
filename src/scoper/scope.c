@@ -3,13 +3,13 @@
 #include "../malloc.h"
 
 
-struct RlcResolvedScope * rlc_resolved_scope_new(
-	struct RlcResolvedScope * parent)
+struct RlcScopedScope * rlc_scoped_scope_new(
+	struct RlcScopedScope * parent)
 {
-	struct RlcResolvedScope * ret = NULL;
+	struct RlcScopedScope * ret = NULL;
 	rlc_malloc(
 		(void**)&ret,
-		sizeof(struct RlcResolvedScope));
+		sizeof(struct RlcScopedScope));
 
 	ret->parent = parent;
 	ret->siblings = NULL;
@@ -20,8 +20,8 @@ struct RlcResolvedScope * rlc_resolved_scope_new(
 	return ret;
 }
 
-void rlc_resolved_scope_delete(
-	struct RlcResolvedScope * this)
+void rlc_scoped_scope_delete(
+	struct RlcScopedScope * this)
 {
 	RLC_DASSERT(this != NULL);
 
@@ -34,16 +34,16 @@ void rlc_resolved_scope_delete(
 	if(this->entries)
 	{
 		for(RlcSrcIndex i = 0; i < this->entryCount; i++)
-			rlc_resolved_scope_entry_deref(this->entries[i]);
+			rlc_scoped_scope_entry_deref(this->entries[i]);
 		rlc_free((void**)&this->entries);
 		this->entryCount = 0;
 	}
 }
 
-static int rlc_resolved_scope_filter_impl(
-	struct RlcResolvedScope * this,
-	struct RlcResolvedScopeEntryName const * name,
-	rlc_resolved_scope_filter_fn_t callback,
+static int rlc_scoped_scope_filter_impl(
+	struct RlcScopedScope * this,
+	struct RlcScopedSymbolChild const * name,
+	rlc_scoped_scope_filter_fn_t callback,
 	void * userdata,
 	int parents,
 	int siblings,
@@ -53,7 +53,7 @@ static int rlc_resolved_scope_filter_impl(
 
 	for(RlcSrcIndex i = 0; i < this->entryCount; i++)
 	{
-		if(0 == rlc_resolved_scope_entry_name_compare(
+		if(0 == rlc_scoped_symbol_child_compare(
 			name,
 			&this->entries[i]->name))
 		{
@@ -70,7 +70,7 @@ static int rlc_resolved_scope_filter_impl(
 	{
 		for(RlcSrcIndex i = 0; i < this->siblingCount; i++)
 		{
-			found |= rlc_resolved_scope_filter_impl(
+			found |= rlc_scoped_scope_filter_impl(
 				this->siblings[i],
 				name,
 				callback,
@@ -86,7 +86,7 @@ static int rlc_resolved_scope_filter_impl(
 	{
 		if(this->parent)
 		{
-			found |= rlc_resolved_scope_filter_impl(
+			found |= rlc_scoped_scope_filter_impl(
 				this->parent,
 				name,
 				callback,
@@ -99,10 +99,10 @@ static int rlc_resolved_scope_filter_impl(
 	return found;
 }
 
-int rlc_resolved_scope_filter(
-	struct RlcResolvedScope * this,
-	struct RlcResolvedScopeEntryName const * name,
-	rlc_resolved_scope_filter_fn_t callback,
+int rlc_scoped_scope_filter(
+	struct RlcScopedScope * this,
+	struct RlcScopedSymbolChild const * name,
+	rlc_scoped_scope_filter_fn_t callback,
 	void * userdata,
 	int check_parents,
 	int check_siblings)
@@ -112,7 +112,7 @@ int rlc_resolved_scope_filter(
 	RLC_DASSERT(callback != NULL);
 
 	int abort = 0;
-	return rlc_resolved_scope_filter_impl(
+	return rlc_scoped_scope_filter_impl(
 		this,
 		name,
 		callback,
@@ -122,19 +122,19 @@ int rlc_resolved_scope_filter(
 		&abort);
 }
 
-struct RlcResolvedScopeEntry * rlc_resolved_scope_add_entry(
-	struct RlcResolvedScope * this,
+struct RlcScopedScopeEntry * rlc_scoped_scope_add_entry(
+	struct RlcScopedScope * this,
 	struct RlcSrcFile * file,
 	struct RlcParsedScopeEntry * entry)
 {
 	RLC_DASSERT(this != NULL);
 	RLC_DASSERT(entry != NULL);
 
-	struct RlcResolvedScopeEntry * res = rlc_resolved_scope_entry_new(file, entry);
+	struct RlcScopedScopeEntry * res = rlc_scoped_scope_entry_new(file, entry);
 
 	rlc_realloc(
 		(void **)&this->entries,
-		sizeof(struct RlcResolvedScopeEntry *) * ++this->entryCount);
+		sizeof(struct RlcScopedScopeEntry *) * ++this->entryCount);
 	this->entries[this->entryCount-1] = res;
 	return res;
 }

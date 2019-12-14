@@ -33,7 +33,7 @@ static int hexdigit(char c)
 }
 
 static void parse_string_codepoints(
-	struct RlcResolvedText * const out,
+	struct RlcScopedText * const out,
 	char const * const string_contents,
 	rlc_utf32_t * * const codepoints,
 	size_t * const codepoints_len)
@@ -115,7 +115,7 @@ static void parse_string_codepoints(
 }
 
 static void convert_codepoints(
-	struct RlcResolvedText * const out,
+	struct RlcScopedText * const out,
 	rlc_utf32_t * const codepoints,
 	size_t codepoints_len)
 {
@@ -182,8 +182,8 @@ static void convert_codepoints(
 	out->fElements = elements;
 }
 
-void rlc_resolve_text(
-	struct RlcResolvedText * out,
+void rlc_scoped_text_create(
+	struct RlcScopedText * out,
 	struct RlcSrcFile const * file,
 	struct RlcToken const * token)
 {
@@ -240,8 +240,8 @@ void rlc_resolve_text(
 	rlc_free((void**)&source);
 }
 
-void rlc_resolved_text_destroy(
-	struct RlcResolvedText * this)
+void rlc_scoped_text_destroy(
+	struct RlcScopedText * this)
 {
 	RLC_DASSERT(this != NULL);
 

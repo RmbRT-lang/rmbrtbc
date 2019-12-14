@@ -1,5 +1,5 @@
-#ifndef __rlc_resolver_scope_h_defined
-#define __rlc_resolver_scope_h_defined
+#ifndef __rlc_scoper_scope_h_defined
+#define __rlc_scoper_scope_h_defined
 #pragma once
 
 #include "scopeentry.h"
@@ -8,39 +8,39 @@
 extern "C" {
 #endif
 
-/** A resolved scope.
+/** A scoped scope.
 	Scopes have a parent scope, into which they are embedded. Scopes can also have siblings (i.e., multiple namespaces with the same name, or the global namespace in multiple files), which are also included in the scope. */
-struct RlcResolvedScope
+struct RlcScopedScope
 {
 	/** The parent scope, or NULL if global scope. */
-	struct RlcResolvedScope * parent;
+	struct RlcScopedScope * parent;
 
 	/** The scope's siblings. */
-	struct RlcResolvedScope ** siblings;
+	struct RlcScopedScope ** siblings;
 	/** The scope's sibling count. */
 	RlcSrcSize siblingCount;
 
 	/** The scope's entries. */
-	struct RlcResolvedScopeEntry ** entries;
+	struct RlcScopedScopeEntry ** entries;
 	/** The scope's entry count. */
 	RlcSrcSize entryCount;
 };
 
-struct RlcResolvedScope * rlc_resolved_scope_new(
-	struct RlcResolvedScope * parent);
+struct RlcScopedScope * rlc_scoped_scope_new(
+	struct RlcScopedScope * parent);
 
-void rlc_resolved_scope_delete(
-	struct RlcResolvedScope * this);
+void rlc_scoped_scope_delete(
+	struct RlcScopedScope * this);
 
 /** A filter loop callback.
 @return
 	Whether to continue looking. */
-typedef int (*rlc_resolved_scope_filter_fn_t)(
-	struct RlcResolvedScopeEntry *,
+typedef int (*rlc_scoped_scope_filter_fn_t)(
+	struct RlcScopedScopeEntry *,
 	void *);
 /** Calls a callback on all scope entries with the requested name.
 	Also looks in all sibling and parent scopes if requested.
-@memberof RlcResolvedScope
+@memberof RlcScopedScope
 @param[in,out] this:
 	The scope to search.
 	@dassert @nonnull
@@ -56,16 +56,16 @@ typedef int (*rlc_resolved_scope_filter_fn_t)(
 	Whether to check sibling scopes.
 @return
 	Whether any scope entries were found. */
-int rlc_resolved_scope_filter(
-	struct RlcResolvedScope * this,
-	struct RlcResolvedScopeEntryName const * name,
-	rlc_resolved_scope_filter_fn_t callback,
+int rlc_scoped_scope_filter(
+	struct RlcScopedScope * this,
+	struct RlcScopedSymbolChild const * name,
+	rlc_scoped_scope_filter_fn_t callback,
 	void * userdata,
 	int check_parents,
 	int check_siblings);
 
-struct RlcResolvedScopeEntry * rlc_resolved_scope_add_entry(
-	struct RlcResolvedScope * this,
+struct RlcScopedScopeEntry * rlc_scoped_scope_add_entry(
+	struct RlcScopedScope * this,
 	struct RlcSrcFile * file,
 	struct RlcParsedScopeEntry * entry);
 

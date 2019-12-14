@@ -1,17 +1,17 @@
 #include "includestatement.h"
-#include "resolver.h"
+#include "../resolver/resolver.h"
 #include "fileregistry.h"
 #include "../assert.h"
 #include "../malloc.h"
 #include "../fs.h"
 #include <string.h>
 
-void rlc_resolved_include_statement_destroy(
-	struct RlcResolvedIncludeStatement * this)
+void rlc_scoped_include_statement_destroy(
+	struct RlcScopedIncludeStatement * this)
 {
 	RLC_DASSERT(this != NULL);
 
-	rlc_resolved_text_destroy(&this->fPath);
+	rlc_scoped_text_destroy(&this->fPath);
 }
 
 void rlc_include_path_list_create(
@@ -55,18 +55,18 @@ void rlc_include_path_list_add(
 	this->fPaths[this->fPathCount-1].fPath = path;
 }
 
-void rlc_resolve_include_statement(
-	struct RlcResolvedIncludeStatement * this,
+void rlc_scope_include_statement(
+	struct RlcScopedIncludeStatement * this,
 	struct RlcParsedIncludeStatement const * in,
 	struct RlcSrcFile const * src,
-	struct RlcResolvedFileRegistry const * registry)
+	struct RlcScopedFileRegistry const * registry)
 {
 	RLC_DASSERT(this != NULL);
 	RLC_DASSERT(in != NULL);
 	RLC_DASSERT(src != NULL);
 	RLC_DASSERT(registry != NULL);
 
-	rlc_resolve_text(&this->fPath, src, &in->fFileName);
+	rlc_scoped_text_create(&this->fPath, src, &in->fFileName);
 	if(this->fPath.fSymbolSize != 1)
 		rlc_resolver_fail(&in->fFileName, src, "include path must be UTF-8");
 

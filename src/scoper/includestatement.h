@@ -1,7 +1,7 @@
 /** @file includestatement.h
-	Contains resolved include statements. */
-#ifndef __rlc_resolver_includestatement_h_defined
-#define __rlc_resolver_includestatement_h_defined
+	Contains scoped include statements. */
+#ifndef __rlc_scoper_includestatement_h_defined
+#define __rlc_scoper_includestatement_h_defined
 
 #include "../macros.h"
 #include "../parser/includestatement.h"
@@ -13,14 +13,14 @@
 extern "C" {
 #endif
 
-struct RlcResolvedIncludeStatement
+struct RlcScopedIncludeStatement
 {
-	struct RlcResolvedText fPath;
+	struct RlcScopedText fPath;
 	int fIsRelative;
 };
 
-void rlc_resolved_include_statement_destroy(
-	struct RlcResolvedIncludeStatement * this);
+void rlc_scoped_include_statement_destroy(
+	struct RlcScopedIncludeStatement * this);
 
 
 /** An include path. */
@@ -69,13 +69,13 @@ void rlc_include_path_list_add(
 	char const * path,
 	int needs_free);
 
-struct RlcResolvedFileRegistry;
+struct RlcScopedFileRegistry;
 
-void rlc_resolve_include_statement(
-	struct RlcResolvedIncludeStatement * this,
+void rlc_scope_include_statement(
+	struct RlcScopedIncludeStatement * this,
 	struct RlcParsedIncludeStatement const * in,
 	struct RlcSrcFile const * src,
-	struct RlcResolvedFileRegistry const * registry);
+	struct RlcScopedFileRegistry const * registry);
 
 #ifdef __cplusplus
 }
