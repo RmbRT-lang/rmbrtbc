@@ -55,7 +55,7 @@ void rlc_include_path_list_add(
 	this->fPaths[this->fPathCount-1].fPath = path;
 }
 
-void rlc_scope_include_statement(
+char const * rlc_scope_include_statement(
 	struct RlcScopedIncludeStatement * this,
 	struct RlcParsedIncludeStatement const * in,
 	struct RlcSrcFile const * src,
@@ -77,27 +77,27 @@ void rlc_scope_include_statement(
 
 	this->fIsRelative = in->fIsRelative;
 
-	char const * inc_path = NULL;
+	char const * resolved_path;
 	if(this->fIsRelative)
 	{
 		size_t parent_len = parent_dir(src->fName);
-		inc_path = resolve_relative_path(
+		resolved_path = resolve_relative_path(
 			src->fName, parent_len,
 			this->fPath.fRaw, this->fPath.fElements);
 	} else
 	{
 		for(RlcSrcSize i = 0; i < registry->fIncludeDirCount; i++)
 		{
-			inc_path = resolve_relative_path(
+			resolved_path = resolve_relative_path(
 				registry->fIncludeDirs[i], 0,
 				this->fPath.fRaw, this->fPath.fElements);
 
-			if(inc_path)
+			if(resolved_path)
 				break;
 		}
 	}
 
-	if(!inc_path)
+	if(!resolved_path)
 	{
 		rlc_resolver_fail(&in->fFileName, src, "failed to find %s include '%.*s'",
 			this->fIsRelative ? "relative" : "global",
@@ -105,6 +105,7 @@ void rlc_scope_include_statement(
 			this->fPath.fRaw);
 	}
 
-	printf("%s: includes %s\n", src->fName, inc_path);
-	rlc_free((void**)&inc_path);
+	printf("%s: includes %s\n", src->fName, resolved_path);
+
+	return resolved_path;
 }

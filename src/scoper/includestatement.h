@@ -71,7 +71,7 @@ void rlc_include_path_list_add(
 
 struct RlcScopedFileRegistry;
 
-void rlc_scope_include_statement(
+char const * rlc_scope_include_statement(
 	struct RlcScopedIncludeStatement * this,
 	struct RlcParsedIncludeStatement const * in,
 	struct RlcSrcFile const * src,

@@ -108,11 +108,15 @@ struct RlcScopedFile const * rlc_scoped_file_registry_get(
 		struct RlcScopedIncludeStatement inc_stmt;
 		for(size_t i = 0; i < parsed->fIncludeCount; i++)
 		{
-			rlc_scope_include_statement(
-				&inc_stmt,
-				&parsed->fIncludes[i],
-				&parsed->fSource,
-				this);
+			struct RlcScopedFile const * inc_file = rlc_scoped_file_registry_get(
+				this,
+				rlc_scope_include_statement(
+					&inc_stmt,
+					&parsed->fIncludes[i],
+					&parsed->fSource,
+					this));
+
+			RLC_DASSERT(inc_file);
 
 			rlc_scoped_include_statement_destroy(&inc_stmt);
 		}

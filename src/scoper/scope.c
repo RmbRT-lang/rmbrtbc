@@ -38,6 +38,8 @@ void rlc_scoped_scope_delete(
 		rlc_free((void**)&this->entries);
 		this->entryCount = 0;
 	}
+
+	rlc_free((void**)&this);
 }
 
 static int rlc_scoped_scope_filter_impl(
