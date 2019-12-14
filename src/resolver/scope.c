@@ -3,12 +3,50 @@
 #include "../malloc.h"
 
 
+struct RlcResolvedScope * rlc_resolved_scope_new(
+	struct RlcResolvedScope * parent)
+{
+	struct RlcResolvedScope * ret = NULL;
+	rlc_malloc(
+		(void**)&ret,
+		sizeof(struct RlcResolvedScope));
+
+	ret->parent = parent;
+	ret->siblings = NULL;
+	ret->siblingCount = 0;
+	ret->entries = NULL;
+	ret->entryCount = 0;
+
+	return ret;
+}
+
+void rlc_resolved_scope_delete(
+	struct RlcResolvedScope * this)
+{
+	RLC_DASSERT(this != NULL);
+
+	if(this->siblings)
+	{
+		rlc_free((void**)&this->siblings);
+		this->siblingCount = 0;
+	}
+
+	if(this->entries)
+	{
+		for(RlcSrcIndex i = 0; i < this->entryCount; i++)
+			rlc_resolved_scope_entry_deref(this->entries[i]);
+		rlc_free((void**)&this->entries);
+		this->entryCount = 0;
+	}
+}
+
 static int rlc_resolved_scope_filter_impl(
 	struct RlcResolvedScope * this,
 	struct RlcResolvedScopeEntryName const * name,
 	rlc_resolved_scope_filter_fn_t callback,
 	void * userdata,
-	int relatives,
+	int parents,
+	int siblings,
 	int * abort)
 {
 	int found = 0;
@@ -28,7 +66,7 @@ static int rlc_resolved_scope_filter_impl(
 		}
 	}
 
-	if(relatives)
+	if(siblings)
 	{
 		for(RlcSrcIndex i = 0; i < this->siblingCount; i++)
 		{
@@ -37,13 +75,15 @@ static int rlc_resolved_scope_filter_impl(
 				name,
 				callback,
 				userdata,
-				0, // Don't look into siblings' relatives.
+				0, 0, // Don't look into siblings' relatives.
 				abort);
 
 			if(*abort)
 				return 1;
 		}
-
+	}
+	if(parents)
+	{
 		if(this->parent)
 		{
 			found |= rlc_resolved_scope_filter_impl(
@@ -51,7 +91,7 @@ static int rlc_resolved_scope_filter_impl(
 				name,
 				callback,
 				userdata,
-				1, // Look into parent's relatives.
+				1, siblings, // Look into parent's relatives.
 				abort);
 		}
 	}
@@ -63,7 +103,9 @@ int rlc_resolved_scope_filter(
 	struct RlcResolvedScope * this,
 	struct RlcResolvedScopeEntryName const * name,
 	rlc_resolved_scope_filter_fn_t callback,
-	void * userdata)
+	void * userdata,
+	int check_parents,
+	int check_siblings)
 {
 	RLC_DASSERT(this != NULL);
 	RLC_DASSERT(name != NULL);
@@ -75,7 +117,8 @@ int rlc_resolved_scope_filter(
 		name,
 		callback,
 		userdata,
-		1,
+		check_parents,
+		check_siblings,
 		&abort);
 }
 

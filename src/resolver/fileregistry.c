@@ -100,6 +100,7 @@ struct RlcResolvedFile const * rlc_resolved_file_registry_get(
 	rlc_malloc((void**)&resolved, sizeof(struct RlcResolvedFile));
 	this->fFiles[this->fFileCount-1] = resolved;
 
+	resolved->globalScope = rlc_resolved_scope_new(NULL);
 	resolved->fResolved = 0;
 	resolved->path = file;
 	rlc_include_path_list_create(&resolved->includes);

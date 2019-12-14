@@ -26,6 +26,12 @@ struct RlcResolvedScope
 	RlcSrcSize entryCount;
 };
 
+struct RlcResolvedScope * rlc_resolved_scope_new(
+	struct RlcResolvedScope * parent);
+
+void rlc_resolved_scope_delete(
+	struct RlcResolvedScope * this);
+
 /** A filter loop callback.
 @return
 	Whether to continue looking. */
@@ -33,7 +39,7 @@ typedef int (*rlc_resolved_scope_filter_fn_t)(
 	struct RlcResolvedScopeEntry *,
 	void *);
 /** Calls a callback on all scope entries with the requested name.
-	Also looks in all sibling and parent scopes.
+	Also looks in all sibling and parent scopes if requested.
 @memberof RlcResolvedScope
 @param[in,out] this:
 	The scope to search.
@@ -44,13 +50,19 @@ typedef int (*rlc_resolved_scope_filter_fn_t)(
 	The callback to execute on any found entries.
 @param[in,out] userdata:
 	Additional data to pass to the callback.
+@param[in] check_parents:
+	Whether to check parent scopes.
+@param[in] check_siblings:
+	Whether to check sibling scopes.
 @return
 	Whether any scope entries were found. */
 int rlc_resolved_scope_filter(
 	struct RlcResolvedScope * this,
 	struct RlcResolvedScopeEntryName const * name,
 	rlc_resolved_scope_filter_fn_t callback,
-	void * userdata);
+	void * userdata,
+	int check_parents,
+	int check_siblings);
 
 struct RlcResolvedScopeEntry * rlc_resolved_scope_add_entry(
 	struct RlcResolvedScope * this,
