@@ -46,10 +46,6 @@ void rlc_scoped_symbol_child_create(
 void rlc_scoped_symbol_child_destroy(
 	struct RlcScopedSymbolChild * this);
 
-int rlc_scoped_symbol_child_compare(
-	struct RlcScopedSymbolChild const * a,
-	struct RlcScopedSymbolChild const * b);
-
 #ifdef __cplusplus
 }
 #endif

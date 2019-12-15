@@ -22,21 +22,20 @@ struct RlcScopedIncludeStatement
 void rlc_scoped_include_statement_destroy(
 	struct RlcScopedIncludeStatement * this);
 
-
+struct RlcScopedFile;
 /** An include path. */
-struct RlcIncludePath
+struct RlcScopedInclude
 {
-	/** Whether the path needs to be freed or not. */
-	int fNeedsFree;
-	/** The include path. */
-	char const * fPath;
+	/** The included file. */
+	struct RlcScopedFile * fFile;
+	/** Whether the scopes have been connected. */
+	int fConnected;
 };
 
-
-struct RlcIncludePathList
+struct RlcScopedIncludeList
 {
-	struct RlcIncludePath * fPaths;
-	size_t fPathCount;
+	struct RlcScopedInclude * fPaths;
+	RlcSrcSize fPathCount;
 };
 
 /** Creates an include path list.
@@ -44,17 +43,18 @@ struct RlcIncludePathList
 @param[out] this:
 	The include path list to create.
 	@dassert @nonnull */
-void rlc_include_path_list_create(
-	struct RlcIncludePathList * this);
+void rlc_scoped_include_list_create(
+	struct RlcScopedIncludeList * this);
 /** Destroys an include path list.
 @memberof RlcIncludePathList
 @param[in,out] this:
 	The include path list to destroy.
 	@dassert @nonnull */
-void rlc_include_path_list_destroy(
-	struct RlcIncludePathList * this);
+void rlc_scoped_include_list_destroy(
+	struct RlcScopedIncludeList * this);
 
 /** Adds an include path to an include path list.
+	If it was already added, overwrites the entry.
 @memberof RlcIncludePathList
 @param[in,out] this:
 	The include path list to add a path to.
@@ -62,12 +62,12 @@ void rlc_include_path_list_destroy(
 @param[in] path:
 	The include path to add.
 	@dassert @nonnull
-@param[in] needs_free:
-	Whether the include path must be freed later on. */
-void rlc_include_path_list_add(
-	struct RlcIncludePathList * this,
-	char const * path,
-	int needs_free);
+@param[in] connected:
+	Whether the included file has already been connected. */
+struct RlcScopedInclude * rlc_scoped_include_list_add(
+	struct RlcScopedIncludeList * this,
+	struct RlcScopedFile * file,
+	int connected);
 
 struct RlcScopedFileRegistry;
 

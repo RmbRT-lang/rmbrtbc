@@ -14,8 +14,8 @@ void rlc_scoped_include_statement_destroy(
 	rlc_scoped_text_destroy(&this->fPath);
 }
 
-void rlc_include_path_list_create(
-	struct RlcIncludePathList * this)
+void rlc_scoped_include_list_create(
+	struct RlcScopedIncludeList * this)
 {
 	RLC_DASSERT(this != NULL);
 
@@ -23,8 +23,8 @@ void rlc_include_path_list_create(
 	this->fPathCount = 0;
 }
 
-void rlc_include_path_list_destroy(
-	struct RlcIncludePathList * this)
+void rlc_scoped_include_list_destroy(
+	struct RlcScopedIncludeList * this)
 {
 	RLC_DASSERT(this != NULL);
 
@@ -33,26 +33,31 @@ void rlc_include_path_list_destroy(
 	this->fPathCount = 0;
 }
 
-void rlc_include_path_list_add(
-	struct RlcIncludePathList * this,
-	char const * path,
-	int needs_free)
+struct RlcScopedInclude * rlc_scoped_include_list_add(
+	struct RlcScopedIncludeList * this,
+	struct RlcScopedFile * file,
+	int connected)
 {
 	RLC_DASSERT(this != NULL);
-	RLC_DASSERT(path != NULL);
+	RLC_DASSERT(file != NULL);
 
-	// Check that the path does not yet exist.
-	for(size_t i = 0; i < this->fPathCount; i++)
-		if(!strcmp(path, this->fPaths[i].fPath))
-			return;
+	for(RlcSrcIndex i = 0; i < this->fPathCount; i++)
+		if(file == this->fPaths[i].fFile)
+		{
+			// If it is already connected, do not set to unconnected again.
+			this->fPaths[i].fConnected |= connected;
+			return &this->fPaths[i];
+		}
 
 	// Add the path.
 	rlc_realloc(
 		(void**)&this->fPaths,
-		sizeof(struct RlcIncludePath) * ++this->fPathCount);
+		sizeof(struct RlcScopedInclude) * ++this->fPathCount);
 
-	this->fPaths[this->fPathCount-1].fNeedsFree = needs_free;
-	this->fPaths[this->fPathCount-1].fPath = path;
+	this->fPaths[this->fPathCount-1].fConnected = connected;
+	this->fPaths[this->fPathCount-1].fFile = file;
+
+	return &this->fPaths[this->fPathCount-1];
 }
 
 char const * rlc_scope_include_statement(

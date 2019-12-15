@@ -31,7 +31,7 @@ void rlc_scoped_file_registry_destroy(
 
 /** Queries a file from the registry.
 	If the file was not registered, tries to parse and scope it. */
-struct RlcScopedFile const * rlc_scoped_file_registry_get(
+struct RlcScopedFile * rlc_scoped_file_registry_get(
 	struct RlcScopedFileRegistry * this,
 	char const * file);
 

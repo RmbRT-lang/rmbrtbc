@@ -9,18 +9,38 @@
 extern "C" {
 #endif
 
+/** A scope entry name. */
+struct RlcScopedScopeEntryName
+{
+	char const * fName;
+};
+
+void rlc_scoped_scope_entry_name_create(
+	struct RlcScopedScopeEntryName * this,
+	struct RlcSrcFile const * file,
+	struct RlcParsedScopeEntry const * parsed);
+void rlc_scoped_scope_entry_name_destroy(
+	struct RlcScopedScopeEntryName * this);
+
+int rlc_scoped_scope_entry_name_compare(
+	struct RlcScopedScopeEntryName const * a,
+	struct RlcScopedScopeEntryName const * b);
+
+
 /** An entry within a scoped scope.
 	This type is a shared resource. */
 struct RlcScopedScopeEntry
 {
 	/** The scope entry's name. */
-	struct RlcScopedSymbolChild name;
+	struct RlcScopedScopeEntryName name;
 	/** The file in which the scope entry resides. */
 	struct RlcSrcFile const * file;
 	/** The scoped scope entry's parsed representation. */
-	struct RlcParsedScopeEntry * parsed;
+	struct RlcParsedScopeEntry const * parsed;
 	/** The entry's reference count. */
 	size_t references;
+	/** The entry's child entries. */
+	struct RlcScopedScope * children;
 };
 
 /** Creates a scoped scope entry from a parsed entity.

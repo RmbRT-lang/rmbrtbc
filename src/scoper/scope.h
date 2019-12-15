@@ -3,6 +3,7 @@
 #pragma once
 
 #include "scopeentry.h"
+#include "../parser/file.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -58,7 +59,7 @@ typedef int (*rlc_scoped_scope_filter_fn_t)(
 	Whether any scope entries were found. */
 int rlc_scoped_scope_filter(
 	struct RlcScopedScope * this,
-	struct RlcScopedSymbolChild const * name,
+	struct RlcScopedScopeEntryName const * name,
 	rlc_scoped_scope_filter_fn_t callback,
 	void * userdata,
 	int check_parents,
@@ -66,8 +67,12 @@ int rlc_scoped_scope_filter(
 
 struct RlcScopedScopeEntry * rlc_scoped_scope_add_entry(
 	struct RlcScopedScope * this,
-	struct RlcSrcFile * file,
+	struct RlcSrcFile const * file,
 	struct RlcParsedScopeEntry * entry);
+
+void rlc_scoped_scope_populate(
+	struct RlcScopedScope * this,
+	struct RlcParsedFile const * file);
 
 #ifdef __cplusplus
 }

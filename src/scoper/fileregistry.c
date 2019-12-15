@@ -73,7 +73,7 @@ void rlc_scoped_file_registry_destroy(
 
 /** Queries a file from the registry.
 	If the file was not registered, tries to parse and scope it. */
-struct RlcScopedFile const * rlc_scoped_file_registry_get(
+struct RlcScopedFile * rlc_scoped_file_registry_get(
 	struct RlcScopedFileRegistry * this,
 	char const * file)
 {
@@ -81,7 +81,7 @@ struct RlcScopedFile const * rlc_scoped_file_registry_get(
 	{
 		if(!strcmp(this->fFiles[i]->path, file))
 		{
-			rlc_free((void*)&file);
+			rlc_free((void**)&file);
 			return this->fFiles[i];
 		}
 	}
@@ -100,27 +100,8 @@ struct RlcScopedFile const * rlc_scoped_file_registry_get(
 	rlc_malloc((void**)&scoped, sizeof(struct RlcScopedFile));
 	this->fFiles[this->fFileCount-1] = scoped;
 
-	scoped->globalScope = rlc_scoped_scope_new(NULL);
-	scoped->fScoped = 0;
-	scoped->path = file;
-	rlc_include_path_list_create(&scoped->includes);
-	{
-		struct RlcScopedIncludeStatement inc_stmt;
-		for(size_t i = 0; i < parsed->fIncludeCount; i++)
-		{
-			struct RlcScopedFile const * inc_file = rlc_scoped_file_registry_get(
-				this,
-				rlc_scope_include_statement(
-					&inc_stmt,
-					&parsed->fIncludes[i],
-					&parsed->fSource,
-					this));
-
-			RLC_DASSERT(inc_file);
-
-			rlc_scoped_include_statement_destroy(&inc_stmt);
-		}
-	}
+	rlc_scoped_file_create(scoped, file, parsed);
+	rlc_scoped_file_populate_includes(scoped, this, parsed);
 
 	return scoped;
 }
