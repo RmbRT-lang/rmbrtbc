@@ -22,6 +22,8 @@ enum RlcParsedExpressionType {
 	kRlcParsedSymbolChildExpression,
 	/** RlcParsedNumberExpression. */
 	kRlcParsedNumberExpression,
+	/** RlcParsedCharacterExpression. */
+	kRlcParsedCharacterExpression,
 	/** RlcParsedStringExpression. */
 	kRlcParsedStringExpression,
 	/** RlcParsedOperatorExpression. */

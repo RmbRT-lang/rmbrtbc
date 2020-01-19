@@ -2,6 +2,7 @@
 #include "symbolexpression.h"
 #include "symbolchildexpression.h"
 #include "numberexpression.h"
+#include "characterexpression.h"
 #include "stringexpression.h"
 #include "operatorexpression.h"
 #include "thisexpression.h"
@@ -39,6 +40,7 @@ void rlc_parsed_expression_destroy_virtual(
 		(destructor_t)&rlc_parsed_symbol_expression_destroy,
 		(destructor_t)&rlc_parsed_symbol_child_expression_destroy,
 		(destructor_t)&rlc_parsed_number_expression_destroy,
+		(destructor_t)&rlc_parsed_character_expression_destroy,
 		(destructor_t)&rlc_parsed_string_expression_destroy,
 		(destructor_t)&rlc_parsed_operator_expression_destroy,
 		(destructor_t)&rlc_this_expression_destroy,
@@ -52,6 +54,7 @@ void rlc_parsed_expression_destroy_virtual(
 		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcParsedSymbolExpression),
 		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcParsedSymbolChildExpression),
 		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcParsedNumberExpression),
+		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcParsedCharacterExpression),
 		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcParsedStringExpression),
 		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcParsedOperatorExpression),
 		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcThisExpression),
@@ -120,6 +123,7 @@ struct RlcParsedExpression * rlc_parsed_expression_parse(
 	} const k_parse_lookup[] = {
 		ENTRY(RlcParsedOperatorExpression, &dummy_rlc_parsed_operator_expression_parse, 1),
 		ENTRY(RlcParsedNumberExpression, &rlc_parsed_number_expression_parse, 0),
+		ENTRY(RlcParsedCharacterExpression, &rlc_parsed_character_expression_parse, 0),
 		ENTRY(RlcParsedStringExpression, &rlc_parsed_string_expression_parse, 0),
 		ENTRY(RlcParsedSymbolExpression, &rlc_parsed_symbol_expression_parse, 0),
 		ENTRY(RlcParsedSymbolChildExpression, &rlc_parsed_symbol_child_expression_parse, 0),
