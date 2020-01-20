@@ -65,6 +65,29 @@ int rlc_scoped_scope_filter(
 	int check_parents,
 	int check_siblings);
 
+/** Adds an existing scoped scope entry to a scope.
+	Does not reference the entry.
+@param[in,out] this:
+	The scope to add an entry to.
+	@dassert @nonnull
+@param[in] entry:
+	The entry to add to the scope
+	@dassert @nonnull. */
+void rlc_scoped_scope_add_entry_custom(
+	struct RlcScopedScope * this,
+	struct RlcScopedScopeEntry * entry);
+
+/** Creates a scoped scope entry from a parsed scope entry and adds it to a scope.
+@memberof RlcScopedScope
+@param[in,out] this:
+	The scope to add an entry to.
+	@dassert @nonnull
+@param[in] file:
+	The scope entry's source file.
+	@dassert @nonnull
+@param[in] entry:
+	The scope entry to add.
+	@dassert @nonnull */
 struct RlcScopedScopeEntry * rlc_scoped_scope_add_entry(
 	struct RlcScopedScope * this,
 	struct RlcSrcFile const * file,
