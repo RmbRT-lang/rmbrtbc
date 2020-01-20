@@ -42,6 +42,7 @@ void rlc_parsed_scope_entry_destroy_virtual(
 		(destructor_t)&rlc_parsed_function_destroy,
 		(destructor_t)&rlc_parsed_variable_destroy,
 		(destructor_t)&rlc_parsed_enum_destroy,
+		(destructor_t)&rlc_parsed_enum_constant_destroy,
 		(destructor_t)&rlc_parsed_typedef_destroy,
 		(destructor_t)&rlc_parsed_external_symbol_destroy
 	};
@@ -56,6 +57,7 @@ void rlc_parsed_scope_entry_destroy_virtual(
 		RLC_DERIVE_OFFSET(RlcParsedScopeEntry, struct RlcParsedFunction),
 		RLC_DERIVE_OFFSET(RlcParsedScopeEntry, struct RlcParsedVariable),
 		RLC_DERIVE_OFFSET(RlcParsedScopeEntry, struct RlcParsedEnum),
+		RLC_DERIVE_OFFSET(RlcParsedScopeEntry, struct RlcParsedEnumConstant),
 		RLC_DERIVE_OFFSET(RlcParsedScopeEntry, struct RlcParsedTypedef),
 		RLC_DERIVE_OFFSET(RlcParsedScopeEntry, struct RlcParsedExternalSymbol)
 	};
@@ -158,6 +160,7 @@ struct RlcParsedScopeEntry * rlc_parsed_scope_entry_parse(
 		ENTRY(RlcParsedTypedef, &rlc_parsed_typedef_parse),
 		ENTRY(RlcParsedNamespace, &rlc_parsed_namespace_parse),
 		ENTRY(RlcParsedEnum, &rlc_parsed_enum_parse),
+		ENTRY(RlcParsedEnumConstant, NULL), // Must not be called.
 		ENTRY(RlcParsedExternalSymbol, &rlc_parsed_external_symbol_parse)
 	};
 
@@ -170,7 +173,8 @@ struct RlcParsedScopeEntry * rlc_parsed_scope_entry_parse(
 
 	for(size_t i = 0; i < _countof(k_parse_lookup); i++)
 	{
-		if(k_parse_lookup[i].fParseFn(
+		if(RLC_FLAG(i) & kRlcParsedScopeEntryTypesParseable
+		&& k_parse_lookup[i].fParseFn(
 			&pack,
 			parser,
 			&templates))

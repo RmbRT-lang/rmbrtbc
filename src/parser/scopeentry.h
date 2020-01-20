@@ -31,6 +31,8 @@ enum RlcParsedScopeEntryType
 	kRlcParsedVariable,
 	/** RlcParsedEnum */
 	kRlcParsedEnum,
+	/** RlcParsedEnumConstant. */
+	kRlcParsedEnumConstant,
 	/** RlcParsedTypedef */
 	kRlcParsedTypedef,
 	/** RlcParsedExternalSymbol */
@@ -38,6 +40,11 @@ enum RlcParsedScopeEntryType
 
 	RLC_ENUM_END(RlcParsedScopeEntryType)
 };
+
+/** Scope entry types that can appear globally. */
+static enum RlcParsedScopeEntryType const kRlcParsedScopeEntryTypesParseable =
+	RLC_ALL_FLAGS(RlcParsedScopeEntryType)
+	&~kRlcParsedEnumConstant;
 
 /** The base type of scope entries used in the parser. */
 struct RlcParsedScopeEntry

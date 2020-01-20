@@ -17,17 +17,20 @@ extern "C" {
 @see `RlcParsedEnum`. */
 struct RlcParsedEnumConstant
 {
+	RLC_DERIVE(struct,RlcParsedScopeEntry);
+
 	/** The aliases. */
-	struct RlcSrcString * fNameTokens;
+	struct RlcSrcString * fAliasTokens;
 	/** The alias count. */
-	size_t fNameCount;
+	size_t fAliasCount;
 };
 
 /** Creates an enum constant.
 @param[out] this:
 	The enum constant to create. */
 void rlc_parsed_enum_constant_create(
-	struct RlcParsedEnumConstant * this);
+	struct RlcParsedEnumConstant * this,
+	struct RlcSrcString const * name);
 
 /** Adds an alias to an enum constant.
 @param[in,out] this:
@@ -51,7 +54,7 @@ void rlc_parsed_enum_constant_destroy(
 	@dassert @nonnull
 @param[out] out:
 	The enum constant. */
-int rlc_parsed_enum_constant_parse(
+_Nodiscard int rlc_parsed_enum_constant_parse(
 	struct RlcParsedEnumConstant * out,
 	struct RlcParser * parser);
 

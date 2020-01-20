@@ -6,12 +6,18 @@
 #include "../assert.h"
 
 void rlc_parsed_enum_constant_create(
-	struct RlcParsedEnumConstant * this)
+	struct RlcParsedEnumConstant * this,
+	struct RlcSrcString const * name)
 {
 	RLC_DASSERT(this != NULL);
 
-	this->fNameTokens = NULL;
-	this->fNameCount = 0;
+	rlc_parsed_scope_entry_create(
+		RLC_BASE_CAST(this, RlcParsedScopeEntry),
+		kRlcParsedEnumConstant,
+		name);
+
+	this->fAliasTokens = NULL;
+	this->fAliasCount = 0;
 }
 
 void rlc_parsed_enum_constant_add_name(
@@ -21,10 +27,10 @@ void rlc_parsed_enum_constant_add_name(
 	RLC_DASSERT(this != NULL);
 
 	rlc_realloc(
-		(void**)&this->fNameTokens,
-		sizeof(*this->fNameTokens) * ++this->fNameCount);
+		(void**)&this->fAliasTokens,
+		sizeof(*this->fAliasTokens) * ++this->fAliasCount);
 
-	this->fNameTokens[this->fNameCount-1] = *nameToken;
+	this->fAliasTokens[this->fAliasCount-1] = *nameToken;
 }
 
 void rlc_parsed_enum_constant_destroy(
@@ -32,10 +38,13 @@ void rlc_parsed_enum_constant_destroy(
 {
 	RLC_DASSERT(this != NULL);
 
-	if(this->fNameTokens)
+	rlc_parsed_scope_entry_destroy_base(
+		RLC_BASE_CAST(this, RlcParsedScopeEntry));
+
+	if(this->fAliasTokens)
 	{
-		rlc_free((void**)&this->fNameTokens);
-		this->fNameCount = 0;
+		rlc_free((void**)&this->fAliasTokens);
+		this->fAliasCount = 0;
 	}
 }
 
@@ -46,10 +55,20 @@ int rlc_parsed_enum_constant_parse(
 	RLC_DASSERT(parser != NULL);
 	RLC_DASSERT(out != NULL);
 
-	rlc_parsed_enum_constant_create(out);
+	struct RlcToken name;
+	if(!rlc_parser_consume(
+		parser,
+		&name,
+		kRlcTokIdentifier))
+		return 0;
 
-	do {
-		struct RlcToken name;
+	rlc_parsed_enum_constant_create(out, &name.content);
+
+	while(rlc_parser_consume(
+		parser,
+		NULL,
+		kRlcTokColonEqual))
+	{
 		rlc_parser_expect(
 			parser,
 			&name,
@@ -59,10 +78,7 @@ int rlc_parsed_enum_constant_parse(
 		rlc_parsed_enum_constant_add_name(
 			out,
 			&name.content);
-	} while(rlc_parser_consume(
-		parser,
-		NULL,
-		kRlcTokColonEqual));
+	}
 
 	return 1;
 }
@@ -148,9 +164,10 @@ int rlc_parsed_enum_parse(
 
 	do {
 		struct RlcParsedEnumConstant constant;
-		rlc_parsed_enum_constant_parse(
+		if(!rlc_parsed_enum_constant_parse(
 			&constant,
-			parser);
+			parser))
+			rlc_parser_fail(parser, "expected enum constant");
 
 		rlc_parsed_enum_add_constant(
 			out,
