@@ -173,7 +173,7 @@ struct RlcParsedScopeEntry * rlc_parsed_scope_entry_parse(
 
 	for(size_t i = 0; i < _countof(k_parse_lookup); i++)
 	{
-		if(RLC_FLAG(i) & kRlcParsedScopeEntryTypesParseable
+		if(k_parse_lookup[i].fParseFn
 		&& k_parse_lookup[i].fParseFn(
 			&pack,
 			parser,
