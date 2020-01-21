@@ -60,6 +60,7 @@ struct RlcScopedScopeEntry * rlc_scoped_scope_entry_new(
 		RLC_DERIVE_OFFSET(RlcParsedScopeEntry, struct RlcParsed##type), \
 		kRlcParsed##type \
 	}
+#define NOENTRY(type) { NULL, 0, 0, kRlcParsed##type }
 
 	static struct {
 		constructor_t constructor;
@@ -68,15 +69,15 @@ struct RlcScopedScopeEntry * rlc_scoped_scope_entry_new(
 		enum RlcParsedScopeEntryType parsedType;
 	} k_constructors[] = {
 		ENTRY(rlc_scoped_enum_new, Enum),
-		ENTRY(rlc_scoped_enum_constant_new, EnumConstant),
+		NOENTRY(EnumConstant),
 		ENTRY(rlc_scoped_namespace_new, Namespace),
 	};
 #undef ENTRY
+#undef NOENTRY
 
 	/*static_assert(RLC_COVERS_ENUM(k_constructors, RlcParsedScopeEntryType),
 		"Incomplete vtable."); // */
-
-	RLC_DASSERT(RLC_DERIVING_TYPE(parsed) <= _countof(k_constructors));
+	RLC_DASSERT(k_constructors[RLC_DERIVING_TYPE(parsed)].constructor);
 
 	uint8_t * ret;
 	ret = k_constructors[RLC_DERIVING_TYPE(parsed)].constructor(
