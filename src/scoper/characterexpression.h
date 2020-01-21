@@ -1,7 +1,7 @@
 /** @file characterexpression.h
 	Contains the scoped character expression type. */
-#ifndef __rlc_scoped_characterexpression_h_defined
-#define __rlc_scoped_characterexpression_h_defined
+#ifndef __rlc_scoper_characterexpression_h_defined
+#define __rlc_scoper_characterexpression_h_defined
 #pragma once
 
 #include "expression.h"

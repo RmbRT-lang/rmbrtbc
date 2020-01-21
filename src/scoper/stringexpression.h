@@ -1,7 +1,7 @@
 /** @file stringexpression.h
 	Contains the scoped string expression type. */
-#ifndef __rlc_scoped_stringexpression_h_defined
-#define __rlc_scoped_stringexpression_h_defined
+#ifndef __rlc_scoper_stringexpression_h_defined
+#define __rlc_scoper_stringexpression_h_defined
 #pragma once
 
 #include "expression.h"

@@ -1,7 +1,7 @@
 /** @file symbolexpression.h
 	Contains the scoped symbol expression type. */
-#ifndef __rlc_scoped_symbolexpression_h_defined
-#define __rlc_scoped_symbolexpression_h_defined
+#ifndef __rlc_scoper_symbolexpression_h_defined
+#define __rlc_scoper_symbolexpression_h_defined
 #pragma once
 
 #include "expression.h"
