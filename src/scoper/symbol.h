@@ -2,6 +2,7 @@
 #define __rlc_scoper_symbol_h_defined
 #pragma once
 
+#include "identifier.h"
 #include "../src/string.h"
 #include "../parser/symbol.h"
 
@@ -21,8 +22,7 @@ enum RlcScopedSymbolChildType
 /** A scoped symbol child. */
 const struct RlcScopedSymbolChild
 {
-	enum RlcScopedSymbolChildType type;
-	char const * name;
+	struct RlcScopedIdentifier name;
 }	kRlcScopedSymbolChildConstructor,
 	kRlcScopedSymbolChildDestructor;
 

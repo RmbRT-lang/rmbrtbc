@@ -6,11 +6,11 @@
 #include <string.h>
 
 struct RlcScopedSymbolChild const kRlcScopedSymbolChildConstructor = {
-	kRlcParsedSymbolChildTypeConstructor, NULL
+	{ kRlcParsedSymbolChildTypeConstructor, NULL }
 };
 
 struct RlcScopedSymbolChild const kRlcScopedSymbolChildDestructor = {
-	kRlcParsedSymbolChildTypeDestructor, NULL
+	{ kRlcParsedSymbolChildTypeDestructor, NULL }
 };
 
 void rlc_scoped_symbol_child_create(
@@ -30,9 +30,7 @@ void rlc_scoped_symbol_child_create(
 		*this = kRlcScopedSymbolChildDestructor;
 		break;
 	case kRlcParsedSymbolChildTypeIdentifier:
-		RLC_DASSERT(parsed->fName.length != 0);
-		this->type = kRlcScopedSymbolChildTypeIdentifier;
-		this->name = rlc_src_string_cstr(&parsed->fName, file);
+		rlc_scoped_identifier_create(&this->name, file, &parsed->fName);
 		break;
 	default:
 		RLC_DASSERT(!"unhandled symbol child type");
@@ -44,22 +42,7 @@ void rlc_scoped_symbol_child_destroy(
 {
 	RLC_DASSERT(this != NULL);
 
-	if(this->name)
-		rlc_free((void**)&this->name);
-}
-
-int rlc_scoped_symbol_child_compare(
-	struct RlcScopedSymbolChild const * a,
-	struct RlcScopedSymbolChild const * b)
-{
-	int diff = a->type - b->type;
-	if(diff)
-		return diff;
-	else if(a->type == kRlcScopedSymbolChildTypeIdentifier)
-	{
-		return strcmp(a->name, b->name);
-	} else
-		return 0;
+	rlc_scoped_identifier_destroy(&this->name);
 }
 
 void rlc_scoped_symbol_create(
