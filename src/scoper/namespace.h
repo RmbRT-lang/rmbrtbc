@@ -34,7 +34,7 @@ struct RlcScopedNamespace * rlc_scoped_namespace_new(
 @param[in,out] this:
 	The namespace to destroy.
 	@dassert @nonnull */
-void rlc_scoped_namespace_delete(
+void rlc_scoped_namespace_destroy(
 	struct RlcScopedNamespace * this);
 
 #ifdef __cplusplus

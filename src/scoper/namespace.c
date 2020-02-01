@@ -23,14 +23,19 @@ struct RlcScopedNamespace * rlc_scoped_namespace_new(
 
 	for(RlcSrcIndex i = 0; i < parsed->fEntryList.fEntryCount; i++)
 		rlc_scoped_scope_add_entry(
-			RLC_BASE_CAST(ret, RlcScopedScopeEntry)->children,
+			RLC_BASE_CAST(
+				RLC_BASE_CAST(ret, RlcScopedScopeEntry),
+				RlcScopedScopeItem)->children,
 			file,
-			parsed->fEntryList.fEntries[i]);
+			parsed->fEntryList.fEntries[i],
+			RLC_BASE_CAST(
+				RLC_BASE_CAST(ret, RlcScopedScopeEntry),
+				RlcScopedScopeItem)->children);
 
 	return ret;
 }
 
-void rlc_scoped_namespace_delete(
+void rlc_scoped_namespace_destroy(
 	struct RlcScopedNamespace * this)
 {
 	RLC_DASSERT(this != NULL);
