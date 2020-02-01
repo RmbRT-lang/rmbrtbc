@@ -33,23 +33,27 @@ struct RlcScopedEnum * rlc_scoped_enum_new(
 					j,
 					i,
 					ret);
-			rlc_scoped_scope_add_entry_custom(
-				RLC_BASE_CAST(ret, RlcScopedScopeEntry)->children,
-				RLC_BASE_CAST(constant, RlcScopedScopeEntry));
+			rlc_scoped_scope_add_item(
+				RLC_BASE_CAST2(
+					ret,
+					RlcScopedScopeEntry,
+					RlcScopedScopeItem)->children,
+				RLC_BASE_CAST2(
+					constant,
+					RlcScopedScopeEntry,
+					RlcScopedScopeItem));
 		}
 
 	return ret;
 }
 
-void rlc_scoped_enum_delete(
+void rlc_scoped_enum_destroy(
 	struct RlcScopedEnum * this)
 {
 	RLC_DASSERT(this != NULL);
 
 	rlc_scoped_scope_entry_destroy_base(
 		RLC_BASE_CAST(this, RlcScopedScopeEntry));
-
-	rlc_free((void**)&this);
 }
 
 struct RlcScopedEnumConstant * rlc_scoped_enum_constant_new(
@@ -77,7 +81,9 @@ struct RlcScopedEnumConstant * rlc_scoped_enum_constant_new(
 		RLC_BASE_CAST(ret, RlcScopedScopeEntry),
 		file,
 		RLC_BASE_CAST(parsed, RlcParsedScopeEntry),
-		RLC_BASE_CAST(parent, RlcScopedScopeEntry)->children,
+		RLC_BASE_CAST(
+			RLC_BASE_CAST(parent, RlcScopedScopeEntry),
+			RlcScopedScopeItem)->children,
 		name,
 		kRlcScopedEnumConstant);
 
@@ -87,13 +93,11 @@ struct RlcScopedEnumConstant * rlc_scoped_enum_constant_new(
 	return ret;
 }
 
-void rlc_scoped_enum_constant_delete(
+void rlc_scoped_enum_constant_destroy(
 	struct RlcScopedEnumConstant * this)
 {
 	RLC_DASSERT(this != NULL);
 
 	rlc_scoped_scope_entry_destroy_base(
 		RLC_BASE_CAST(this, RlcScopedScopeEntry));
-
-	rlc_free((void**)&this);
 }

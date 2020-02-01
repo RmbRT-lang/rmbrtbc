@@ -48,7 +48,7 @@ struct RlcScopedEnum * rlc_scoped_enum_new(
 @param[in,out] this:
 	The enum to destroy.
 	@dassert @nonnull */
-void rlc_scoped_enum_delete(
+void rlc_scoped_enum_destroy(
 	struct RlcScopedEnum * this);
 
 /** Creates a new scoped enum constant.
@@ -66,7 +66,12 @@ struct RlcScopedEnumConstant * rlc_scoped_enum_constant_new(
 	RlcSrcIndex value,
 	struct RlcScopedEnum * parent);
 
-void rlc_scoped_enum_constant_delete(
+/** Destroys a scoped enum constant.
+@memberof RlcScopedEnumConstant
+@param[in,out] this:
+	The enum constant to destroy.
+	@dassert @nonnull */
+void rlc_scoped_enum_constant_destroy(
 	struct RlcScopedEnumConstant * this);
 
 #ifdef __cplusplus

@@ -45,6 +45,7 @@
 
 /** Retrieves the base instance of `a`. */
 #define RLC_BASE_CAST(a,b) ((a) ? &(a)->fDerived##b : NULL)
+#define RLC_BASE_CAST2(a,b1,b2) ((a) ? &(a)->fDerived##b1.fDerived##b2 : NULL)
 
 /** @def RLC_DERIVE(tag, b)
 	Derives the current type from the type `b` (if any tags, put them in `tag`). */
