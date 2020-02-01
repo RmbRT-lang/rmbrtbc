@@ -157,7 +157,7 @@ void rlc_parsed_member_destroy_base(
 @return
 	The member's name. `NULL` if the member has no name (i.e., constructors or destructors). */
 struct RlcSrcString const * rlc_parsed_member_name(
-	struct RlcParsedMember * this);
+	struct RlcParsedMember const * this);
 
 /** Parses a member declaration.
 	Goes through all member types and tries to parse them.

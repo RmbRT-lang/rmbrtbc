@@ -73,7 +73,7 @@ void rlc_parsed_member_destroy_base(
 }
 
 struct RlcSrcString const * rlc_parsed_member_name(
-	struct RlcParsedMember * this)
+	struct RlcParsedMember const * this)
 {
 #define WITH_NAME(Type) \
 	{ \
