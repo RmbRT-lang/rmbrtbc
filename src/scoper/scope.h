@@ -2,19 +2,26 @@
 #define __rlc_scoper_scope_h_defined
 #pragma once
 
-#include "scopeentry.h"
 #include "../parser/file.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+struct RlcScopedMember;
+struct RlcScopedScopeEntry;
+struct RlcScopedSymbolChild;
+struct RlcScopedScopeItem;
+
+struct RlcParsedMember;
+struct RlcParsedScopeEntry;
+
 /** A scoped scope.
 	Scopes have a parent scope, into which they are embedded. Scopes can also have siblings (i.e., multiple namespaces with the same name, or the global namespace in multiple files), which are also included in the scope. */
 struct RlcScopedScope
 {
-	/** The parent scope, or NULL if global scope. */
-	struct RlcScopedScope * parent;
+	/** The scope's associated scope item, or NULL if global scope. */
+	struct RlcScopedScopeItem * owner;
 
 	/** The scope's siblings. */
 	struct RlcScopedScope ** siblings;
@@ -22,13 +29,13 @@ struct RlcScopedScope
 	RlcSrcSize siblingCount;
 
 	/** The scope's entries. */
-	struct RlcScopedScopeEntry ** entries;
+	struct RlcScopedScopeItem ** entries;
 	/** The scope's entry count. */
 	RlcSrcSize entryCount;
 };
 
 struct RlcScopedScope * rlc_scoped_scope_new(
-	struct RlcScopedScope * parent);
+	struct RlcScopedScopeItem * owner);
 
 void rlc_scoped_scope_delete(
 	struct RlcScopedScope * this);
@@ -37,7 +44,7 @@ void rlc_scoped_scope_delete(
 @return
 	Whether to continue looking. */
 typedef int (*rlc_scoped_scope_filter_fn_t)(
-	struct RlcScopedScopeEntry *,
+	struct RlcScopedScopeItem *,
 	void *);
 /** Calls a callback on all scope entries with the requested name.
 	Also looks in all sibling and parent scopes if requested.
@@ -59,7 +66,7 @@ typedef int (*rlc_scoped_scope_filter_fn_t)(
 	Whether any scope entries were found. */
 int rlc_scoped_scope_filter(
 	struct RlcScopedScope * this,
-	struct RlcScopedScopeEntryName const * name,
+	struct RlcScopedSymbolChild const * name,
 	rlc_scoped_scope_filter_fn_t callback,
 	void * userdata,
 	int check_parents,
@@ -70,12 +77,12 @@ int rlc_scoped_scope_filter(
 @param[in,out] this:
 	The scope to add an entry to.
 	@dassert @nonnull
-@param[in] entry:
-	The entry to add to the scope
+@param[in] item:
+	The item to add to the scope
 	@dassert @nonnull. */
-void rlc_scoped_scope_add_entry_custom(
+void rlc_scoped_scope_add_item(
 	struct RlcScopedScope * this,
-	struct RlcScopedScopeEntry * entry);
+	struct RlcScopedScopeItem * entry);
 
 /** Creates a scoped scope entry from a parsed scope entry and adds it to a scope.
 @memberof RlcScopedScope
@@ -91,7 +98,25 @@ void rlc_scoped_scope_add_entry_custom(
 struct RlcScopedScopeEntry * rlc_scoped_scope_add_entry(
 	struct RlcScopedScope * this,
 	struct RlcSrcFile const * file,
-	struct RlcParsedScopeEntry * entry);
+	struct RlcParsedScopeEntry * entry,
+	struct RlcScopedScope * parent);
+
+/** Adds a member to a scope.
+@memberof RlcScopedScope
+@param[in,out] this:
+	The scope to add a member to.
+	@dassert @nonnull
+@param[in] member:
+	The member to add.
+	@dassert @nonnull
+@param[in] parent:
+	The parent scope item.
+	@dassert @nonnull */
+struct RlcScopedMember * rlc_scoped_scope_add_member(
+	struct RlcScopedScope * this,
+	struct RlcSrcFile const * file,
+	struct RlcParsedMember const * parsed,
+	struct RlcScopedScopeItem * parent);
 
 void rlc_scoped_scope_populate(
 	struct RlcScopedScope * this,

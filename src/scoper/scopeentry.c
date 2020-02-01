@@ -11,35 +11,6 @@
 
 #include <string.h>
 
-void rlc_scoped_scope_entry_name_create(
-	struct RlcScopedScopeEntryName * this,
-	struct RlcSrcFile const * file,
-	struct RlcSrcString const * name)
-{
-	RLC_DASSERT(this != NULL);
-	RLC_DASSERT(file != NULL);
-	RLC_DASSERT(name != NULL);
-
-	this->fName = rlc_src_string_cstr(name, file);
-}
-
-void rlc_scoped_scope_entry_name_destroy(
-	struct RlcScopedScopeEntryName * this)
-{
-	RLC_DASSERT(this != NULL);
-	rlc_free((void**)&this->fName);
-}
-
-int rlc_scoped_scope_entry_name_compare(
-	struct RlcScopedScopeEntryName const * a,
-	struct RlcScopedScopeEntryName const * b)
-{
-	RLC_DASSERT(a != NULL);
-	RLC_DASSERT(b != NULL);
-
-	return strcmp(a->fName, b->fName);
-}
-
 struct RlcScopedScopeEntry * rlc_scoped_scope_entry_new(
 	struct RlcSrcFile const * file,
 	struct RlcParsedScopeEntry * parsed,
@@ -123,11 +94,17 @@ void rlc_scoped_scope_entry_create_custom_name(
 	RLC_DASSERT(parsed != NULL);
 	RLC_DASSERT(RLC_IN_ENUM(type, RlcParsedScopeEntryType));
 
-	rlc_scoped_scope_entry_name_create(&this->name, file, name);
+	struct RlcScopedIdentifier ident;
+	rlc_scoped_identifier_create(&ident, file, name);
+	rlc_scoped_scope_item_create(
+		RLC_BASE_CAST(this, RlcScopedScopeItem),
+		&ident,
+		parent,
+		1,
+		kRlcScopedScopeEntry);
+
 	this->file = file;
 	this->parsed = parsed;
-	this->references = 1;
-	this->children = parent ? rlc_scoped_scope_new(parent) : NULL;
 	RLC_DERIVING_TYPE(this) = type;
 }
 
@@ -136,27 +113,24 @@ void rlc_scoped_scope_entry_destroy_base(
 	struct RlcScopedScopeEntry * this)
 {
 	RLC_DASSERT(this != NULL);
-	RLC_DASSERT(this->references == 0);
 	RLC_DASSERT(RLC_IN_ENUM(RLC_DERIVING_TYPE(this), RlcScopedScopeEntryType));
 
-	if(this->children)
-		rlc_scoped_scope_delete(this->children);
-	rlc_scoped_scope_entry_name_destroy(&this->name);
+	rlc_scoped_scope_item_destroy_base(
+		RLC_BASE_CAST(this, RlcScopedScopeItem));
 }
 
-static void rlc_scoped_scope_entry_delete_virtual(
+void rlc_scoped_scope_entry_destroy_virtual(
 	struct RlcScopedScopeEntry * this)
 {
 	RLC_DASSERT(this != NULL);
-	RLC_DASSERT(this->references == 0);
 	RLC_DASSERT(RLC_IN_ENUM(RLC_DERIVING_TYPE(this), RlcScopedScopeEntryType));
 
 	typedef void (*destructor_t)(
 		void * this);
 	static destructor_t const k_vtable[] = {
-		(destructor_t)&rlc_scoped_namespace_delete,
-		(destructor_t)&rlc_scoped_enum_delete,
-		(destructor_t)&rlc_scoped_enum_constant_delete
+		(destructor_t)&rlc_scoped_namespace_destroy,
+		(destructor_t)&rlc_scoped_enum_destroy,
+		(destructor_t)&rlc_scoped_enum_constant_destroy
 	};
 	(void) k_vtable;
 
@@ -171,21 +145,4 @@ static void rlc_scoped_scope_entry_delete_virtual(
 	static_assert(RLC_COVERS_ENUM(k_offsets, RlcScopedScopeEntryType), "ill-sized offset table.");
 
 	k_vtable[RLC_DERIVING_TYPE(this)]((uint8_t*)this + k_offsets[RLC_DERIVING_TYPE(this)]);
-}
-
-void rlc_scoped_scope_entry_reference(
-	struct RlcScopedScopeEntry * this)
-{
-	RLC_DASSERT(this != NULL);
-	++this->references;
-}
-
-void rlc_scoped_scope_entry_deref(
-	struct RlcScopedScopeEntry * this)
-{
-	RLC_DASSERT(this != NULL);
-	RLC_DASSERT(this->references != 0);
-
-	if(!--this->references)
-		rlc_scoped_scope_entry_delete_virtual(this);
 }

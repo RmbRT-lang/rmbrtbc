@@ -1,16 +1,20 @@
 #include "scope.h"
+#include "scopeitem.h"
+#include "scopeentry.h"
+#include "member.h"
+#include "symbol.h"
 #include "../assert.h"
 #include "../malloc.h"
 
 struct RlcScopedScope * rlc_scoped_scope_new(
-	struct RlcScopedScope * parent)
+	struct RlcScopedScopeItem * owner)
 {
 	struct RlcScopedScope * ret = NULL;
 	rlc_malloc(
 		(void**)&ret,
 		sizeof(struct RlcScopedScope));
 
-	ret->parent = parent;
+	ret->owner = owner;
 	ret->siblings = NULL;
 	ret->siblingCount = 0;
 	ret->entries = NULL;
@@ -33,7 +37,7 @@ void rlc_scoped_scope_delete(
 	if(this->entries)
 	{
 		for(RlcSrcIndex i = 0; i < this->entryCount; i++)
-			rlc_scoped_scope_entry_deref(this->entries[i]);
+			rlc_scoped_scope_item_delete(this->entries[i]);
 		rlc_free((void**)&this->entries);
 		this->entryCount = 0;
 	}
@@ -43,7 +47,7 @@ void rlc_scoped_scope_delete(
 
 static int rlc_scoped_scope_filter_impl(
 	struct RlcScopedScope * this,
-	struct RlcScopedScopeEntryName const * name,
+	struct RlcScopedSymbolChild const * name,
 	rlc_scoped_scope_filter_fn_t callback,
 	void * userdata,
 	int parents,
@@ -54,9 +58,9 @@ static int rlc_scoped_scope_filter_impl(
 
 	for(RlcSrcIndex i = 0; i < this->entryCount; i++)
 	{
-		if(0 == rlc_scoped_scope_entry_name_compare(
-			name,
-			&this->entries[i]->name))
+		if(0 == rlc_scoped_identifier_compare(
+			&this->entries[i]->name,
+			&name->name))
 		{
 			found = 1;
 			if(!callback(this->entries[i], userdata))
@@ -85,10 +89,10 @@ static int rlc_scoped_scope_filter_impl(
 	}
 	if(parents)
 	{
-		if(this->parent)
+		if(this->owner)
 		{
 			found |= rlc_scoped_scope_filter_impl(
-				this->parent,
+				this->owner->parent,
 				name,
 				callback,
 				userdata,
@@ -102,7 +106,7 @@ static int rlc_scoped_scope_filter_impl(
 
 int rlc_scoped_scope_filter(
 	struct RlcScopedScope * this,
-	struct RlcScopedScopeEntryName const * name,
+	struct RlcScopedSymbolChild const * name,
 	rlc_scoped_scope_filter_fn_t callback,
 	void * userdata,
 	int check_parents,
@@ -124,32 +128,57 @@ int rlc_scoped_scope_filter(
 }
 
 
-void rlc_scoped_scope_add_entry_custom(
+void rlc_scoped_scope_add_item(
 	struct RlcScopedScope * this,
-	struct RlcScopedScopeEntry * entry)
+	struct RlcScopedScopeItem * item)
 {
 	RLC_DASSERT(this != NULL);
-	RLC_DASSERT(entry != NULL);
+	RLC_DASSERT(item != NULL);
 
 	rlc_realloc(
 		(void **)&this->entries,
-		sizeof(struct RlcScopedScopeEntry *) * ++this->entryCount);
+		sizeof(struct RlcScopedScopeItem *) * ++this->entryCount);
 
-	this->entries[this->entryCount-1] = entry;
+	this->entries[this->entryCount-1] = item;
 }
 
 struct RlcScopedScopeEntry * rlc_scoped_scope_add_entry(
 	struct RlcScopedScope * this,
 	struct RlcSrcFile const * file,
-	struct RlcParsedScopeEntry * entry)
+	struct RlcParsedScopeEntry * entry,
+	struct RlcScopedScope * parent)
 {
 	RLC_DASSERT(this != NULL);
 	RLC_DASSERT(file != NULL);
 	RLC_DASSERT(entry != NULL);
 
-	struct RlcScopedScopeEntry * res = rlc_scoped_scope_entry_new(file, entry, this);
-	rlc_scoped_scope_add_entry_custom(this, res);
+	struct RlcScopedScopeEntry * res = rlc_scoped_scope_entry_new(
+		file,
+		entry,
+		parent);
+
+	rlc_scoped_scope_add_item(
+		this,
+		RLC_BASE_CAST(res, RlcScopedScopeItem));
 	return res;
+}
+
+struct RlcScopedMember * rlc_scoped_scope_add_member(
+	struct RlcScopedScope * this,
+	struct RlcSrcFile const * file,
+	struct RlcParsedMember const * parsed,
+	struct RlcScopedScopeItem * parent)
+{
+	RLC_DASSERT(this != NULL);
+	RLC_DASSERT(file != NULL);
+	RLC_DASSERT(parsed != NULL);
+
+	struct RlcScopedMember * res = rlc_scoped_member_new(file, parsed, parent);
+	rlc_scoped_scope_add_item(
+		this,
+		RLC_BASE_CAST(res, RlcScopedScopeItem));
+	return res;	
+
 }
 
 void rlc_scoped_scope_populate(
@@ -164,6 +193,7 @@ void rlc_scoped_scope_populate(
 		rlc_scoped_scope_add_entry(
 			this,
 			&file->fSource,
-			file->fScopeEntries.fEntries[i]);
+			file->fScopeEntries.fEntries[i],
+			NULL);
 	}
 }
