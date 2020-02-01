@@ -33,8 +33,8 @@ struct RlcScopedExpression
 @return
 	The scoped expression. */
 struct RlcScopedExpression * rlc_scoped_expression_new(
-	struct RlcParsedExpression * parsed,
-	struct RlcSrcFile * file);
+	struct RlcParsedExpression const * parsed,
+	struct RlcSrcFile const * file);
 
 /** Destroys and deletes a scoped expression.
 @memberof RlcScopedExpression

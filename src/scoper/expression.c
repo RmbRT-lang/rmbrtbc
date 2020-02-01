@@ -1,8 +1,8 @@
 #include "expression.h"
 
 struct RlcScopedExpression * rlc_scoped_expression_new(
-	struct RlcParsedExpression * parsed,
-	struct RlcSrcFile * file)
+	struct RlcParsedExpression const * parsed,
+	struct RlcSrcFile const * file)
 {
 	RLC_DASSERT(parsed != NULL);
 	RLC_DASSERT(file != NULL);
