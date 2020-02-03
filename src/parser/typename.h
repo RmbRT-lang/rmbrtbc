@@ -193,7 +193,7 @@ struct RlcParsedFunctionSignature
 	/** The argument types. */
 	struct RlcParsedTypeName * fArguments;
 	/** The argument count. */
-	size_t fArgumentCount;
+	RlcSrcSize fArgumentCount;
 	/** The result type. */
 	struct RlcParsedTypeName fResult;
 };
