@@ -20,7 +20,7 @@ void rlc_scoped_expression_delete_virtual(
 
 void rlc_scoped_expression_create(
 	struct RlcScopedExpression * this,
-	struct RlcParsedExpression * parsed,
+	struct RlcParsedExpression const * parsed,
 	enum RlcScopedExpressionType type)
 {
 	RLC_DASSERT(this != NULL);

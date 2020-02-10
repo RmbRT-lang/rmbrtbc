@@ -56,7 +56,7 @@ void rlc_scoped_expression_delete_virtual(
 	The expression's deriving type. */
 void rlc_scoped_expression_create(
 	struct RlcScopedExpression * this,
-	struct RlcParsedExpression * parsed,
+	struct RlcParsedExpression const * parsed,
 	enum RlcScopedExpressionType type);
 
 /** Destroys a scoped expression's base.
