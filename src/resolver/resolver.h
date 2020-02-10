@@ -15,6 +15,17 @@ _Noreturn void rlc_resolver_fail(
 	char const * msg,
 	...);
 
+struct RlcResolverFailContext
+{
+	struct RlcToken const * token;
+	struct RlcSrcFile const * file;
+};
+
+_Noreturn void rlc_resolver_fail_ctx(
+	struct RlcResolverFailContext const * ctx,
+	char const * msg,
+	...);
+
 
 #ifdef __cplusplus
 }

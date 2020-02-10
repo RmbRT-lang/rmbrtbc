@@ -5,18 +5,15 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
-void rlc_resolver_fail(
+static _Noreturn void va_fail(
 	struct RlcToken const * token,
 	struct RlcSrcFile const * file,
 	char const * msg,
-	...)
+	va_list ap)
 {
 	RLC_DASSERT(token != NULL);
 	RLC_DASSERT(file != NULL);
 	RLC_DASSERT(msg != NULL);
-
-	va_list ap;
-	va_start(ap, msg);
 
 	struct RlcSrcPosition pos;
 	rlc_src_file_position(
@@ -33,4 +30,25 @@ void rlc_resolver_fail(
 	fflush(stderr);
 
 	exit(EXIT_FAILURE);
+}
+
+_Noreturn void rlc_resolver_fail(
+	struct RlcToken const * token,
+	struct RlcSrcFile const * file,
+	char const * msg,
+	...)
+{
+	va_list ap;
+	va_start(ap, msg);
+	va_fail(token, file, msg, ap);
+}
+
+_Noreturn void rlc_resolver_fail_ctx(
+	struct RlcResolverFailContext const * ctx,
+	char const * msg,
+	...)
+{
+	va_list ap;
+	va_start(ap, msg);
+	va_fail(ctx->token, ctx->file, msg, ap);
 }
