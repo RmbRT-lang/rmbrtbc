@@ -177,7 +177,7 @@ struct RlcScopedMember * rlc_scoped_scope_add_member(
 	rlc_scoped_scope_add_item(
 		this,
 		RLC_BASE_CAST(res, RlcScopedScopeItem));
-	return res;	
+	return res;
 
 }
 
