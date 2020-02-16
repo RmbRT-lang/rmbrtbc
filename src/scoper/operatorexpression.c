@@ -17,6 +17,18 @@ void rlc_scoped_operator_expression_create(
 		kRlcScopedOperatorExpression);
 
 	this->arguments = NULL;
+
+	if(parsed->fExpressionCount)
+	{
+		rlc_malloc(
+			(void**)&this->arguments,
+			parsed->fExpressionCount * sizeof(void *));
+
+		for(RlcSrcIndex i = 0; i < parsed->fExpressionCount; i++)
+			this->arguments[i] = rlc_scoped_expression_new(
+				parsed->fExpressions[i],
+				file);
+	}
 }
 
 void rlc_scoped_operator_expression_destroy(
