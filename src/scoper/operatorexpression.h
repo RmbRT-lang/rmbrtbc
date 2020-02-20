@@ -23,21 +23,24 @@ struct RlcScopedOperatorExpression
 
 /** Creates a scoped operator expression from a parsed one.
 @memberof RlcScopedOperatorExpression
-@param[out] this:
-	The scoped operator expression to create.
-	@dassert @nonnull
 @param[in] parsed:
 	The parsed operator expression.
 	@dassert @nonnull
 @param[in] file:
 	The parsed expression's source file.
-	@dassert @nonnull. */
-void rlc_scoped_operator_expression_create(
-	struct RlcScopedOperatorExpression * this,
+	@dassert @nonnull.
+@return
+	The new scoped operator expression. */
+struct RlcScopedOperatorExpression * rlc_scoped_operator_expression_new(
 	struct RlcParsedOperatorExpression const * parsed,
 	struct RlcSrcFile const * file);
 
-void rlc_scoped_operator_expression_destroy(
+/** Destroys and deletes a scoped operator expression.
+@memberof RlcScopedOperatorExpression
+@param[in,out] this:
+	The operator expression to delete.
+	@dassert @nonnull */
+void rlc_scoped_operator_expression_delete(
 	struct RlcScopedOperatorExpression * this);
 
 /** Retrieves a scoped operator expression's operator.

@@ -2,14 +2,15 @@
 #include "../assert.h"
 #include "../malloc.h"
 
-void rlc_scoped_operator_expression_create(
-	struct RlcScopedOperatorExpression * this,
+struct RlcScopedOperatorExpression * rlc_scoped_operator_expression_new(
 	struct RlcParsedOperatorExpression const * parsed,
 	struct RlcSrcFile const * file)
 {
-	RLC_DASSERT(this != NULL);
 	RLC_DASSERT(parsed != NULL);
 	RLC_DASSERT(file != NULL);
+
+	struct RlcScopedOperatorExpression * this = NULL;
+	rlc_malloc((void**)&this, sizeof(struct RlcScopedOperatorExpression));
 
 	rlc_scoped_expression_create(
 		RLC_BASE_CAST(this, RlcScopedExpression),
@@ -29,9 +30,11 @@ void rlc_scoped_operator_expression_create(
 				parsed->fExpressions[i],
 				file);
 	}
+
+	return this;
 }
 
-void rlc_scoped_operator_expression_destroy(
+void rlc_scoped_operator_expression_delete(
 	struct RlcScopedOperatorExpression * this)
 {
 	RLC_DASSERT(this != NULL);
@@ -43,6 +46,8 @@ void rlc_scoped_operator_expression_destroy(
 
 	rlc_scoped_expression_destroy_base(
 		RLC_BASE_CAST(this, RlcScopedExpression));
+
+	rlc_free((void**)&this);
 }
 
 enum RlcOperator rlc_scoped_operator_expression_operator(
