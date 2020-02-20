@@ -11,6 +11,8 @@
 extern "C" {
 #endif
 
+#define kRlcScopedCharacterExpression kRlcParsedCharacterExpression
+
 /** A scoped character expression.
 @implements RlcScopedExpression */
 struct RlcScopedCharacterExpression
