@@ -12,6 +12,8 @@
 extern "C" {
 #endif
 
+#define kRlcScopedNumberExpression kRlcParsedNumberExpression
+
 /** Number expression.
 @implements RlcScopedExpression */
 struct RlcScopedNumberExpression
@@ -23,26 +25,24 @@ struct RlcScopedNumberExpression
 
 /** Creates a scoped number expression from a parsed number expression.
 @memberof RlcScopedExpression
-@param[out] this:
-	The scoped number expression to create.
-	@dassert @nonnull
 @param[in] parsed:
 	The parsed number expression.
 	@dassert @nonnull
 @param[in] file:
 	The parsed number expression's source file.
-	@dassert @nonnull */
-void rlc_scoped_number_expression_create(
-	struct RlcScopedNumberExpression * this,
+	@dassert @nonnull
+@return
+	The new scoped number expression. */
+struct RlcScopedNumberExpression * rlc_scoped_number_expression_new(
 	struct RlcParsedNumberExpression const * parsed,
 	struct RlcSrcFile const * file);
 
-/** Destroys a scoped number expression.
+/** Destroys and deletes a scoped number expression.
 @memberof RlcScopedNumberExpression
 @param[in,out] this:
 	The scoped number expression to destroy.
 	@dassert @nonnull */
-void rlc_scoped_number_expression_destroy(
+void rlc_scoped_number_expression_delete(
 	struct RlcScopedNumberExpression * this);
 
 #ifdef __cplusplus
