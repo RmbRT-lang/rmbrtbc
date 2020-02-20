@@ -6,8 +6,8 @@
 #define kRlcScopedSymbolExpression kRlcParsedSymbolExpression
 
 struct RlcScopedSymbolExpression * rlc_scoped_symbol_expression_new(
-	struct RlcParsedSymbolExpression * parsed,
-	struct RlcSrcFile * file)
+	struct RlcParsedSymbolExpression const * parsed,
+	struct RlcSrcFile const * file)
 {
 	RLC_DASSERT(parsed != NULL);
 	RLC_DASSERT(file != NULL);

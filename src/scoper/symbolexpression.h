@@ -11,6 +11,8 @@
 extern "C" {
 #endif
 
+#define kRlcScopedSymbolExpression kRlcParsedSymbolExpression
+
 /** A scoped symbol expression.
 @implements RlcScopedExpression */
 struct RlcScopedSymbolExpression
@@ -32,8 +34,8 @@ struct RlcParsedSymbolExpression;
 @return
 	The new symbol expression. */
 struct RlcScopedSymbolExpression * rlc_scoped_symbol_expression_new(
-	struct RlcParsedSymbolExpression * parsed,
-	struct RlcSrcFile * file);
+	struct RlcParsedSymbolExpression const * parsed,
+	struct RlcSrcFile const * file);
 
 /** Destroys and deletes a symbol expression.
 @memberof RlcScopedSymbolExpression
