@@ -15,7 +15,8 @@ struct RlcToken;
 struct RlcSrcFile;
 struct RlcResolverFailContext;
 
-/** An integer. */
+/** Internal number type.
+	This type is used for compile-time calculations (such as constant expressions or numeric template arguments). This is implemented as a 64-bit signed integer. Any operations that result in an over/underflow will result in a compilation error. */
 struct RlcNumber
 {
 	/** The integer's value. */
@@ -60,6 +61,13 @@ void rlc_number_div(
 	struct RlcNumber * rem,
 	struct RlcNumber const * lhs,
 	struct RlcNumber const * rhs,
+	struct RlcResolverFailContext const * context);
+
+/** Negates a number.
+@memberof RlcNumber */
+void rlc_number_neg(
+	struct RlcNumber * dst,
+	struct RlcNumber const * src,
 	struct RlcResolverFailContext const * context);
 
 /** Compares two numbers.

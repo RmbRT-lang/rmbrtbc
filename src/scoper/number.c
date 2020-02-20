@@ -172,7 +172,7 @@ void rlc_number_sub(
 	if(__builtin_sub_overflow(lhs->value, rhs->value, &dst->value))
 		rlc_resolver_fail_ctx(
 			context,
-			"Overflow: %llu - %llu",
+			"Overflow: %lld - %lld",
 			lhs->value,
 			rhs->value);
 }
@@ -190,7 +190,7 @@ void rlc_number_mul(
 	if(__builtin_mul_overflow(lhs->value, rhs->value, &dst->value))
 		rlc_resolver_fail_ctx(
 			context,
-			"Overflow: %llu * %llu",
+			"Overflow: %lld * %lld",
 			lhs->value,
 			rhs->value);
 }
@@ -214,6 +214,22 @@ void rlc_number_div(
 		quo->value = lhs->value / rhs->value;
 	if(rem)
 		rem->value = lhs->value % rhs->value;
+}
+
+void rlc_number_neg(
+	struct RlcNumber * dst,
+	struct RlcNumber const * src,
+	struct RlcResolverFailContext const * context)
+{
+	RLC_DASSERT(dst != NULL);
+	RLC_DASSERT(src != NULL);
+
+	int64_t v = src->value;
+	if(__builtin_sub_overflow(0, v, &dst->value))
+		rlc_resolver_fail_ctx(
+			context,
+			"Overflow: -%lld",
+			v);
 }
 
 int rlc_number_cmp(
