@@ -43,6 +43,13 @@ void rlc_scoped_text_create(
 void rlc_scoped_text_destroy(
 	struct RlcScopedText * this);
 
+/** Compares two texts.
+	Cannot compare strings with characters.
+@memberof RlcScopedText */
+int rlc_scoped_text_cmp(
+	struct RlcScopedText const * lhs,
+	struct RlcScopedText const * rhs);
+
 #ifdef __cplusplus
 }
 #endif

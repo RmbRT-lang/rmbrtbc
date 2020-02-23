@@ -251,3 +251,24 @@ void rlc_scoped_text_destroy(
 		this->fElements = 0;
 	}
 }
+
+int rlc_scoped_text_cmp(
+	struct RlcScopedText const * lhs,
+	struct RlcScopedText const * rhs)
+{
+	RLC_DASSERT(lhs != NULL);
+	RLC_DASSERT(rhs != NULL);
+	RLC_DASSERT(lhs->fIsString == rhs->fIsString);
+
+	if(lhs->fElements != rhs->fElements)
+		return lhs->fElements - rhs->fElements;
+	if(lhs->fSymbolSize != rhs->fSymbolSize)
+		return lhs->fSymbolSize - rhs->fSymbolSize;
+	if(lhs->fEndian != rhs->fEndian)
+		return lhs->fEndian - rhs->fEndian;
+
+	return memcmp(
+		lhs->fRaw,
+		rhs->fRaw,
+		lhs->fSymbolSize * lhs->fElements);
+}
