@@ -1,4 +1,5 @@
 #include "member.h"
+#include "scope.h"
 #include "../assert.h"
 
 void rlc_scoped_member_create(
@@ -14,23 +15,23 @@ void rlc_scoped_member_create(
 	RLC_DASSERT(RLC_IN_ENUM(type, RlcScopedMemberType));
 	RLC_DASSERT((int)type == (int)RLC_DERIVING_TYPE(parsed));
 
-	struct RlcScopedIdentifier ident;
-	struct RlcScopedIdentifier const * pident = NULL;
 	struct RlcSrcString const * name = rlc_parsed_member_name(parsed);
+	struct RlcToken nameToken;
 	if(name)
-		rlc_scoped_identifier_create(&ident, file, name);
-	else switch(RLC_DERIVING_TYPE(parsed))
 	{
-	case kRlcParsedConstructor: pident = &kRlcScopedIdentifierConstructor; break;
-	case kRlcParsedDestructor: pident = &kRlcScopedIdentifierDestructor; break;
+		nameToken.type = kRlcTokIdentifier;
+		nameToken.content = *name;
+	} else switch(RLC_DERIVING_TYPE(parsed))
+	{
+	case kRlcParsedConstructor: nameToken.type = kRlcTokConstructor; break;
+	case kRlcParsedDestructor: nameToken.type = kRlcTokDestructor; break;
 	default:
 		RLC_DASSERT(!"unhandled member type");
 	}
 
 	rlc_scoped_scope_item_create(
 		RLC_BASE_CAST(this, RlcScopedScopeItem),
-		pident,
-		parent,
+		rlc_scoped_scope_group(parent, &nameToken, file),
 		1,
 		kRlcScopedMember);
 
@@ -51,7 +52,7 @@ void rlc_scoped_member_destroy_base(
 struct RlcScopedMember * rlc_scoped_member_new(
 	struct RlcSrcFile const * file,
 	struct RlcParsedMember const * parsed,
-	struct RlcScopedScopeItem * parent)
+	struct RlcScopedScopeItemGroup * parent)
 {
 	RLC_DASSERT(file != NULL);
 	RLC_DASSERT(parsed != NULL);
@@ -60,7 +61,7 @@ struct RlcScopedMember * rlc_scoped_member_new(
 	typedef uint8_t * (*constructor_t)(
 		struct RlcSrcFile const *,
 		void const *,
-		struct RlcScopedScopeItem *);
+		struct RlcScopedScopeItemGroup *);
 
 #define ENTRY(constructor, type) { \
 		(constructor_t)&constructor, \

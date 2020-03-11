@@ -64,7 +64,7 @@ void rlc_scoped_member_create(
 struct RlcScopedMember * rlc_scoped_member_new(
 	struct RlcSrcFile const * file,
 	struct RlcParsedMember const * parsed,
-	struct RlcScopedScopeItem * parent);
+	struct RlcScopedScopeItemGroup * parent);
 
 /** Destroys a scoped member.
 @memberof RlcScopedMember

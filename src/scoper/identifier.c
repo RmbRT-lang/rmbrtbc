@@ -1,5 +1,6 @@
 #include "identifier.h"
 #include "../src/string.h"
+#include "../tokeniser/tokens.h"
 #include "../assert.h"
 #include "../malloc.h"
 #include <string.h>
@@ -15,6 +16,34 @@ void rlc_scoped_identifier_create(
 
 	this->type = kRlcScopedIdentifierTypeIdentifier;
 	this->name = rlc_src_string_cstr(name, file);
+}
+
+void rlc_scoped_identifier_from_token(
+	struct RlcScopedIdentifier * this,
+	struct RlcSrcFile const * file,
+	struct RlcToken const * name)
+{
+	RLC_DASSERT(this != NULL);
+	RLC_DASSERT(file != NULL);
+	RLC_DASSERT(name != NULL);
+
+	switch(name->type)
+	{
+	case kRlcTokConstructor:
+		{
+			*this = kRlcScopedIdentifierConstructor;
+		} break;
+	case kRlcTokDestructor:
+		{
+			*this = kRlcScopedIdentifierDestructor;
+		} break;
+	default:
+		{
+			RLC_DASSERT(name->type == kRlcTokIdentifier);
+
+			rlc_scoped_identifier_create(this, file, &name->content);
+		} break;
+	}
 }
 
 void rlc_scoped_identifier_destroy(

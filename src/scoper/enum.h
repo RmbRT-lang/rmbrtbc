@@ -41,7 +41,7 @@ struct RlcScopedEnum
 struct RlcScopedEnum * rlc_scoped_enum_new(
 	struct RlcSrcFile const * file,
 	struct RlcParsedEnum const * parsed,
-	struct RlcScopedScope * parent);
+	struct RlcScopedScopeItemGroup * parent);
 
 /** Destroys a scoped enum.
 @memberof RlcScopedEnum
@@ -62,9 +62,8 @@ void rlc_scoped_enum_destroy(
 struct RlcScopedEnumConstant * rlc_scoped_enum_constant_new(
 	struct RlcSrcFile const * file,
 	struct RlcParsedEnumConstant const * parsed,
-	RlcSrcIndex nameIndex,
 	RlcSrcIndex value,
-	struct RlcScopedEnum * parent);
+	struct RlcScopedScopeItemGroup * parent);
 
 /** Destroys a scoped enum constant.
 @memberof RlcScopedEnumConstant

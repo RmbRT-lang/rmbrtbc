@@ -9,6 +9,7 @@ extern "C" {
 
 struct RlcSrcFile;
 struct RlcSrcString;
+struct RlcToken;
 
 /** A scoped symbol child's type. */
 enum RlcScopedIdentifierType
@@ -44,6 +45,22 @@ void rlc_scoped_identifier_create(
 	struct RlcScopedIdentifier * this,
 	struct RlcSrcFile const * file,
 	struct RlcSrcString const * name);
+
+/** Creates a scoped identifier from a token.
+@memberof RlcScopedIdentifier
+@param[out] this:
+	The identifier to create.
+	@dassert @nonnull
+@param[in] file:
+	The source file.
+	@dassert @nonnull
+@param[in] name:
+	The token.
+	@dassert @nonnull */
+void rlc_scoped_identifier_from_token(
+	struct RlcScopedIdentifier * this,
+	struct RlcSrcFile const * file,
+	struct RlcToken const * name);
 
 /** Destroys a scoped identifier.
 @memberof RlcScopedIdentifier

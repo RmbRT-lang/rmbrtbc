@@ -9,18 +9,15 @@
 
 void rlc_scoped_scope_item_create(
 	struct RlcScopedScopeItem * this,
-	struct RlcScopedIdentifier const * name,
-	struct RlcScopedScope * parent,
+	struct RlcScopedScopeItemGroup * group,
 	int makeChildren,
 	enum RlcScopedScopeItemType type)
 {
 	RLC_DASSERT(this != NULL);
-	RLC_DASSERT(name != NULL);
-	RLC_DASSERT(parent != NULL);
+	RLC_DASSERT(group != NULL);
 
 	RLC_DERIVING_TYPE(this) = type;
-	this->name = *name;
-	this->parent = parent;
+	this->group = group;
 	if(makeChildren)
 		this->children = rlc_scoped_scope_new(this);
 }
@@ -29,7 +26,6 @@ void rlc_scoped_scope_item_destroy_base(
 	struct RlcScopedScopeItem * this)
 {
 	RLC_DASSERT(this != NULL);
-	rlc_free((void**)&this->name);
 
 	if(this->children)
 		rlc_scoped_scope_delete(this->children);

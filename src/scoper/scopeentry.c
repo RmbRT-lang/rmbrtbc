@@ -14,7 +14,7 @@
 struct RlcScopedScopeEntry * rlc_scoped_scope_entry_new(
 	struct RlcSrcFile const * file,
 	struct RlcParsedScopeEntry * parsed,
-	struct RlcScopedScope * parent)
+	struct RlcScopedScopeItemGroup * parent)
 {
 	RLC_DASSERT(file != NULL);
 	RLC_DASSERT(parsed != NULL);
@@ -23,7 +23,7 @@ struct RlcScopedScopeEntry * rlc_scoped_scope_entry_new(
 	typedef uint8_t * (*constructor_t)(
 		struct RlcSrcFile const *,
 		void const *,
-		struct RlcScopedScope *);
+		struct RlcScopedScopeItemGroup *);
 
 #define ENTRY(constructor, type) { \
 		(constructor_t)&constructor, \
@@ -64,7 +64,7 @@ void rlc_scoped_scope_entry_create(
 	struct RlcScopedScopeEntry * this,
 	struct RlcSrcFile const * file,
 	struct RlcParsedScopeEntry const * parsed,
-	struct RlcScopedScope * parent,
+	struct RlcScopedScopeItemGroup * parent,
 	enum RlcScopedScopeEntryType type)
 {
 	RLC_DASSERT(this != NULL);
@@ -72,33 +72,8 @@ void rlc_scoped_scope_entry_create(
 	RLC_DASSERT(parsed != NULL);
 	RLC_DASSERT(RLC_IN_ENUM(type, RlcParsedScopeEntryType));
 
-	rlc_scoped_scope_entry_create_custom_name(
-		this,
-		file,
-		parsed,
-		parent,
-		&parsed->fName,
-		type);
-}
-
-void rlc_scoped_scope_entry_create_custom_name(
-	struct RlcScopedScopeEntry * this,
-	struct RlcSrcFile const * file,
-	struct RlcParsedScopeEntry const * parsed,
-	struct RlcScopedScope * parent,
-	struct RlcSrcString const * name,
-	enum RlcScopedScopeEntryType type)
-{
-	RLC_DASSERT(this != NULL);
-	RLC_DASSERT(file != NULL);
-	RLC_DASSERT(parsed != NULL);
-	RLC_DASSERT(RLC_IN_ENUM(type, RlcParsedScopeEntryType));
-
-	struct RlcScopedIdentifier ident;
-	rlc_scoped_identifier_create(&ident, file, name);
 	rlc_scoped_scope_item_create(
 		RLC_BASE_CAST(this, RlcScopedScopeItem),
-		&ident,
 		parent,
 		1,
 		kRlcScopedScopeEntry);

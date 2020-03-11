@@ -5,7 +5,7 @@
 struct RlcScopedNamespace * rlc_scoped_namespace_new(
 	struct RlcSrcFile const * file,
 	struct RlcParsedNamespace const * parsed,
-	struct RlcScopedScope * parent)
+	struct RlcScopedScopeItemGroup * parent)
 {
 	RLC_DASSERT(file != NULL);
 	RLC_DASSERT(parsed != NULL);
@@ -27,10 +27,7 @@ struct RlcScopedNamespace * rlc_scoped_namespace_new(
 				RLC_BASE_CAST(ret, RlcScopedScopeEntry),
 				RlcScopedScopeItem)->children,
 			file,
-			parsed->fEntryList.fEntries[i],
-			RLC_BASE_CAST(
-				RLC_BASE_CAST(ret, RlcScopedScopeEntry),
-				RlcScopedScopeItem)->children);
+			parsed->fEntryList.fEntries[i]);
 
 	return ret;
 }

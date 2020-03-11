@@ -27,7 +27,7 @@ struct RlcScopedNamespace
 struct RlcScopedNamespace * rlc_scoped_namespace_new(
 	struct RlcSrcFile const * file,
 	struct RlcParsedNamespace const * parsed,
-	struct RlcScopedScope * parent);
+	struct RlcScopedScopeItemGroup * parent);
 
 /** Destroys a scoped namespace.
 @memberof RlcScopedNamespace

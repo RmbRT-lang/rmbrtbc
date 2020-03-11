@@ -1,5 +1,6 @@
 #include "scope.h"
 #include "scopeitem.h"
+#include "scopeitemgroup.h"
 #include "scopeentry.h"
 #include "member.h"
 #include "symbol.h"
@@ -17,8 +18,8 @@ struct RlcScopedScope * rlc_scoped_scope_new(
 	ret->owner = owner;
 	ret->siblings = NULL;
 	ret->siblingCount = 0;
-	ret->entries = NULL;
-	ret->entryCount = 0;
+	ret->groups = NULL;
+	ret->groupCount = 0;
 
 	return ret;
 }
@@ -34,12 +35,15 @@ void rlc_scoped_scope_delete(
 		this->siblingCount = 0;
 	}
 
-	if(this->entries)
+	if(this->groups)
 	{
-		for(RlcSrcIndex i = 0; i < this->entryCount; i++)
-			rlc_scoped_scope_item_delete(this->entries[i]);
-		rlc_free((void**)&this->entries);
-		this->entryCount = 0;
+		for(RlcSrcIndex i = 0; i < this->groupCount; i++)
+		{
+			rlc_scoped_scope_item_group_destroy(this->groups[i]);
+			rlc_free((void**)&this->groups[i]);
+		}
+		rlc_free((void**)&this->groups);
+		this->groupCount = 0;
 	}
 
 	rlc_free((void**)&this);
@@ -56,18 +60,24 @@ static int rlc_scoped_scope_filter_impl(
 {
 	int found = 0;
 
-	for(RlcSrcIndex i = 0; i < this->entryCount; i++)
+	signed left = 0, right = this->groupCount;
+	while(left < right)
 	{
-		if(0 == rlc_scoped_identifier_compare(
-			&this->entries[i]->name,
-			&name->name))
+		RlcSrcIndex i = (left + right) >> 1;
+		signed sign =  rlc_scoped_identifier_compare(
+			&this->groups[i]->name,
+			&name->name);
+
+		if(sign == 0)
 		{
 			found = 1;
-			if(!callback(this->entries[i], userdata))
-			{
-				*abort = 1;
-				return 1;
-			}
+			for(RlcSrcIndex j = 0; j < this->groups[i]->itemCount; j++)
+				if(!callback(this->groups[i]->items[j], userdata))
+				{
+					*abort = 1;
+					return 1;
+				}
+			break;
 		}
 	}
 
@@ -87,12 +97,13 @@ static int rlc_scoped_scope_filter_impl(
 				return 1;
 		}
 	}
-	if(parents)
+
+	if(!found && parents)
 	{
 		if(this->owner)
 		{
 			found |= rlc_scoped_scope_filter_impl(
-				this->owner->parent,
+				this->owner->group->parent,
 				name,
 				callback,
 				userdata,
@@ -128,57 +139,146 @@ int rlc_scoped_scope_filter(
 }
 
 
-void rlc_scoped_scope_add_item(
+struct RlcScopedScopeItemGroup * rlc_scoped_scope_group(
 	struct RlcScopedScope * this,
-	struct RlcScopedScopeItem * item)
+	struct RlcToken const * name,
+	struct RlcSrcFile const * file)
 {
 	RLC_DASSERT(this != NULL);
-	RLC_DASSERT(item != NULL);
+	RLC_DASSERT(name != NULL);
+	RLC_DASSERT(file != NULL);
 
+	signed left = 0, right = this->groupCount;
+	while(left < right)
+	{
+		RlcSrcIndex i = (left + right) >> 1;
+		signed sign;
+		switch(name->type)
+		{
+		case kRlcTokConstructor:
+			{
+				sign = rlc_scoped_identifier_compare(
+					&kRlcScopedIdentifierConstructor,
+					&this->groups[i]->name);
+			} break;
+		case kRlcTokDestructor:
+			{
+				sign = rlc_scoped_identifier_compare(
+					&kRlcScopedIdentifierDestructor,
+					&this->groups[i]->name);
+			} break;
+		default:
+			{
+				RLC_DASSERT(name->type == kRlcTokIdentifier);
+
+				sign = kRlcScopedIdentifierTypeIdentifier - this->groups[i]->name.type;
+				if(sign == 0)
+					sign = rlc_src_string_cmp_cstr(
+						file,
+						&name->content,
+						this->groups[i]->name.name);
+			} break;
+		}
+
+		if(sign == 0)
+			return this->groups[i];
+
+		if(sign < 0)
+			right = i-1;
+		else
+			left = i+1;
+	}
+
+	// `left` is the index where it should be.
 	rlc_realloc(
-		(void **)&this->entries,
-		sizeof(struct RlcScopedScopeItem *) * ++this->entryCount);
+		(void**)&this->groups,
+		++this->groupCount * sizeof(struct RlcScopedScopeItemGroup *));
 
-	this->entries[this->entryCount-1] = item;
+	for(RlcSrcIndex i = this->groupCount; i --> left+1;)
+		this->groups[i] = this->groups[i-1];
+
+	this->groups[left] = NULL;
+	rlc_malloc(
+		(void**)&this->groups[left],
+		sizeof(struct RlcScopedScopeItemGroup));
+
+	struct RlcScopedIdentifier groupName;
+	rlc_scoped_identifier_from_token(&groupName, file, name);
+	rlc_scoped_scope_item_group_create(
+		this->groups[left],
+		&groupName,
+		this);
+	return this->groups[left];
 }
 
 struct RlcScopedScopeEntry * rlc_scoped_scope_add_entry(
 	struct RlcScopedScope * this,
 	struct RlcSrcFile const * file,
-	struct RlcParsedScopeEntry * entry,
-	struct RlcScopedScope * parent)
-{
-	RLC_DASSERT(this != NULL);
-	RLC_DASSERT(file != NULL);
-	RLC_DASSERT(entry != NULL);
-
-	struct RlcScopedScopeEntry * res = rlc_scoped_scope_entry_new(
-		file,
-		entry,
-		parent);
-
-	rlc_scoped_scope_add_item(
-		this,
-		RLC_BASE_CAST(res, RlcScopedScopeItem));
-	return res;
-}
-
-struct RlcScopedMember * rlc_scoped_scope_add_member(
-	struct RlcScopedScope * this,
-	struct RlcSrcFile const * file,
-	struct RlcParsedMember const * parsed,
-	struct RlcScopedScopeItem * parent)
+	struct RlcParsedScopeEntry * parsed)
 {
 	RLC_DASSERT(this != NULL);
 	RLC_DASSERT(file != NULL);
 	RLC_DASSERT(parsed != NULL);
 
-	struct RlcScopedMember * res = rlc_scoped_member_new(file, parsed, parent);
-	rlc_scoped_scope_add_item(
-		this,
-		RLC_BASE_CAST(res, RlcScopedScopeItem));
-	return res;
+	// Retrieve the scope entry name as a token.
+	struct RlcToken nameToken = { parsed->fName, kRlcTokIdentifier };
 
+	// Retrieve the scope item group.
+	struct RlcScopedScopeItemGroup * group;
+	group = rlc_scoped_scope_group(this, &nameToken, file);
+
+	// Create and insert the scoped scope entry.
+	struct RlcScopedScopeEntry * entry = rlc_scoped_scope_entry_new(
+		file,
+		parsed,
+		group);
+
+	rlc_scoped_scope_item_group_add(
+		group,
+		RLC_BASE_CAST(entry, RlcScopedScopeItem));
+
+	return entry;
+}
+
+struct RlcScopedMember * rlc_scoped_scope_add_member(
+	struct RlcScopedScope * this,
+	struct RlcSrcFile const * file,
+	struct RlcParsedMember const * parsed)
+{
+	RLC_DASSERT(this != NULL);
+	RLC_DASSERT(file != NULL);
+	RLC_DASSERT(parsed != NULL);
+
+	// Retrieve the member name as a token.
+	struct RlcSrcString const * name = rlc_parsed_member_name(parsed);
+	struct RlcToken nameToken;
+	if(name)
+	{
+		nameToken.type = kRlcTokIdentifier;
+		nameToken.content = *name;
+	} else switch(RLC_DERIVING_TYPE(parsed))
+	{
+	case kRlcParsedConstructor: nameToken.type = kRlcTokConstructor; break;
+	case kRlcParsedDestructor: nameToken.type = kRlcTokDestructor; break;
+	default:
+		RLC_DASSERT(!"unhandled member type");
+	}
+
+	// Retrieve the scope item group.
+	struct RlcScopedScopeItemGroup * group;
+	group = rlc_scoped_scope_group(this, &nameToken, file);
+
+	// Create and insert the scoped member.
+	struct RlcScopedMember * member = rlc_scoped_member_new(
+		file,
+		parsed,
+		group);
+
+	rlc_scoped_scope_item_group_add(
+		group,
+		RLC_BASE_CAST(member, RlcScopedScopeItem));
+
+	return member;
 }
 
 void rlc_scoped_scope_populate(
@@ -193,7 +293,6 @@ void rlc_scoped_scope_populate(
 		rlc_scoped_scope_add_entry(
 			this,
 			&file->fSource,
-			file->fScopeEntries.fEntries[i],
-			NULL);
+			file->fScopeEntries.fEntries[i]);
 	}
 }

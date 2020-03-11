@@ -12,6 +12,7 @@ struct RlcScopedMember;
 struct RlcScopedScopeEntry;
 struct RlcScopedSymbolChild;
 struct RlcScopedScopeItem;
+struct RlcScopedScopeItemGroup;
 
 struct RlcParsedMember;
 struct RlcParsedScopeEntry;
@@ -28,10 +29,10 @@ struct RlcScopedScope
 	/** The scope's sibling count. */
 	RlcSrcSize siblingCount;
 
-	/** The scope's entries. */
-	struct RlcScopedScopeItem ** entries;
-	/** The scope's entry count. */
-	RlcSrcSize entryCount;
+	/** The scope's item goups. */
+	struct RlcScopedScopeItemGroup ** groups;
+	/** The scope's item group count. */
+	RlcSrcSize groupCount;
 };
 
 struct RlcScopedScope * rlc_scoped_scope_new(
@@ -84,6 +85,22 @@ void rlc_scoped_scope_add_item(
 	struct RlcScopedScope * this,
 	struct RlcScopedScopeItem * entry);
 
+/** Retrieves or creates a scope item group with the requested name.
+@memberof RlcScopedScope
+@param[in,out] this:
+	The scope whose group to access.
+	@dassert @nonnull
+@param[in] name:
+	The group's name.
+	@dassert @nonnull
+@param[in] file:
+	The file containing the name.
+	@dassert @nonnull */
+struct RlcScopedScopeItemGroup * rlc_scoped_scope_group(
+	struct RlcScopedScope * this,
+	struct RlcToken const * name,
+	struct RlcSrcFile const * file);
+
 /** Creates a scoped scope entry from a parsed scope entry and adds it to a scope.
 @memberof RlcScopedScope
 @param[in,out] this:
@@ -98,8 +115,7 @@ void rlc_scoped_scope_add_item(
 struct RlcScopedScopeEntry * rlc_scoped_scope_add_entry(
 	struct RlcScopedScope * this,
 	struct RlcSrcFile const * file,
-	struct RlcParsedScopeEntry * entry,
-	struct RlcScopedScope * parent);
+	struct RlcParsedScopeEntry * entry);
 
 /** Adds a member to a scope.
 @memberof RlcScopedScope
@@ -115,8 +131,7 @@ struct RlcScopedScopeEntry * rlc_scoped_scope_add_entry(
 struct RlcScopedMember * rlc_scoped_scope_add_member(
 	struct RlcScopedScope * this,
 	struct RlcSrcFile const * file,
-	struct RlcParsedMember const * parsed,
-	struct RlcScopedScopeItem * parent);
+	struct RlcParsedMember const * parsed);
 
 void rlc_scoped_scope_populate(
 	struct RlcScopedScope * this,

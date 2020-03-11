@@ -34,12 +34,11 @@ enum RlcScopedScopeItemType
 struct RlcScopedScopeItem
 {
 	RLC_ABSTRACT(RlcScopedScopeItem);
-	/** The item's name. */
-	struct RlcScopedIdentifier name;
+
+	/** The item's name group. */
+	struct RlcScopedScopeItemGroup * group;
 	/** The item's child items. */
 	struct RlcScopedScope * children;
-	/** The item's parent scope. */
-	struct RlcScopedScope * parent;
 };
 
 /** Creates a scoped scope item.
@@ -47,12 +46,8 @@ struct RlcScopedScopeItem
 @param[out] this:
 	The scope item to create.
 	@dassert @nonnull
-@param[in] name:
-	The scope item's name.
-	@instance_ownership
-	@dassert @nonnull
-@param[in] parent:
-	The scope item's parent scope.
+@param[in] group:
+	The item's name group.
 	@dassert @nonnull
 @param[in] makeChildren:
 	Whether this scope item needs a scope.
@@ -61,8 +56,7 @@ struct RlcScopedScopeItem
 	The deriving type. */
 void rlc_scoped_scope_item_create(
 	struct RlcScopedScopeItem * this,
-	struct RlcScopedIdentifier const * name,
-	struct RlcScopedScope * parent,
+	struct RlcScopedScopeItemGroup * group,
 	int makeChildren,
 	enum RlcScopedScopeItemType type);
 

@@ -39,7 +39,7 @@ struct RlcScopedRawtype
 struct RlcScopedRawtype * rlc_scoped_rawtype_new(
 	struct RlcSrcFile const * file,
 	struct RlcParsedRawtype const * parsed,
-	struct RlcScopedScope * parent);
+	struct RlcScopedScopeItemGroup * parent);
 
 /** Deletes a scoped rawtype.
 @memberof RlcScopedRawtype

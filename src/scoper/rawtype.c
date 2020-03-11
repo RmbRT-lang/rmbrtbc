@@ -11,7 +11,7 @@
 struct RlcScopedRawtype * rlc_scoped_rawtype_new(
 	struct RlcSrcFile const * file,
 	struct RlcParsedRawtype const * parsed,
-	struct RlcScopedScope * parent)
+	struct RlcScopedScopeItemGroup * parent)
 {
 	RLC_DASSERT(file != NULL);
 	RLC_DASSERT(parsed != NULL);
@@ -37,8 +37,7 @@ struct RlcScopedRawtype * rlc_scoped_rawtype_new(
 		rlc_scoped_scope_add_member(
 			retAsItem->children,
 			file,
-			parsed->fMembers.fEntries[i],
-			retAsItem);
+			parsed->fMembers.fEntries[i]);
 	}
 
 	return ret;
