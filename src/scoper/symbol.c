@@ -1,4 +1,5 @@
 #include "symbol.h"
+#include "expression.h"
 #include "../assert.h"
 #include "../malloc.h"
 #include "../parser/member.h"
@@ -6,12 +7,47 @@
 #include <string.h>
 
 struct RlcScopedSymbolChild const kRlcScopedSymbolChildConstructor = {
-	{ kRlcParsedSymbolChildTypeConstructor, NULL }
+	{ kRlcParsedSymbolChildTypeConstructor, NULL },
+	NULL,
+	0
 };
 
 struct RlcScopedSymbolChild const kRlcScopedSymbolChildDestructor = {
-	{ kRlcParsedSymbolChildTypeDestructor, NULL }
+	{ kRlcParsedSymbolChildTypeDestructor, NULL },
+	NULL,
+	0
 };
+
+static void rlc_scoped_template_argument_create(
+	struct RlcScopedTemplateArgument * this,
+	struct RlcSrcFile const * file,
+	struct RlcParsedSymbolChildTemplate const * parsed)
+{
+	RLC_DASSERT(this != NULL);
+	RLC_DASSERT(file != NULL);
+	RLC_DASSERT(parsed != NULL);
+
+	if((this->isExpression = parsed->fIsExpression))
+		this->expression = rlc_scoped_expression_new(
+			parsed->fExpression,
+			file);
+	else
+		rlc_scoped_type_name_create(
+			&this->type,
+			file,
+			parsed->fTypeName);
+}
+
+static void rlc_scoped_template_argument_destroy(
+struct RlcScopedTemplateArgument * this)
+{
+	RLC_DASSERT(this != NULL);
+
+	if(this->isExpression)
+		rlc_scoped_expression_delete_virtual(this->expression);
+	else
+		rlc_scoped_type_name_destroy(&this->type);
+}
 
 void rlc_scoped_symbol_child_create(
 	struct RlcScopedSymbolChild * this,
@@ -23,6 +59,8 @@ void rlc_scoped_symbol_child_create(
 
 	switch(parsed->fType)
 	{
+	default:
+		RLC_DASSERT(!"unhandled symbol child type");
 	case kRlcParsedSymbolChildTypeConstructor:
 		*this = kRlcScopedSymbolChildConstructor;
 		break;
@@ -32,8 +70,21 @@ void rlc_scoped_symbol_child_create(
 	case kRlcParsedSymbolChildTypeIdentifier:
 		rlc_scoped_identifier_create(&this->name, file, &parsed->fName);
 		break;
-	default:
-		RLC_DASSERT(!"unhandled symbol child type");
+	}
+
+	if(parsed->fTemplateCount)
+	{
+		this->templateCount = parsed->fTemplateCount;
+		this->templates = NULL;
+		rlc_malloc(
+			(void**)&this->templates,
+			this->templateCount * sizeof(struct RlcScopedTemplateArgument));
+
+		for(RlcSrcIndex i = 0; i < this->templateCount; i++)
+			rlc_scoped_template_argument_create(
+				&this->templates[i],
+				file,
+				&parsed->fTemplates[i]);
 	}
 }
 
@@ -43,6 +94,12 @@ void rlc_scoped_symbol_child_destroy(
 	RLC_DASSERT(this != NULL);
 
 	rlc_scoped_identifier_destroy(&this->name);
+
+	for(RlcSrcIndex i = 0; i < this->templateCount; i++)
+		rlc_scoped_template_argument_destroy(&this->templates[i]);
+
+	if(this->templates)
+		rlc_free((void**)&this->templates);
 }
 
 void rlc_scoped_symbol_create(

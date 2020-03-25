@@ -5,26 +5,34 @@
 #include "identifier.h"
 #include "../src/string.h"
 #include "../parser/symbol.h"
+#include "typename.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-
-/** A scoped symbol child's type. */
-enum RlcScopedSymbolChildType
+/** A template argument. */
+struct RlcScopedTemplateArgument
 {
-	kRlcScopedSymbolChildTypeIdentifier,
-	kRlcScopedSymbolChildTypeConstructor,
-	kRlcScopedSymbolChildTypeDestructor
+	/** Whether the template argument is an expression or a type. */
+	int isExpression;
+	union
+	{
+		struct RlcScopedExpression * expression;
+		struct RlcScopedTypeName type;
+	};
 };
 
 /** A scoped symbol child. */
-const struct RlcScopedSymbolChild
+struct RlcScopedSymbolChild
 {
+	/** The symbol child's name. */
 	struct RlcScopedIdentifier name;
-}	kRlcScopedSymbolChildConstructor,
-	kRlcScopedSymbolChildDestructor;
+	/** The symbol child's explicit template arguments. */
+	struct RlcScopedTemplateArgument * templates;
+	/** The symbol child's explicit template argument count. */
+	RlcSrcSize templateCount;
+};
 
 /** A scoped symbol. */
 struct RlcScopedSymbol
