@@ -11,15 +11,21 @@ void rlc_scoped_scope_item_create(
 	struct RlcScopedScopeItem * this,
 	struct RlcScopedScopeItemGroup * group,
 	int makeChildren,
-	enum RlcScopedScopeItemType type)
+	enum RlcScopedScopeItemType type,
+	struct RlcSrcFile const * file,
+	struct RlcParsedTemplateDecl const * templates)
 {
 	RLC_DASSERT(this != NULL);
 	RLC_DASSERT(group != NULL);
+	RLC_DASSERT(file != NULL);
+	RLC_DASSERT(templates != NULL);
 
 	RLC_DERIVING_TYPE(this) = type;
 	this->group = group;
 	if(makeChildren)
 		this->children = rlc_scoped_scope_new(this);
+
+	rlc_scoped_template_decl_create(&this->templates, file, templates);
 }
 
 void rlc_scoped_scope_item_destroy_base(
@@ -29,6 +35,8 @@ void rlc_scoped_scope_item_destroy_base(
 
 	if(this->children)
 		rlc_scoped_scope_delete(this->children);
+
+	rlc_scoped_template_decl_destroy(&this->templates);
 }
 
 void rlc_scoped_scope_item_delete(

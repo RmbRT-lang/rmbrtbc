@@ -20,7 +20,8 @@ struct RlcScopedEnum * rlc_scoped_enum_new(
 		file,
 		RLC_BASE_CAST(parsed, RlcParsedScopeEntry),
 		parent,
-		kRlcScopedEnum);
+		kRlcScopedEnum,
+		NULL);
 
 	ret->fSize = parsed->fConstantCount;
 
@@ -86,7 +87,8 @@ struct RlcScopedEnumConstant * rlc_scoped_enum_constant_new(
 		file,
 		RLC_BASE_CAST(parsed, RlcParsedScopeEntry),
 		parent,
-		kRlcScopedEnumConstant);
+		kRlcScopedEnumConstant,
+		NULL);
 
 	ret->fValue = value;
 	ret->fType = RLC_DERIVE_CAST(

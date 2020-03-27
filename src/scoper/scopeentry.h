@@ -66,13 +66,16 @@ struct RlcScopedScopeEntry * rlc_scoped_scope_entry_new(
 @param[in] parent:
 	If this scope entries has children, then this points to the parent scope, or null, otherwise.
 @param[in] type:
-	The deriving type. */
+	The deriving type.
+@param[in] templates:
+	The member's template declaration, or null. */
 void rlc_scoped_scope_entry_create(
 	struct RlcScopedScopeEntry * this,
 	struct RlcSrcFile const * file,
 	struct RlcParsedScopeEntry const * parsed,
 	struct RlcScopedScopeItemGroup * parent,
-	enum RlcScopedScopeEntryType type);
+	enum RlcScopedScopeEntryType type,
+	struct RlcParsedTemplateDecl const * templates);
 
 /** Creates a scoped scope entry from a parsed entity using a custom name.
 	References the scoped scope entry once.

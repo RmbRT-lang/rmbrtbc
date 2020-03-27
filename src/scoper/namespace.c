@@ -19,7 +19,8 @@ struct RlcScopedNamespace * rlc_scoped_namespace_new(
 		file,
 		RLC_BASE_CAST(parsed, RlcParsedScopeEntry),
 		parent,
-		kRlcScopedNamespace);
+		kRlcScopedNamespace,
+		NULL);
 
 	for(RlcSrcIndex i = 0; i < parsed->fEntryList.fEntryCount; i++)
 		rlc_scoped_scope_add_entry(

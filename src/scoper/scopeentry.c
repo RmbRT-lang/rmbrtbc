@@ -65,7 +65,8 @@ void rlc_scoped_scope_entry_create(
 	struct RlcSrcFile const * file,
 	struct RlcParsedScopeEntry const * parsed,
 	struct RlcScopedScopeItemGroup * parent,
-	enum RlcScopedScopeEntryType type)
+	enum RlcScopedScopeEntryType type,
+	struct RlcParsedTemplateDecl const * templates)
 {
 	RLC_DASSERT(this != NULL);
 	RLC_DASSERT(file != NULL);
@@ -76,7 +77,9 @@ void rlc_scoped_scope_entry_create(
 		RLC_BASE_CAST(this, RlcScopedScopeItem),
 		parent,
 		1,
-		kRlcScopedScopeEntry);
+		kRlcScopedScopeEntry,
+		file,
+		templates ? templates : &kRlcParsedTemplateDeclNone);
 
 	this->file = file;
 	this->parsed = parsed;

@@ -40,13 +40,16 @@ struct RlcScopedMember
 	The scope the member belongs to.
 	@dassert @nonnull
 @param[in] type:
-	The deriving type. */
+	The deriving type.
+@param[in] templates:
+	The member's template declaration, or null. */
 void rlc_scoped_member_create(
 	struct RlcScopedMember * this,
 	struct RlcSrcFile const * file,
 	struct RlcParsedMember const * parsed,
 	struct RlcScopedScope * parent,
-	enum RlcScopedMemberType type);
+	enum RlcScopedMemberType type,
+	struct RlcParsedTemplateDecl const * templates);
 
 /** Creates a new scoped member from a parsed member.
 @memberof RlcScopedMember

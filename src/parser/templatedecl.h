@@ -43,7 +43,7 @@ struct RlcParsedTemplateDecl
 	struct RlcParsedTemplateDeclChild * fChildren;
 	/** The argument count. */
 	size_t fChildCount;
-};
+} const kRlcParsedTemplateDeclNone;
 
 /** Initialises a template argument declaraion to be empty.
 @memberof RlcParsedTemplateDecl

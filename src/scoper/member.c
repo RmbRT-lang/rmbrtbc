@@ -7,7 +7,8 @@ void rlc_scoped_member_create(
 	struct RlcSrcFile const * file,
 	struct RlcParsedMember const * parsed,
 	struct RlcScopedScope * parent,
-	enum RlcScopedMemberType type)
+	enum RlcScopedMemberType type,
+	struct RlcParsedTemplateDecl const * templates)
 {
 	RLC_DASSERT(this != NULL);
 	RLC_DASSERT(file != NULL);
@@ -33,7 +34,9 @@ void rlc_scoped_member_create(
 		RLC_BASE_CAST(this, RlcScopedScopeItem),
 		rlc_scoped_scope_group(parent, &nameToken, file),
 		1,
-		kRlcScopedMember);
+		kRlcScopedMember,
+		file,
+		templates ? templates : &kRlcParsedTemplateDeclNone);
 
 	RLC_DERIVING_TYPE(this) = type;
 

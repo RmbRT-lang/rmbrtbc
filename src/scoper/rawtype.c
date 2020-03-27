@@ -25,7 +25,8 @@ struct RlcScopedRawtype * rlc_scoped_rawtype_new(
 		file,
 		RLC_BASE_CAST(parsed, RlcParsedScopeEntry),
 		parent,
-		kRlcScopedRawtype);
+		kRlcScopedRawtype,
+		&parsed->fTemplates);
 
 	ret->fSize = rlc_scoped_expression_new(parsed->fSize, file);
 	struct RlcScopedScopeItem * retAsItem = RLC_BASE_CAST(

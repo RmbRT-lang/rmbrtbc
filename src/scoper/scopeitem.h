@@ -5,6 +5,7 @@
 #pragma once
 
 #include "identifier.h"
+#include "templatedecl.h"
 
 #include "../macros.h"
 
@@ -39,6 +40,8 @@ struct RlcScopedScopeItem
 	struct RlcScopedScopeItemGroup * group;
 	/** The item's child items. */
 	struct RlcScopedScope * children;
+	/** The item's template declaration. */
+	struct RlcScopedTemplateDecl templates;
 };
 
 /** Creates a scoped scope item.
@@ -53,12 +56,20 @@ struct RlcScopedScopeItem
 	Whether this scope item needs a scope.
 	@dassert @nonnull
 @param[in] type:
-	The deriving type. */
+	The deriving type.
+@param[in] file:
+	The source file.
+	@dassert @nonnull
+@param[in] templates:
+	The scope item's template declaration.
+	@dassert @nonnull */
 void rlc_scoped_scope_item_create(
 	struct RlcScopedScopeItem * this,
 	struct RlcScopedScopeItemGroup * group,
 	int makeChildren,
-	enum RlcScopedScopeItemType type);
+	enum RlcScopedScopeItemType type,
+	struct RlcSrcFile const * file,
+	struct RlcParsedTemplateDecl const * templates);
 
 void rlc_scoped_scope_item_destroy_base(
 	struct RlcScopedScopeItem * this);

@@ -3,6 +3,10 @@
 #include "../malloc.h"
 #include "../assert.h"
 
+struct RlcParsedTemplateDecl const kRlcParsedTemplateDeclNone = {
+	NULL, 0
+};
+
 void rlc_parsed_template_decl_create(
 	struct RlcParsedTemplateDecl * this)
 {
