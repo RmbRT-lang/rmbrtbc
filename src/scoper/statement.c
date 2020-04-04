@@ -1,4 +1,5 @@
 #include "statement.h"
+#include "scope.h"
 #include "../assert.h"
 #include "../malloc.h"
 
@@ -114,7 +115,8 @@ void rlc_scoped_statement_delete(
 void rlc_scoped_statement_create(
 	struct RlcScopedStatement * this,
 	struct RlcParsedStatement const * parsed,
-	enum RlcScopedStatementType type)
+	enum RlcScopedStatementType type,
+	int make_scope)
 {
 	RLC_DASSERT(this != NULL);
 	RLC_DASSERT(parsed != NULL);
@@ -123,11 +125,15 @@ void rlc_scoped_statement_create(
 
 	RLC_DERIVING_TYPE(this) = type;
 	this->parsed = parsed;
+
+	this->scope = make_scope
+		? rlc_scoped_scope_new_for_statement(this)
+		: NULL;
 }
 
 void rlc_scoped_statement_destroy_base(
 	struct RlcScopedStatement * this)
 {
-	(void) this;
-	;
+	if(this->scope)
+		rlc_scoped_scope_delete(this->scope);
 }

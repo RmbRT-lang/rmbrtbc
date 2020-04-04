@@ -90,10 +90,11 @@ struct RlcScopedEnumConstant * rlc_scoped_enum_constant_new(
 		kRlcScopedEnumConstant,
 		NULL);
 
+	RLC_DASSERT(parent->parent->ownerIsItem);
 	ret->fValue = value;
 	ret->fType = RLC_DERIVE_CAST(
 		RLC_DERIVE_CAST(
-			parent->parent->owner,
+			parent->parent->ownerItem,
 			RlcScopedScopeItem,
 			struct RlcScopedScopeEntry),
 		RlcScopedScopeEntry,

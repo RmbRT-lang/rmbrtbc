@@ -13,7 +13,7 @@
 
 struct RlcScopedScopeEntry * rlc_scoped_scope_entry_new(
 	struct RlcSrcFile const * file,
-	struct RlcParsedScopeEntry * parsed,
+	struct RlcParsedScopeEntry const * parsed,
 	struct RlcScopedScopeItemGroup * parent)
 {
 	RLC_DASSERT(file != NULL);
@@ -110,7 +110,6 @@ void rlc_scoped_scope_entry_destroy_virtual(
 		(destructor_t)&rlc_scoped_enum_destroy,
 		(destructor_t)&rlc_scoped_enum_constant_destroy
 	};
-	(void) k_vtable;
 
 	static_assert(RLC_COVERS_ENUM(k_vtable, RlcScopedScopeEntryType), "ill-sized vtable.");
 

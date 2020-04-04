@@ -3,23 +3,42 @@
 #include "scopeitemgroup.h"
 #include "scopeentry.h"
 #include "member.h"
+#include "statement.h"
 #include "symbol.h"
 #include "../assert.h"
 #include "../malloc.h"
 
-struct RlcScopedScope * rlc_scoped_scope_new(
-	struct RlcScopedScopeItem * owner)
+static struct RlcScopedScope * rlc_scoped_scope_new(
+	int ownerIsItem)
 {
 	struct RlcScopedScope * ret = NULL;
 	rlc_malloc(
 		(void**)&ret,
 		sizeof(struct RlcScopedScope));
 
-	ret->owner = owner;
+	ret->ownerIsItem = ownerIsItem;
 	ret->siblings = NULL;
 	ret->siblingCount = 0;
 	ret->groups = NULL;
 	ret->groupCount = 0;
+
+	return ret;
+}
+
+struct RlcScopedScope * rlc_scoped_scope_new_for_item(
+	struct RlcScopedScopeItem * owner)
+{
+	struct RlcScopedScope * ret = rlc_scoped_scope_new(1);
+	ret->ownerItem = owner;
+
+	return ret;
+}
+
+struct RlcScopedScope * rlc_scoped_scope_new_for_statement(
+	struct RlcScopedStatement * owner)
+{
+	struct RlcScopedScope * ret = rlc_scoped_scope_new(0);
+	ret->ownerStatement = owner;
 
 	return ret;
 }
@@ -47,6 +66,28 @@ void rlc_scoped_scope_delete(
 	}
 
 	rlc_free((void**)&this);
+}
+
+struct RlcScopedScope * rlc_scoped_scope_parent(
+	struct RlcScopedScope * this)
+{
+	RLC_DASSERT(this != NULL);
+
+	if(this->ownerIsItem)
+	{
+		if(this->ownerItem)
+		{
+			RLC_DASSERT(this->ownerItem->children != NULL);
+			return this->ownerItem->children;
+		}
+	} else {
+		if(this->ownerStatement)
+		{
+			RLC_DASSERT(this->ownerStatement->scope != NULL);
+			return this->ownerStatement->scope;
+		}
+	}
+	return NULL;
 }
 
 static int rlc_scoped_scope_filter_impl(
@@ -100,10 +141,11 @@ static int rlc_scoped_scope_filter_impl(
 
 	if(!found && parents)
 	{
-		if(this->owner)
+		struct RlcScopedScope * parent = rlc_scoped_scope_parent(this);
+		if(parent)
 		{
 			found |= rlc_scoped_scope_filter_impl(
-				this->owner->group->parent,
+				parent,
 				name,
 				callback,
 				userdata,
@@ -214,7 +256,7 @@ struct RlcScopedScopeItemGroup * rlc_scoped_scope_group(
 struct RlcScopedScopeEntry * rlc_scoped_scope_add_entry(
 	struct RlcScopedScope * this,
 	struct RlcSrcFile const * file,
-	struct RlcParsedScopeEntry * parsed)
+	struct RlcParsedScopeEntry const * parsed)
 {
 	RLC_DASSERT(this != NULL);
 	RLC_DASSERT(file != NULL);

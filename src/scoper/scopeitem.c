@@ -23,7 +23,7 @@ void rlc_scoped_scope_item_create(
 	RLC_DERIVING_TYPE(this) = type;
 	this->group = group;
 	if(makeChildren)
-		this->children = rlc_scoped_scope_new(this);
+		this->children = rlc_scoped_scope_new_for_item(this);
 
 	rlc_scoped_template_decl_create(&this->templates, file, templates);
 }

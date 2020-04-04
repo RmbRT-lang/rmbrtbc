@@ -13,6 +13,7 @@ struct RlcScopedScopeEntry;
 struct RlcScopedSymbolChild;
 struct RlcScopedScopeItem;
 struct RlcScopedScopeItemGroup;
+struct RlcScopedStatement;
 
 struct RlcParsedMember;
 struct RlcParsedScopeEntry;
@@ -21,8 +22,14 @@ struct RlcParsedScopeEntry;
 	Scopes have a parent scope, into which they are embedded. Scopes can also have siblings (i.e., multiple namespaces with the same name, or the global namespace in multiple files), which are also included in the scope. */
 struct RlcScopedScope
 {
-	/** The scope's associated scope item, or NULL if global scope. */
-	struct RlcScopedScopeItem * owner;
+	/** Whether the owner is a scope item, as opposed to a statement. */
+	int ownerIsItem;
+	union {
+		/** The scope's associated scope item, or NULL if global scope. */
+		struct RlcScopedScopeItem * ownerItem;
+		/** The scope's associated statement, or NULL if global scope. */
+		struct RlcScopedStatement * ownerStatement;
+	};
 
 	/** The scope's siblings. */
 	struct RlcScopedScope ** siblings;
@@ -35,10 +42,18 @@ struct RlcScopedScope
 	RlcSrcSize groupCount;
 };
 
-struct RlcScopedScope * rlc_scoped_scope_new(
+struct RlcScopedScope * rlc_scoped_scope_new_for_item(
 	struct RlcScopedScopeItem * owner);
 
+struct RlcScopedScope * rlc_scoped_scope_new_for_statement(
+	struct RlcScopedStatement * owner);
+
 void rlc_scoped_scope_delete(
+	struct RlcScopedScope * this);
+
+/** Returns a scope's parent scope, or NULL if it is the global scope.
+@memberof RlcScopedScope */
+struct RlcScopedScope * rlc_scoped_scope_parent(
 	struct RlcScopedScope * this);
 
 /** A filter loop callback.
@@ -115,7 +130,7 @@ struct RlcScopedScopeItemGroup * rlc_scoped_scope_group(
 struct RlcScopedScopeEntry * rlc_scoped_scope_add_entry(
 	struct RlcScopedScope * this,
 	struct RlcSrcFile const * file,
-	struct RlcParsedScopeEntry * entry);
+	struct RlcParsedScopeEntry const * entry);
 
 /** Adds a member to a scope.
 @memberof RlcScopedScope

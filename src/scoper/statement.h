@@ -16,7 +16,9 @@ extern "C" {
 struct RlcScopedStatement
 {
 	RLC_ABSTRACT(RlcScopedStatement);
-
+	/** The statement's scope (if applicable). */
+	struct RlcScopedScope * scope;
+	/** The parsed statement. */
 	struct RlcParsedStatement const * parsed;
 };
 
@@ -52,11 +54,14 @@ void rlc_scoped_statement_delete(
 	@dassert @nonnull
 @param[in] type:
 	The scope statement's deriving type.
-	@dassert @nonnull */
+	@dassert @nonnull
+@param[in] make_scope:
+	Whether to create a scope for the statement. */
 void rlc_scoped_statement_create(
 	struct RlcScopedStatement * this,
 	struct RlcParsedStatement const * parsed,
-	enum RlcScopedStatementType type);
+	enum RlcScopedStatementType type,
+	int make_scope);
 
 /** Destroys a scoped statement.
 @memberof RlcScopedStatement

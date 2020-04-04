@@ -17,7 +17,8 @@ void rlc_scoped_expression_statement_create(
 	rlc_scoped_statement_create(
 		RLC_BASE_CAST(this, RlcScopedStatement),
 		RLC_BASE_CAST(parsed, RlcParsedStatement),
-		kRlcScopedExpressionStatement);
+		kRlcScopedExpressionStatement,
+		0);
 
 	this->expression = rlc_scoped_expression_new(
 		parsed->fExpression,

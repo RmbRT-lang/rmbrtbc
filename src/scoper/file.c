@@ -13,7 +13,7 @@ void rlc_scoped_file_create(
 	this->path = path;
 	rlc_scoped_include_list_create(&this->includes);
 	rlc_scoped_include_list_create(&this->includedBy);
-	this->globalScope = rlc_scoped_scope_new(NULL);
+	this->globalScope = rlc_scoped_scope_new_for_item(NULL);
 	rlc_scoped_scope_populate(this->globalScope, parsed);
 }
 

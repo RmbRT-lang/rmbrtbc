@@ -48,7 +48,7 @@ struct RlcScopedScopeEntry
 	The created scope entry. */
 struct RlcScopedScopeEntry * rlc_scoped_scope_entry_new(
 	struct RlcSrcFile const * file,
-	struct RlcParsedScopeEntry * parsed,
+	struct RlcParsedScopeEntry const * parsed,
 	struct RlcScopedScopeItemGroup * parent);
 
 /** Creates a scoped scope entry from a parsed entity.
