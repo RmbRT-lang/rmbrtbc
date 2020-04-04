@@ -2,6 +2,7 @@
 #include "expression.h"
 #include "variable.h"
 #include "scope.h"
+#include "identifier.h"
 #include "../parser/ifstatement.h"
 #include "../assert.h"
 #include "../malloc.h"
@@ -23,30 +24,29 @@ void rlc_scoped_if_statement_create(
 		kRlcScopedIfStatement,
 		1);
 
-	this->condition.isVariable = parsed->fCondition.fIsVariable;
-	if(this->condition.isVariable)
+	if(this->condition.isExpression)
 	{
-		struct RlcScopedScopeEntry * variable = rlc_scoped_scope_add_entry(
-			RLC_BASE_CAST(this, RlcScopedStatement)->scope,
+		rlc_scoped_maybe_exp_or_var_create_expression(
+			&this->condition,
 			file,
-			RLC_BASE_CAST(&parsed->fCondition.fVariable, RlcParsedScopeEntry));
-
-		this->condition.variable = RLC_DERIVE_CAST(
-			variable,
-			RlcScopedScopeEntry,
-			struct RlcScopedVariable);
+			parsed->fCondition.fExpression);
 	} else
 	{
-		this->condition.expression = rlc_scoped_expression_new(
-			parsed->fCondition.fExpression,
-			file);
+		rlc_scoped_maybe_exp_or_var_create_variable(
+			&this->condition,
+			file,
+			&parsed->fCondition.fVariable,
+			RLC_BASE_CAST(this, RlcScopedStatement)->scope);
 	}
 
 	this->label = NULL;
 	if(parsed->fIfLabel.fExists)
 	{
 		rlc_malloc((void**)&this->label, sizeof(struct RlcScopedIdentifier));
-		rlc_scoped_identifier_create(this->label, file, &parsed->fIfLabel.fLabel.content);
+		rlc_scoped_identifier_from_token(
+			this->label,
+			file,
+			&parsed->fIfLabel.fLabel);
 	}
 
 	this->ifBody = rlc_scoped_statement_new(file, parsed->fIf);
@@ -63,8 +63,7 @@ void rlc_scoped_if_statement_destroy(
 	rlc_scoped_statement_destroy_base(
 		RLC_BASE_CAST(this, RlcScopedStatement));
 
-	if(!this->condition.isVariable)
-		rlc_scoped_expression_delete_virtual(this->condition.expression);
+	rlc_scoped_maybe_exp_or_var_destroy(&this->condition);
 
 	if(this->label)
 	{

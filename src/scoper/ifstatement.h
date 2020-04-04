@@ -5,13 +5,14 @@
 #pragma once
 
 #include "statement.h"
-#include "identifier.h"
+#include "maybeexporvar.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 struct RlcParsedIfStatement;
+struct RlcScopedIdentifier;
 
 /** Scoped if statement.
 @extends RlcScopedStatement */
@@ -19,17 +20,15 @@ struct RlcScopedIfStatement
 {
 	RLC_DERIVE(struct,RlcScopedStatement);
 
-	struct {
-		union {
-			struct RlcScopedExpression * expression;
-			struct RlcScopedVariable * variable;
-		};
-		int isVariable;
-	} condition;
+	/** The if statement's condition. */
+	struct RlcScopedMaybeExpOrVar condition;
 
+	/** The if statement's control label, if any. */
 	struct RlcScopedIdentifier * label;
 
+	/** The if statement's if body. */
 	struct RlcScopedStatement * ifBody;
+	/** The if statement's else body, if any. */
 	struct RlcScopedStatement * elseBody;
 };
 
