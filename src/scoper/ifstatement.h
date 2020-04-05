@@ -6,13 +6,13 @@
 
 #include "statement.h"
 #include "maybeexporvar.h"
+#include "controllabel.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 struct RlcParsedIfStatement;
-struct RlcScopedIdentifier;
 
 /** Scoped if statement.
 @extends RlcScopedStatement */
@@ -23,8 +23,8 @@ struct RlcScopedIfStatement
 	/** The if statement's condition. */
 	struct RlcScopedMaybeExpOrVar condition;
 
-	/** The if statement's control label, if any. */
-	struct RlcScopedIdentifier * label;
+	/** The if statement's control label. */
+	struct RlcScopedControlLabel label;
 
 	/** The if statement's if body. */
 	struct RlcScopedStatement * ifBody;

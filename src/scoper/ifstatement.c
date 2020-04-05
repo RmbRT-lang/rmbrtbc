@@ -39,15 +39,7 @@ void rlc_scoped_if_statement_create(
 			RLC_BASE_CAST(this, RlcScopedStatement)->scope);
 	}
 
-	this->label = NULL;
-	if(parsed->fIfLabel.fExists)
-	{
-		rlc_malloc((void**)&this->label, sizeof(struct RlcScopedIdentifier));
-		rlc_scoped_identifier_from_token(
-			this->label,
-			file,
-			&parsed->fIfLabel.fLabel);
-	}
+	rlc_scoped_control_label_create(&this->label, file, &parsed->fIfLabel);
 
 	this->ifBody = rlc_scoped_statement_new(file, parsed->fIf);
 	this->elseBody = parsed->fElse
@@ -65,11 +57,7 @@ void rlc_scoped_if_statement_destroy(
 
 	rlc_scoped_maybe_exp_or_var_destroy(&this->condition);
 
-	if(this->label)
-	{
-		rlc_scoped_identifier_destroy(this->label);
-		rlc_free((void**)&this->label);
-	}
+	rlc_scoped_control_label_destroy(&this->label);
 
 	rlc_scoped_statement_delete(this->ifBody);
 	if(this->elseBody)
