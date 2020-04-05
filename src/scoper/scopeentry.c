@@ -4,6 +4,7 @@
 #include "enum.h"
 #include "function.h"
 #include "rawtype.h"
+#include "typedef.h"
 #include "namespace.h"
 #include "variable.h"
 #include "../parser/class.h"
@@ -11,6 +12,7 @@
 #include "../parser/function.h"
 #include "../parser/namespace.h"
 #include "../parser/rawtype.h"
+#include "../parser/typedef.h"
 #include "../parser/variable.h"
 #include "../assert.h"
 #include "../malloc.h"
@@ -58,7 +60,7 @@ struct RlcScopedScopeEntry * rlc_scoped_scope_entry_new(
 		ENTRY(rlc_scoped_variable_create, Variable),
 		ENTRY(rlc_scoped_enum_create, Enum),
 		NOENTRY(EnumConstant), // Needs more context to be created.
-		NOENTRY(Typedef),
+		ENTRY(rlc_scoped_typedef_create, Typedef),
 		NOENTRY(ExternalSymbol)
 	};
 #undef ENTRY
@@ -148,7 +150,7 @@ void rlc_scoped_scope_entry_destroy_virtual(
 		ENTRY(rlc_scoped_variable_destroy, Variable),
 		ENTRY(rlc_scoped_enum_destroy, Enum),
 		ENTRY(rlc_scoped_enum_constant_destroy, EnumConstant),
-		NOENTRY(Typedef),
+		ENTRY(rlc_scoped_typedef_destroy, Typedef),
 		NOENTRY(ExternalSymbol)
 	};
 #undef ENTRY
