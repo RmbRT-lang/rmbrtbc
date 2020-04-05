@@ -36,7 +36,7 @@ int rlc_parsed_break_statement_parse(
 
 	rlc_parsed_break_statement_create(out);
 
-	rlc_control_label_parse(
+	rlc_parsed_control_label_parse(
 		&out->fLabel,
 		parser);
 

@@ -96,7 +96,7 @@ static _Nodiscard int parse_for_head(
 		return 0;
 
 	if(!out->fIsPostCondition)
-		rlc_control_label_parse(
+		rlc_parsed_control_label_parse(
 			&out->fLabel,
 			parser);
 
@@ -154,7 +154,7 @@ static _Nodiscard int parse_while_head(
 		return 0;
 
 	if(!out->fIsPostCondition)
-		rlc_control_label_parse(
+		rlc_parsed_control_label_parse(
 			&out->fLabel,
 			parser);
 
@@ -208,7 +208,7 @@ static _Nodiscard int parse_do_head(
 		return 0;
 
 	out->fIsPostCondition = 1;
-	rlc_control_label_parse(
+	rlc_parsed_control_label_parse(
 		&out->fLabel,
 		parser);
 

@@ -20,7 +20,7 @@ struct RlcParsedBreakStatement
 	RLC_DERIVE(struct, RlcParsedStatement);
 
 	/** The break statement's label. */
-	struct RlcControlLabel fLabel;
+	struct RlcParsedControlLabel fLabel;
 };
 
 /** Creates a break statement.

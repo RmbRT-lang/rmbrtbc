@@ -53,7 +53,7 @@ int rlc_parsed_switch_statement_parse(
 		return 0;
 
 	rlc_parsed_switch_statement_create(out);
-	rlc_control_label_parse(&out->fLabel, parser);
+	rlc_parsed_control_label_parse(&out->fLabel, parser);
 
 	rlc_parser_expect(
 		parser,

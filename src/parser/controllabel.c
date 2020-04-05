@@ -2,8 +2,8 @@
 
 #include "../assert.h"
 
-void rlc_control_label_parse(
-	struct RlcControlLabel * out,
+void rlc_parsed_control_label_parse(
+	struct RlcParsedControlLabel * out,
 	struct RlcParser * parser)
 {
 	RLC_DASSERT(out != NULL);

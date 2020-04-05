@@ -66,7 +66,7 @@ int rlc_parsed_if_statement_parse(
 
 	rlc_parsed_if_statement_create(out);
 
-	rlc_control_label_parse(
+	rlc_parsed_control_label_parse(
 		&out->fIfLabel,
 		parser);
 
@@ -115,7 +115,7 @@ int rlc_parsed_if_statement_parse(
 		NULL,
 		kRlcTokElse))
 	{
-		rlc_control_label_parse(
+		rlc_parsed_control_label_parse(
 			&out->fElseLabel,
 			parser);
 

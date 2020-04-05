@@ -22,7 +22,7 @@ struct RlcParsedLoopStatement
 	RLC_DERIVE(struct,RlcParsedStatement);
 
 	/** The loop's control label. */
-	struct RlcControlLabel fLabel;
+	struct RlcParsedControlLabel fLabel;
 	/** Whether the condition is checked before or after the loop body. */
 	int fIsPostCondition;
 	/** Whether the condition is a variable declaration or an expression. */

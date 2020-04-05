@@ -22,7 +22,7 @@ struct RlcParsedCaseStatement
 	/** Whether it is the default case. */
 	int fIsDefault;
 	/** The case's control label. */
-	struct RlcControlLabel fControlLabel;
+	struct RlcParsedControlLabel fControlLabel;
 	/** The case's values.
 		Only exists if it is not the default case. */
 	struct RlcParsedExpressionList fValues;

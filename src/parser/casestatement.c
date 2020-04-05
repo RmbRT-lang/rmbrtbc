@@ -51,7 +51,7 @@ int rlc_parsed_case_statement_parse(
 		kRlcTokDefault))
 	{
 		out->fIsDefault = 1;
-		rlc_control_label_parse(
+		rlc_parsed_control_label_parse(
 			&out->fControlLabel,
 			parser);
 	} else if(rlc_parser_consume(
@@ -59,7 +59,7 @@ int rlc_parsed_case_statement_parse(
 		NULL,
 		kRlcTokCase))
 	{
-		rlc_control_label_parse(
+		rlc_parsed_control_label_parse(
 			&out->fControlLabel,
 			parser);
 		out->fIsDefault = 0;

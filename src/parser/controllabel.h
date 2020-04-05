@@ -15,7 +15,7 @@ extern "C" {
 #endif
 
 /** A control label. */
-struct RlcControlLabel
+struct RlcParsedControlLabel
 {
 	int fExists;
 	struct RlcToken fLabel;
@@ -30,8 +30,8 @@ struct RlcControlLabel
 	@dassert @nonnull
 @param[in,out] parser:
 	The parser data. */
-void rlc_control_label_parse(
-	struct RlcControlLabel * out,
+void rlc_parsed_control_label_parse(
+	struct RlcParsedControlLabel * out,
 	struct RlcParser * parser);
 
 

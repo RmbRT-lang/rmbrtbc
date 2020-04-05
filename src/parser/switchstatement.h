@@ -20,7 +20,7 @@ struct RlcParsedSwitchStatement
 	RLC_DERIVE(struct, RlcParsedStatement);
 
 	/** The switch statement's control label. */
-	struct RlcControlLabel fLabel;
+	struct RlcParsedControlLabel fLabel;
 	/** The value to be switched. */
 	struct RlcParsedExpression * fSwitchValue;
 	/** The switch statement's cases. */
