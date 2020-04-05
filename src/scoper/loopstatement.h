@@ -6,6 +6,7 @@
 
 #include "statement.h"
 #include "maybeexporvar.h"
+#include "controllabel.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -13,7 +14,6 @@ extern "C" {
 
 
 struct RlcParsedLoopStatement;
-struct RlcScopedIdentifier;
 
 /** Scoped loop statement type.
 @extends RlcScopedStatement */
@@ -22,7 +22,7 @@ struct RlcScopedLoopStatement
 	RLC_DERIVE(struct, RlcScopedStatement);
 
 	/** The loop's control label. */
-	struct RlcScopedIdentifier * label;
+	struct RlcScopedControlLabel label;
 	/** Whether the condition is checked before or after the loop body. */
 	int isPostCondition;
 	/** The loop statement's initial statement, if any. */

@@ -22,15 +22,7 @@ void rlc_scoped_loop_statement_create(
 		kRlcScopedLoopStatement,
 		1);
 
-	this->label = NULL;
-	if(parsed->fLabel.fExists)
-	{
-		rlc_malloc((void**)&this->label, sizeof(struct RlcScopedIdentifier));
-		rlc_scoped_identifier_from_token(
-			this->label,
-			file,
-			&parsed->fLabel.fLabel);
-	}
+	rlc_scoped_control_label_create(&this->label, file, &parsed->fLabel);
 
 	this->isPostCondition = parsed->fIsPostCondition;
 
@@ -74,11 +66,7 @@ void rlc_scoped_loop_statement_destroy(
 {
 	RLC_DASSERT(this != NULL);
 
-	if(this->label)
-	{
-		rlc_scoped_identifier_destroy(this->label);
-		rlc_free((void**)&this->label);
-	}
+	rlc_scoped_control_label_destroy(&this->label);
 
 	rlc_scoped_maybe_exp_or_var_destroy(&this->initial);
 	rlc_scoped_maybe_exp_or_var_destroy(&this->condition);
