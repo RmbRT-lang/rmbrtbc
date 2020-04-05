@@ -1,5 +1,19 @@
 #include "statement.h"
 #include "scope.h"
+
+#include "expressionstatement.h"
+#include "blockstatement.h"
+#include "ifstatement.h"
+#include "loopstatement.h"
+#include "breakstatement.h"
+#include "continuestatement.h"
+#include "../parser/expressionstatement.h"
+#include "../parser/blockstatement.h"
+#include "../parser/ifstatement.h"
+#include "../parser/loopstatement.h"
+#include "../parser/breakstatement.h"
+#include "../parser/continuestatement.h"
+
 #include "../assert.h"
 #include "../malloc.h"
 
@@ -17,10 +31,10 @@ struct RlcScopedStatement * rlc_scoped_statement_new(
 
 #define ENTRY(type, ctor) { \
 		(constructor_t) ctor, \
-		RLC_DERIVE_OFFSET(struct RlcScoped ## type, RlcScopedStatement), \
-		RLC_DERIVE_OFFSET(struct RlcParsed ## type, RlcParsedStatement), \
+		RLC_DERIVE_OFFSET(RlcScopedStatement, struct RlcScoped ## type), \
+		RLC_DERIVE_OFFSET(RlcParsedStatement, struct RlcParsed ## type), \
 		sizeof(struct RlcScoped ## type), \
-		kRlcScoped ## type \
+		kRlcParsed ## type \
 	}
 #define NOENTRY(type) { NULL, 0, 0, 0, kRlcParsed ## type }
 
@@ -31,16 +45,16 @@ struct RlcScopedStatement * rlc_scoped_statement_new(
 		size_t size;
 		enum RlcScopedStatementType type;
 	} const k_vtable[] = {
-		NOENTRY(ExpressionStatement),
-		NOENTRY(BlockStatement),
-		NOENTRY(IfStatement),
-		NOENTRY(LoopStatement),
+		ENTRY(ExpressionStatement, rlc_scoped_expression_statement_create),
+		ENTRY(BlockStatement, rlc_scoped_block_statement_create),
+		ENTRY(IfStatement, rlc_scoped_if_statement_create),
+		ENTRY(LoopStatement, rlc_scoped_loop_statement_create),
 		NOENTRY(VariableStatement),
 		NOENTRY(ReturnStatement),
 		NOENTRY(SwitchStatement),
 		NOENTRY(CaseStatement),
-		NOENTRY(BreakStatement),
-		NOENTRY(ContinueStatement),
+		ENTRY(BreakStatement, rlc_scoped_break_statement_create),
+		ENTRY(ContinueStatement, rlc_scoped_continue_statement_create),
 		NOENTRY(TryStatement),
 		NOENTRY(ThrowStatement)
 	};
@@ -75,8 +89,8 @@ void rlc_scoped_statement_delete(
 
 #define ENTRY(type, dtor) { \
 		(destructor_t) dtor, \
-		RLC_DERIVE_OFFSET(struct RlcScoped ## type, RlcScopedStatement), \
-		kRlcScoped ## type \
+		RLC_DERIVE_OFFSET(RlcScopedStatement, struct RlcScoped ## type), \
+		kRlcParsed ## type \
 	}
 #define NOENTRY(type) { NULL, 0, kRlcParsed ## type }
 
@@ -85,16 +99,16 @@ void rlc_scoped_statement_delete(
 		ptrdiff_t offset;
 		enum RlcScopedStatementType type;
 	} const k_vtable[] = {
-		NOENTRY(ExpressionStatement),
-		NOENTRY(BlockStatement),
-		NOENTRY(IfStatement),
-		NOENTRY(LoopStatement),
+		ENTRY(ExpressionStatement, rlc_scoped_expression_statement_destroy),
+		ENTRY(BlockStatement, rlc_scoped_block_statement_destroy),
+		ENTRY(IfStatement, rlc_scoped_if_statement_destroy),
+		ENTRY(LoopStatement, rlc_scoped_loop_statement_destroy),
 		NOENTRY(VariableStatement),
 		NOENTRY(ReturnStatement),
 		NOENTRY(SwitchStatement),
 		NOENTRY(CaseStatement),
-		NOENTRY(BreakStatement),
-		NOENTRY(ContinueStatement),
+		ENTRY(BreakStatement, rlc_scoped_break_statement_destroy),
+		ENTRY(ContinueStatement, rlc_scoped_continue_statement_destroy),
 		NOENTRY(TryStatement),
 		NOENTRY(ThrowStatement)
 	};
