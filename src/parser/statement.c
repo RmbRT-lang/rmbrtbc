@@ -8,6 +8,7 @@
 #include "returnstatement.h"
 #include "switchstatement.h"
 #include "breakstatement.h"
+#include "continuestatement.h"
 #include "trystatement.h"
 #include "throwstatement.h"
 
@@ -73,6 +74,9 @@ void rlc_parsed_statement_destroy_virtual(
 			(thiscall_t)&rlc_parsed_break_statement_destroy,
 			RLC_DERIVE_OFFSET(RlcParsedStatement, struct RlcParsedBreakStatement)
 		}, {
+			(thiscall_t)&rlc_parsed_continue_statement_destroy,
+			RLC_DERIVE_OFFSET(RlcParsedStatement, struct RlcParsedContinueStatement)
+		}, {
 			(thiscall_t)&rlc_parsed_try_statement_destroy,
 			RLC_DERIVE_OFFSET(RlcParsedStatement, struct RlcParsedTryStatement)
 		}, {
@@ -137,6 +141,7 @@ struct RlcParsedStatement * rlc_parsed_statement_parse(
 		ENTRY(RlcParsedSwitchStatement, &rlc_parsed_switch_statement_parse),
 		ENTRY(RlcParsedCaseStatement, &rlc_parsed_case_statement_parse),
 		ENTRY(RlcParsedBreakStatement, &rlc_parsed_break_statement_parse),
+		ENTRY(RlcParsedContinueStatement, &rlc_parsed_continue_statement_parse),
 		ENTRY(RlcParsedTryStatement, &rlc_parsed_try_statement_parse),
 		ENTRY(RlcParsedThrowStatement, &rlc_parsed_throw_statement_parse),
 		// expression has to come after variable.

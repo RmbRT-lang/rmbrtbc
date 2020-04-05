@@ -40,6 +40,7 @@ struct RlcScopedStatement * rlc_scoped_statement_new(
 		NOENTRY(SwitchStatement),
 		NOENTRY(CaseStatement),
 		NOENTRY(BreakStatement),
+		NOENTRY(ContinueStatement),
 		NOENTRY(TryStatement),
 		NOENTRY(ThrowStatement)
 	};
@@ -93,6 +94,7 @@ void rlc_scoped_statement_delete(
 		NOENTRY(SwitchStatement),
 		NOENTRY(CaseStatement),
 		NOENTRY(BreakStatement),
+		NOENTRY(ContinueStatement),
 		NOENTRY(TryStatement),
 		NOENTRY(ThrowStatement)
 	};
