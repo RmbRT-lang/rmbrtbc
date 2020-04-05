@@ -2,20 +2,21 @@
 #include "scope.h"
 #include "../malloc.h"
 
-struct RlcScopedNamespace * rlc_scoped_namespace_new(
+#define kRlcScopedNamespace kRlcParsedNamespace
+
+void rlc_scoped_namespace_create(
+	struct RlcScopedNamespace * this,
 	struct RlcSrcFile const * file,
 	struct RlcParsedNamespace const * parsed,
 	struct RlcScopedScopeItemGroup * parent)
 {
+	RLC_DASSERT(this != NULL);
 	RLC_DASSERT(file != NULL);
 	RLC_DASSERT(parsed != NULL);
 	RLC_DASSERT(parent != NULL);
 
-	struct RlcScopedNamespace * ret = NULL;
-	rlc_malloc((void**)&ret, sizeof(struct RlcScopedNamespace));
-
 	rlc_scoped_scope_entry_create(
-		RLC_BASE_CAST(ret, RlcScopedScopeEntry),
+		RLC_BASE_CAST(this, RlcScopedScopeEntry),
 		file,
 		RLC_BASE_CAST(parsed, RlcParsedScopeEntry),
 		parent,
@@ -25,12 +26,10 @@ struct RlcScopedNamespace * rlc_scoped_namespace_new(
 	for(RlcSrcIndex i = 0; i < parsed->fEntryList.fEntryCount; i++)
 		rlc_scoped_scope_add_entry(
 			RLC_BASE_CAST(
-				RLC_BASE_CAST(ret, RlcScopedScopeEntry),
+				RLC_BASE_CAST(this, RlcScopedScopeEntry),
 				RlcScopedScopeItem)->children,
 			file,
 			parsed->fEntryList.fEntries[i]);
-
-	return ret;
 }
 
 void rlc_scoped_namespace_destroy(

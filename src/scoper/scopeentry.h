@@ -11,13 +11,7 @@
 extern "C" {
 #endif
 
-enum RlcScopedScopeEntryType
-{
-	kRlcScopedNamespace,
-	kRlcScopedEnum,
-	kRlcScopedEnumConstant,
-	RLC_ENUM_END(RlcScopedScopeEntryType)
-};
+#define RlcScopedScopeEntryType RlcParsedScopeEntryType
 
 /** An entry within a scoped scope.
 	This type is a shared resource. */

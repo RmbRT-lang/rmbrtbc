@@ -38,7 +38,8 @@ struct RlcScopedEnum
 @param[in] parsed:
 	The parsed enum.
 	@dassert @nonnull */
-struct RlcScopedEnum * rlc_scoped_enum_new(
+void rlc_scoped_enum_create(
+	struct RlcScopedEnum * this,
 	struct RlcSrcFile const * file,
 	struct RlcParsedEnum const * parsed,
 	struct RlcScopedScopeItemGroup * parent);

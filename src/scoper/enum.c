@@ -4,26 +4,28 @@
 #include "../assert.h"
 #include "../malloc.h"
 
-struct RlcScopedEnum * rlc_scoped_enum_new(
+#define kRlcScopedEnum kRlcParsedEnum
+#define kRlcScopedEnumConstant kRlcParsedEnumConstant
+
+void rlc_scoped_enum_create(
+	struct RlcScopedEnum * this,
 	struct RlcSrcFile const * file,
 	struct RlcParsedEnum const * parsed,
 	struct RlcScopedScopeItemGroup * parent)
 {
+	RLC_DASSERT(this != NULL);
 	RLC_DASSERT(parsed != NULL);
 	RLC_DASSERT(parent != NULL);
 
-	struct RlcScopedEnum * ret = NULL;
-	rlc_malloc((void**)&ret, sizeof(struct RlcParsedEnum));
-
 	rlc_scoped_scope_entry_create(
-		RLC_BASE_CAST(ret, RlcScopedScopeEntry),
+		RLC_BASE_CAST(this, RlcScopedScopeEntry),
 		file,
 		RLC_BASE_CAST(parsed, RlcParsedScopeEntry),
 		parent,
 		kRlcScopedEnum,
 		NULL);
 
-	ret->fSize = parsed->fConstantCount;
+	this->fSize = parsed->fConstantCount;
 
 	for(RlcSrcIndex i = 0; i < parsed->fConstantCount; i++)
 		for(RlcSrcIndex j = 0; j <= parsed->fConstants[i].fAliasCount; j++)
@@ -38,7 +40,7 @@ struct RlcScopedEnum * rlc_scoped_enum_new(
 				nameToken.content = parsed->fConstants[i].fAliasTokens[j];
 
 			struct RlcScopedScopeItemGroup * group = rlc_scoped_scope_group(
-				RLC_BASE_CAST2(ret, RlcScopedScopeEntry, RlcScopedScopeItem)->children,
+				RLC_BASE_CAST2(this, RlcScopedScopeEntry, RlcScopedScopeItem)->children,
 				&nameToken,
 				file);
 
@@ -56,8 +58,6 @@ struct RlcScopedEnum * rlc_scoped_enum_new(
 					RlcScopedScopeEntry,
 					RlcScopedScopeItem));
 		}
-
-	return ret;
 }
 
 void rlc_scoped_enum_destroy(

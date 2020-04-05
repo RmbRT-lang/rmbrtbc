@@ -6,17 +6,16 @@
 
 #define kRlcScopedClass kRlcParsedClass
 
-struct RlcScopedClass * rlc_scoped_class_new(
+void rlc_scoped_class_create(
+	struct RlcScopedClass * this,
 	struct RlcSrcFile const * file,
 	struct RlcParsedClass const * parsed,
 	struct RlcScopedScopeItemGroup * group)
 {
+	RLC_DASSERT(this != NULL);
 	RLC_DASSERT(file != NULL);
 	RLC_DASSERT(parsed != NULL);
 	RLC_DASSERT(group != NULL);
-
-	struct RlcScopedClass * this = NULL;
-	rlc_malloc((void**)&this, sizeof(struct RlcScopedClass));
 
 	rlc_scoped_scope_entry_create(
 		RLC_BASE_CAST(this, RlcScopedScopeEntry),
@@ -35,17 +34,13 @@ struct RlcScopedClass * rlc_scoped_class_new(
 			file,
 			parsed->fMembers.fEntries[i]);
 	}
-
-	return this;
 }
 
-void rlc_scoped_class_delete(
+void rlc_scoped_class_destroy(
 	struct RlcScopedClass * this)
 {
 	RLC_DASSERT(this != NULL);
 
 	rlc_scoped_scope_entry_destroy_base(
 		RLC_BASE_CAST(this, RlcScopedScopeEntry));
-
-	rlc_free((void**)&this);
 }

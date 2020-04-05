@@ -25,6 +25,9 @@ struct RlcScopedRawtype
 
 /** Creates a scoped rawtype from a parsed rawtype.
 @memberof RlcScopedRawtype
+@param[out] this:
+	The scoped rawtype to create.
+	@dassert @nonnull
 @param[in] file:
 	The source file.
 	@dassert @nonnull
@@ -33,20 +36,19 @@ struct RlcScopedRawtype
 	@dassert @nonnull
 @param[in] parent:
 	The parent scope.
-	@dassert @nonnull
-@return
-	The scoped rawtype. */
-struct RlcScopedRawtype * rlc_scoped_rawtype_new(
+	@dassert @nonnull */
+void rlc_scoped_rawtype_create(
+	struct RlcScopedRawtype * this,
 	struct RlcSrcFile const * file,
 	struct RlcParsedRawtype const * parsed,
 	struct RlcScopedScopeItemGroup * parent);
 
-/** Deletes a scoped rawtype.
+/** Destroys a scoped rawtype.
 @memberof RlcScopedRawtype
 @param[in,out] this:
-	The rawtype to delete.
+	The rawtype to destroy.
 	@dassert @nonnull */
-void rlc_scoped_rawtype_delete(
+void rlc_scoped_rawtype_destroy(
 	struct RlcScopedRawtype * this);
 
 #ifdef __cplusplus

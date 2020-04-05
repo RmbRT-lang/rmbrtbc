@@ -1,9 +1,17 @@
 #include "scopeentry.h"
+#include "class.h"
 #include "scope.h"
 #include "enum.h"
+#include "function.h"
+#include "rawtype.h"
 #include "namespace.h"
+#include "variable.h"
+#include "../parser/class.h"
 #include "../parser/enum.h"
+#include "../parser/function.h"
 #include "../parser/namespace.h"
+#include "../parser/rawtype.h"
+#include "../parser/variable.h"
 #include "../assert.h"
 #include "../malloc.h"
 
@@ -20,7 +28,8 @@ struct RlcScopedScopeEntry * rlc_scoped_scope_entry_new(
 	RLC_DASSERT(parsed != NULL);
 	RLC_DASSERT(RLC_IN_ENUM(RLC_DERIVING_TYPE(parsed), RlcParsedScopeEntryType));
 
-	typedef uint8_t * (*constructor_t)(
+	typedef void (*constructor_t)(
+		uint8_t *,
 		struct RlcSrcFile const *,
 		void const *,
 		struct RlcScopedScopeItemGroup *);
@@ -29,33 +38,47 @@ struct RlcScopedScopeEntry * rlc_scoped_scope_entry_new(
 		(constructor_t)&constructor, \
 		RLC_DERIVE_OFFSET(RlcScopedScopeEntry, struct RlcScoped##type), \
 		RLC_DERIVE_OFFSET(RlcParsedScopeEntry, struct RlcParsed##type), \
-		kRlcParsed##type \
+		kRlcParsed##type, \
+		sizeof(struct RlcScoped##type) \
 	}
-#define NOENTRY(type) { NULL, 0, 0, kRlcParsed##type }
+#define NOENTRY(type) { NULL, 0, 0, kRlcParsed##type, 0 }
 
 	static struct {
 		constructor_t constructor;
 		intptr_t scopedOffset;
 		intptr_t parsedOffset;
 		enum RlcParsedScopeEntryType parsedType;
+		size_t typeSize;
 	} k_constructors[] = {
-		ENTRY(rlc_scoped_enum_new, Enum),
-		NOENTRY(EnumConstant),
-		ENTRY(rlc_scoped_namespace_new, Namespace),
+		ENTRY(rlc_scoped_class_create, Class),
+		ENTRY(rlc_scoped_rawtype_create, Rawtype),
+		NOENTRY(Union),
+		ENTRY(rlc_scoped_namespace_create, Namespace),
+		ENTRY(rlc_scoped_function_create, Function),
+		ENTRY(rlc_scoped_variable_create, Variable),
+		ENTRY(rlc_scoped_enum_create, Enum),
+		NOENTRY(EnumConstant), // Needs more context to be created.
+		NOENTRY(Typedef),
+		NOENTRY(ExternalSymbol)
 	};
 #undef ENTRY
 #undef NOENTRY
 
-	/*static_assert(RLC_COVERS_ENUM(k_constructors, RlcParsedScopeEntryType),
-		"Incomplete vtable."); // */
-	RLC_DASSERT(k_constructors[RLC_DERIVING_TYPE(parsed)].constructor);
+	enum RlcParsedScopeEntryType const type = RLC_DERIVING_TYPE(parsed);
 
-	uint8_t * ret;
-	ret = k_constructors[RLC_DERIVING_TYPE(parsed)].constructor(
+	static_assert(RLC_COVERS_ENUM(k_constructors, RlcParsedScopeEntryType),
+		"Incomplete vtable.");
+	RLC_DASSERT(k_constructors[type].constructor);
+	RLC_DASSERT(k_constructors[type].parsedType == type);
+
+	uint8_t * ret = NULL;
+	rlc_malloc((void**)&ret, k_constructors[type].typeSize);
+	k_constructors[type].constructor(
+		ret,
 		file,
-		(uint8_t *)parsed + k_constructors[RLC_DERIVING_TYPE(parsed)].parsedOffset,
+		(uint8_t *)parsed + k_constructors[type].parsedOffset,
 		parent);
-	ret += k_constructors[RLC_DERIVING_TYPE(parsed)].scopedOffset;
+	ret += k_constructors[type].scopedOffset;
 
 	return (struct RlcScopedScopeEntry *) ret;
 }
@@ -105,21 +128,38 @@ void rlc_scoped_scope_entry_destroy_virtual(
 
 	typedef void (*destructor_t)(
 		void * this);
-	static destructor_t const k_vtable[] = {
-		(destructor_t)&rlc_scoped_namespace_destroy,
-		(destructor_t)&rlc_scoped_enum_destroy,
-		(destructor_t)&rlc_scoped_enum_constant_destroy
+
+#define ENTRY(destructor, type) { \
+		(destructor_t)&destructor, \
+		RLC_DERIVE_OFFSET(RlcScopedScopeEntry, struct RlcScoped##type), \
+		kRlcParsed##type \
+	}
+#define NOENTRY(type) { NULL, 0, kRlcParsed##type }
+	static struct {
+		destructor_t dtor;
+		intptr_t offset;
+		enum RlcScopedScopeEntryType type;
+	} const k_vtable[] = {
+		ENTRY(rlc_scoped_class_destroy, Class),
+		ENTRY(rlc_scoped_rawtype_destroy, Rawtype),
+		NOENTRY(Union),
+		ENTRY(rlc_scoped_namespace_destroy, Namespace),
+		ENTRY(rlc_scoped_function_destroy, Function),
+		ENTRY(rlc_scoped_variable_destroy, Variable),
+		ENTRY(rlc_scoped_enum_destroy, Enum),
+		ENTRY(rlc_scoped_enum_constant_destroy, EnumConstant),
+		NOENTRY(Typedef),
+		NOENTRY(ExternalSymbol)
 	};
+#undef ENTRY
+#undef NOENTRY
 
 	static_assert(RLC_COVERS_ENUM(k_vtable, RlcScopedScopeEntryType), "ill-sized vtable.");
 
-	static intptr_t const k_offsets[] = {
-		RLC_DERIVE_OFFSET(RlcScopedScopeEntry, struct RlcScopedNamespace),
-		RLC_DERIVE_OFFSET(RlcScopedScopeEntry, struct RlcScopedEnum),
-		RLC_DERIVE_OFFSET(RlcScopedScopeEntry, struct RlcScopedEnumConstant)
-	};
+	enum RlcScopedScopeEntryType const type = RLC_DERIVING_TYPE(this);
+	RLC_DASSERT(RLC_IN_ENUM(type, RlcParsedScopeEntryType));
+	RLC_DASSERT(k_vtable[type].type == type);
+	RLC_DASSERT(k_vtable[type].dtor);
 
-	static_assert(RLC_COVERS_ENUM(k_offsets, RlcScopedScopeEntryType), "ill-sized offset table.");
-
-	k_vtable[RLC_DERIVING_TYPE(this)]((uint8_t*)this + k_offsets[RLC_DERIVING_TYPE(this)]);
+	k_vtable[type].dtor(((uint8_t*)this) + k_vtable[type].offset);
 }

@@ -22,6 +22,9 @@ struct RlcScopedClass
 
 /** Creates a scoped class from a parsed class.
 @memberof RlcScopedClass
+@param[out] this:
+	The scoped class to create.
+	@dassert @nonnull
 @param[in] file:
 	The source file.
 	@dassert @nonnull
@@ -33,17 +36,18 @@ struct RlcScopedClass
 	@dassert @nonnull
 @return
 	The scoped class. */
-struct RlcScopedClass * rlc_scoped_class_new(
+void rlc_scoped_class_create(
+	struct RlcScopedClass * this,
 	struct RlcSrcFile const * file,
 	struct RlcParsedClass const * parsed,
 	struct RlcScopedScopeItemGroup * group);
 
-/** Deletes a scoped class.
+/** Destroys a scoped class.
 @memberof RlcScopedClass
 @param[in,out] this:
-	The class to delete.
+	The class to destroy.
 	@dassert @nonnull */
-void rlc_scoped_class_delete(
+void rlc_scoped_class_destroy(
 	struct RlcScopedClass * this);
 
 

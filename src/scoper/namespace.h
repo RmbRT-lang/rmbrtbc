@@ -16,15 +16,17 @@ struct RlcScopedNamespace
 
 /** Creates a scoped namespace from a parsed namespace.
 @memberof RlcScopedNamespace
+@param[out] this:
+	The scoped namespace to create.
+	@dassert @nonnull
 @param[in] file:
 	The parsed namespace's source file.
 	@dassert @nonnull
 @param[in] parsed:
 	The parsed namespace.
-	@dassert @nonnull
-@return
-	The created namespace. */
-struct RlcScopedNamespace * rlc_scoped_namespace_new(
+	@dassert @nonnull */
+void rlc_scoped_namespace_create(
+	struct RlcScopedNamespace * this,
 	struct RlcSrcFile const * file,
 	struct RlcParsedNamespace const * parsed,
 	struct RlcScopedScopeItemGroup * parent);
