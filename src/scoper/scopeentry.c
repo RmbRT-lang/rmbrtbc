@@ -4,6 +4,7 @@
 #include "enum.h"
 #include "function.h"
 #include "rawtype.h"
+#include "union.h"
 #include "typedef.h"
 #include "namespace.h"
 #include "variable.h"
@@ -12,6 +13,7 @@
 #include "../parser/function.h"
 #include "../parser/namespace.h"
 #include "../parser/rawtype.h"
+#include "../parser/union.h"
 #include "../parser/typedef.h"
 #include "../parser/variable.h"
 #include "../assert.h"
@@ -43,6 +45,13 @@ struct RlcScopedScopeEntry * rlc_scoped_scope_entry_new(
 		kRlcParsed##type, \
 		sizeof(struct RlcScoped##type) \
 	}
+#define GLOBAL_ENTRY(constructor, type) { \
+		(constructor_t)&constructor, \
+		RLC_DERIVE_OFFSET(RlcScopedScopeEntry, struct RlcScopedGlobal##type), \
+		RLC_DERIVE_OFFSET(RlcParsedScopeEntry, struct RlcParsed##type), \
+		kRlcParsed##type, \
+		sizeof(struct RlcScopedGlobal##type) \
+	}
 #define NOENTRY(type) { NULL, 0, 0, kRlcParsed##type, 0 }
 
 	static struct {
@@ -52,18 +61,19 @@ struct RlcScopedScopeEntry * rlc_scoped_scope_entry_new(
 		enum RlcParsedScopeEntryType parsedType;
 		size_t typeSize;
 	} k_constructors[] = {
-		ENTRY(rlc_scoped_class_create, Class),
-		ENTRY(rlc_scoped_rawtype_create, Rawtype),
-		NOENTRY(Union),
+		GLOBAL_ENTRY(rlc_scoped_global_class_create, Class),
+		GLOBAL_ENTRY(rlc_scoped_global_rawtype_create, Rawtype),
+		GLOBAL_ENTRY(rlc_scoped_global_union_create, Union),
 		ENTRY(rlc_scoped_namespace_create, Namespace),
-		ENTRY(rlc_scoped_function_create, Function),
-		ENTRY(rlc_scoped_variable_create, Variable),
-		ENTRY(rlc_scoped_enum_create, Enum),
+		GLOBAL_ENTRY(rlc_scoped_global_function_create, Function),
+		GLOBAL_ENTRY(rlc_scoped_global_variable_create, Variable),
+		GLOBAL_ENTRY(rlc_scoped_global_enum_create, Enum),
 		NOENTRY(EnumConstant), // Needs more context to be created.
-		ENTRY(rlc_scoped_typedef_create, Typedef),
+		GLOBAL_ENTRY(rlc_scoped_global_typedef_create, Typedef),
 		NOENTRY(ExternalSymbol)
 	};
 #undef ENTRY
+#undef GLOBAL_ENTRY
 #undef NOENTRY
 
 	enum RlcParsedScopeEntryType const type = RLC_DERIVING_TYPE(parsed);
@@ -131,6 +141,11 @@ void rlc_scoped_scope_entry_destroy_virtual(
 	typedef void (*destructor_t)(
 		void * this);
 
+#define GLOBAL_ENTRY(destructor, type) { \
+		(destructor_t)&destructor, \
+		RLC_DERIVE_OFFSET(RlcScopedScopeEntry, struct RlcScopedGlobal##type), \
+		kRlcParsed##type \
+	}
 #define ENTRY(destructor, type) { \
 		(destructor_t)&destructor, \
 		RLC_DERIVE_OFFSET(RlcScopedScopeEntry, struct RlcScoped##type), \
@@ -142,18 +157,19 @@ void rlc_scoped_scope_entry_destroy_virtual(
 		intptr_t offset;
 		enum RlcScopedScopeEntryType type;
 	} const k_vtable[] = {
-		ENTRY(rlc_scoped_class_destroy, Class),
-		ENTRY(rlc_scoped_rawtype_destroy, Rawtype),
-		NOENTRY(Union),
+		GLOBAL_ENTRY(rlc_scoped_global_class_destroy, Class),
+		GLOBAL_ENTRY(rlc_scoped_global_rawtype_destroy, Rawtype),
+		GLOBAL_ENTRY(rlc_scoped_global_union_destroy, Union),
 		ENTRY(rlc_scoped_namespace_destroy, Namespace),
-		ENTRY(rlc_scoped_function_destroy, Function),
-		ENTRY(rlc_scoped_variable_destroy, Variable),
-		ENTRY(rlc_scoped_enum_destroy, Enum),
+		GLOBAL_ENTRY(rlc_scoped_global_function_destroy, Function),
+		GLOBAL_ENTRY(rlc_scoped_global_variable_destroy, Variable),
+		GLOBAL_ENTRY(rlc_scoped_global_enum_destroy, Enum),
 		ENTRY(rlc_scoped_enum_constant_destroy, EnumConstant),
-		ENTRY(rlc_scoped_typedef_destroy, Typedef),
+		GLOBAL_ENTRY(rlc_scoped_global_typedef_destroy, Typedef),
 		NOENTRY(ExternalSymbol)
 	};
 #undef ENTRY
+#undef GLOBAL_ENTRY
 #undef NOENTRY
 
 	static_assert(RLC_COVERS_ENUM(k_vtable, RlcScopedScopeEntryType), "ill-sized vtable.");
