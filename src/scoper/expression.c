@@ -2,6 +2,8 @@
 #include "../parser/symbolexpression.h"
 #include "symbolexpression.h"
 #include "../parser/numberexpression.h"
+#include "symbolchildexpression.h"
+#include "../parser/symbolchildexpression.h"
 #include "numberexpression.h"
 #include "../parser/characterexpression.h"
 #include "characterexpression.h"
@@ -35,7 +37,7 @@ struct RlcScopedExpression * rlc_scoped_expression_new(
 		enum RlcScopedExpressionType type;
 	} const k_vtable[] = {
 		ENTRY(SymbolExpression, rlc_scoped_symbol_expression_new),
-		NOENTRY(SymbolChildExpression),
+		ENTRY(SymbolChildExpression, rlc_scoped_symbol_child_expression_new),
 		ENTRY(NumberExpression, rlc_scoped_number_expression_new),
 		ENTRY(CharacterExpression, rlc_scoped_character_expression_new),
 		ENTRY(StringExpression, rlc_scoped_string_expression_new),
@@ -52,8 +54,8 @@ struct RlcScopedExpression * rlc_scoped_expression_new(
 
 	enum RlcParsedExpressionType type = RLC_DERIVING_TYPE(parsed);
 
-	RLC_DASSERT(k_vtable[type].type == type);
 	RLC_DASSERT(k_vtable[type].ctor != NULL);
+	RLC_DASSERT(k_vtable[type].type == type);
 
 	char * obj = k_vtable[type].ctor(
 		(char const *)parsed + k_vtable[type].parsed_offset,
@@ -82,7 +84,7 @@ void rlc_scoped_expression_delete_virtual(
 		enum RlcScopedExpressionType type;
 	} const k_vtable[] = {
 		ENTRY(SymbolExpression, rlc_scoped_symbol_expression_delete),
-		NOENTRY(SymbolChildExpression),
+		ENTRY(SymbolChildExpression, rlc_scoped_symbol_child_expression_delete),
 		ENTRY(NumberExpression, rlc_scoped_number_expression_delete),
 		ENTRY(CharacterExpression, rlc_scoped_character_expression_delete),
 		ENTRY(StringExpression, rlc_scoped_string_expression_delete),
