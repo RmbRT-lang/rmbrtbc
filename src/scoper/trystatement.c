@@ -64,9 +64,7 @@ void rlc_scoped_try_statement_create(
 		kRlcScopedTryStatement,
 		0);
 
-	this->body = rlc_scoped_statement_new(
-		file,
-		RLC_BASE_CAST(parsed, RlcParsedStatement));
+	this->body = rlc_scoped_statement_new(file, parsed->fBody);
 
 	this->catches = NULL;
 	if((this->catchCount = parsed->fCatchCount))

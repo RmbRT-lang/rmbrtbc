@@ -51,7 +51,7 @@ static char const * atoi_n(
 			return "decimal number too large";
 
 		int64_t multiplier = 1;
-		for(size_t i = 0; i < length-2; i++)
+		for(size_t i = 0; i < length; i++)
 		{
 			char c = number[length-1-i];
 			RLC_DASSERT(is_decimal(c));
@@ -124,7 +124,7 @@ void rlc_number_from_token(
 	struct RlcSrcFile const * file,
 	struct RlcToken const * token)
 {
-	RLC_DASSERT(token->type == kRlcTokNumber);
+	RLC_DASSERT(token->type == kRlcTokNumberLiteral);
 
 	char const * error = atoi_n(
 		this,
