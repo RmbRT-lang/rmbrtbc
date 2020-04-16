@@ -6,6 +6,8 @@
 #include "ifstatement.h"
 #include "loopstatement.h"
 #include "variablestatement.h"
+#include "switchstatement.h"
+#include "casestatement.h"
 #include "returnstatement.h"
 #include "breakstatement.h"
 #include "continuestatement.h"
@@ -16,6 +18,8 @@
 #include "../parser/ifstatement.h"
 #include "../parser/loopstatement.h"
 #include "../parser/variablestatement.h"
+#include "../parser/switchstatement.h"
+#include "../parser/casestatement.h"
 #include "../parser/returnstatement.h"
 #include "../parser/breakstatement.h"
 #include "../parser/continuestatement.h"
@@ -62,8 +66,8 @@ struct RlcScopedStatement * rlc_scoped_statement_new(
 		ENTRY(LoopStatement, rlc_scoped_loop_statement_create),
 		ENTRY(VariableStatement, rlc_scoped_variable_statement_create),
 		ENTRY(ReturnStatement, rlc_scoped_return_statement_create),
-		NOENTRY(SwitchStatement),
-		NOENTRY(CaseStatement),
+		ENTRY(SwitchStatement, rlc_scoped_switch_statement_create),
+		ENTRY(CaseStatement, rlc_scoped_case_statement_create),
 		ENTRY(BreakStatement, rlc_scoped_break_statement_create),
 		ENTRY(ContinueStatement, rlc_scoped_continue_statement_create),
 		ENTRY(TryStatement, rlc_scoped_try_statement_create),
@@ -118,8 +122,8 @@ void rlc_scoped_statement_delete(
 		ENTRY(LoopStatement, rlc_scoped_loop_statement_destroy),
 		ENTRY(VariableStatement, rlc_scoped_variable_statement_destroy),
 		ENTRY(ReturnStatement, rlc_scoped_return_statement_destroy),
-		NOENTRY(SwitchStatement),
-		NOENTRY(CaseStatement),
+		ENTRY(SwitchStatement, rlc_scoped_switch_statement_destroy),
+		ENTRY(CaseStatement, rlc_scoped_case_statement_destroy),
 		ENTRY(BreakStatement, rlc_scoped_break_statement_destroy),
 		ENTRY(ContinueStatement, rlc_scoped_continue_statement_destroy),
 		ENTRY(TryStatement, rlc_scoped_try_statement_destroy),
