@@ -56,6 +56,8 @@ _Nodiscard int rlc_parsed_try_statement_parse(
 /** A catch-clause as used by the parser. */
 struct RlcParsedCatchStatement
 {
+	RLC_DERIVE(struct,RlcParsedStatement);
+
 	/** Whether it is a void catch. */
 	int fIsVoid;
 	/** The caught exception variable. */

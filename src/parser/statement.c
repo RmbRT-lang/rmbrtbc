@@ -82,6 +82,9 @@ void rlc_parsed_statement_destroy_virtual(
 		}, {
 			(thiscall_t)&rlc_parsed_throw_statement_destroy,
 			RLC_DERIVE_OFFSET(RlcParsedStatement, struct RlcParsedThrowStatement)
+		}, {
+			(thiscall_t)&rlc_parsed_catch_statement_destroy,
+			RLC_DERIVE_OFFSET(RlcParsedStatement, struct RlcParsedCatchStatement)
 		}
 	};
 
@@ -126,6 +129,9 @@ struct RlcParsedStatement * rlc_parsed_statement_parse(
 		(parse_fn_t)parse, \
 		sizeof(struct Type), \
 		RLC_DERIVE_OFFSET(RlcParsedStatement, struct Type) }
+#define NOENTRY(Type) { \
+		k ## Type, NULL, 0, 0 \
+	}
 
 	static struct {
 		enum RlcParsedStatementType fType;
@@ -146,7 +152,10 @@ struct RlcParsedStatement * rlc_parsed_statement_parse(
 		ENTRY(RlcParsedThrowStatement, &rlc_parsed_throw_statement_parse),
 		// expression has to come after variable.
 		ENTRY(RlcParsedExpressionStatement, &rlc_parsed_expression_statement_parse),
+		NOENTRY(RlcParsedCatchStatement)
 	};
+#undef ENTRY
+#undef NOENTRY
 
 	static_assert(RLC_COVERS_ENUM(k_parse_lookup, RlcParsedStatementType), "ill-sized parse table.");
 
@@ -156,7 +165,8 @@ struct RlcParsedStatement * rlc_parsed_statement_parse(
 	{
 		if(RLC_FLAG(k_parse_lookup[i].fType) & flags)
 		{
-			if(k_parse_lookup[i].fParseFn(
+			if(k_parse_lookup[i].fParseFn
+			&& k_parse_lookup[i].fParseFn(
 				&storage,
 				parser))
 			{

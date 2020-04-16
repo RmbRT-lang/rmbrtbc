@@ -112,6 +112,10 @@ int rlc_parsed_catch_statement_parse(
 	struct RlcParserTracer tracer;
 	rlc_parser_trace(parser, "catch clause", &tracer);
 
+	rlc_parsed_statement_create(
+		RLC_BASE_CAST(out, RlcParsedStatement),
+		kRlcParsedCatchStatement);
+
 	rlc_parser_expect(
 		parser,
 		NULL,
@@ -170,4 +174,6 @@ void rlc_parsed_catch_statement_destroy(
 		rlc_parsed_variable_destroy(&this->fException);
 	rlc_parsed_statement_destroy_virtual(this->fBody);
 	rlc_free((void**)&this->fBody);
+	rlc_parsed_statement_destroy_base(
+		RLC_BASE_CAST(this, RlcParsedStatement));
 }
