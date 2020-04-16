@@ -46,7 +46,7 @@ void rlc_scoped_maybe_exp_or_var_create_variable(
 	this->variable = RLC_DERIVE_CAST(
 		entry,
 		RlcScopedScopeEntry,
-		struct RlcScopedVariable);
+		struct RlcScopedGlobalVariable);
 }
 
 void rlc_scoped_maybe_exp_or_var_destroy(

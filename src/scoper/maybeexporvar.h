@@ -22,7 +22,7 @@ struct RlcScopedMaybeExpOrVar
 	char isExpression;
 	union {
 		struct RlcScopedExpression * expression;
-		struct RlcScopedVariable * variable;
+		struct RlcScopedGlobalVariable * variable;
 	};
 };
 
