@@ -5,6 +5,13 @@
 #include "../malloc.h"
 #include <string.h>
 
+struct RlcScopedIdentifier const kRlcScopedIdentifierConstructor = {
+	kRlcScopedIdentifierTypeConstructor, NULL
+};
+struct RlcScopedIdentifier const kRlcScopedIdentifierDestructor = {
+	kRlcScopedIdentifierTypeDestructor, NULL
+};
+
 void rlc_scoped_identifier_create(
 	struct RlcScopedIdentifier * this,
 	struct RlcSrcFile const * file,
