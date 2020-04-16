@@ -11,6 +11,8 @@
 #include "stringexpression.h"
 #include "../parser/operatorexpression.h"
 #include "operatorexpression.h"
+#include "../parser/thisexpression.h"
+#include "thisexpression.h"
 #include "../parser/castexpression.h"
 #include "castexpression.h"
 
@@ -44,7 +46,7 @@ struct RlcScopedExpression * rlc_scoped_expression_new(
 		ENTRY(CharacterExpression, rlc_scoped_character_expression_new),
 		ENTRY(StringExpression, rlc_scoped_string_expression_new),
 		ENTRY(OperatorExpression, rlc_scoped_operator_expression_new),
-		NOENTRY(ThisExpression),
+		ENTRY(ThisExpression, rlc_scoped_this_expression_new),
 		ENTRY(CastExpression, rlc_scoped_cast_expression_new),
 		NOENTRY(SizeofExpression)
 	};
@@ -91,7 +93,7 @@ void rlc_scoped_expression_delete_virtual(
 		ENTRY(CharacterExpression, rlc_scoped_character_expression_delete),
 		ENTRY(StringExpression, rlc_scoped_string_expression_delete),
 		ENTRY(OperatorExpression, rlc_scoped_operator_expression_delete),
-		NOENTRY(ThisExpression),
+		ENTRY(ThisExpression, rlc_scoped_this_expression_delete),
 		ENTRY(CastExpression, rlc_scoped_cast_expression_delete),
 		NOENTRY(SizeofExpression)
 	};
