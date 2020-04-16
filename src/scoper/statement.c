@@ -5,6 +5,7 @@
 #include "blockstatement.h"
 #include "ifstatement.h"
 #include "loopstatement.h"
+#include "returnstatement.h"
 #include "breakstatement.h"
 #include "continuestatement.h"
 #include "trystatement.h"
@@ -13,6 +14,7 @@
 #include "../parser/blockstatement.h"
 #include "../parser/ifstatement.h"
 #include "../parser/loopstatement.h"
+#include "../parser/returnstatement.h"
 #include "../parser/breakstatement.h"
 #include "../parser/continuestatement.h"
 #include "../parser/trystatement.h"
@@ -54,7 +56,7 @@ struct RlcScopedStatement * rlc_scoped_statement_new(
 		ENTRY(IfStatement, rlc_scoped_if_statement_create),
 		ENTRY(LoopStatement, rlc_scoped_loop_statement_create),
 		NOENTRY(VariableStatement),
-		NOENTRY(ReturnStatement),
+		ENTRY(ReturnStatement, rlc_scoped_return_statement_create),
 		NOENTRY(SwitchStatement),
 		NOENTRY(CaseStatement),
 		ENTRY(BreakStatement, rlc_scoped_break_statement_create),
@@ -109,7 +111,7 @@ void rlc_scoped_statement_delete(
 		ENTRY(IfStatement, rlc_scoped_if_statement_destroy),
 		ENTRY(LoopStatement, rlc_scoped_loop_statement_destroy),
 		NOENTRY(VariableStatement),
-		NOENTRY(ReturnStatement),
+		ENTRY(ReturnStatement, rlc_scoped_return_statement_destroy),
 		NOENTRY(SwitchStatement),
 		NOENTRY(CaseStatement),
 		ENTRY(BreakStatement, rlc_scoped_break_statement_destroy),
