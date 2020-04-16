@@ -10,7 +10,8 @@
 void rlc_scoped_loop_statement_create(
 	struct RlcScopedLoopStatement * this,
 	struct RlcSrcFile const * file,
-	struct RlcParsedLoopStatement * parsed)
+	struct RlcParsedLoopStatement * parsed,
+	struct RlcScopedScope * parent)
 {
 	RLC_DASSERT(this != NULL);
 	RLC_DASSERT(file != NULL);
@@ -20,7 +21,8 @@ void rlc_scoped_loop_statement_create(
 		RLC_BASE_CAST(this, RlcScopedStatement),
 		RLC_BASE_CAST(parsed, RlcParsedStatement),
 		kRlcScopedLoopStatement,
-		1);
+		1,
+		parent);
 
 	rlc_scoped_control_label_create(&this->label, file, &parsed->fLabel);
 
@@ -58,7 +60,10 @@ void rlc_scoped_loop_statement_create(
 		? rlc_scoped_expression_new(parsed->fPostLoop, file)
 		: NULL;
 
-	this->body = rlc_scoped_statement_new(file, parsed->fBody);
+	this->body = rlc_scoped_statement_new(
+		file,
+		parsed->fBody,
+		RLC_BASE_CAST(this, RlcScopedStatement)->scope);
 }
 
 void rlc_scoped_loop_statement_destroy(

@@ -46,7 +46,8 @@ struct RlcScopedIfStatement
 void rlc_scoped_if_statement_create(
 	struct RlcScopedIfStatement * this,
 	struct RlcSrcFile const * file,
-	struct RlcParsedIfStatement const * parsed);
+	struct RlcParsedIfStatement const * parsed,
+	struct RlcScopedScope * parent);
 
 /** Destroys a scoped if statement.
 @memberof RlcScopedIfStatement

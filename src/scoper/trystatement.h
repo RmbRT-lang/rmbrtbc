@@ -60,7 +60,8 @@ struct RlcScopedTryStatement
 void rlc_scoped_try_statement_create(
 	struct RlcScopedTryStatement * this,
 	struct RlcSrcFile const * file,
-	struct RlcParsedTryStatement const * parsed);
+	struct RlcParsedTryStatement const * parsed,
+	struct RlcScopedScope * parent);
 
 /** Destroys a scoped try statement.
 @memberof RlcScopedTryStatement

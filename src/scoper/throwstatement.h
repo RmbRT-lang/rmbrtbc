@@ -43,7 +43,8 @@ struct RlcScopedThrowStatement
 void rlc_scoped_throw_statement_create(
 	struct RlcScopedThrowStatement * this,
 	struct RlcSrcFile const * file,
-	struct RlcParsedThrowStatement const * parsed);
+	struct RlcParsedThrowStatement const * parsed,
+	struct RlcScopedScope * parent);
 
 /** Destroys a scoped throw statement.
 @memberof RlcScopedThrowStatement

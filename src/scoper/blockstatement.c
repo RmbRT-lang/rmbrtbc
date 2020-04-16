@@ -8,7 +8,8 @@
 void rlc_scoped_block_statement_create(
 	struct RlcScopedBlockStatement * this,
 	struct RlcSrcFile const * file,
-	struct RlcParsedBlockStatement const * parsed)
+	struct RlcParsedBlockStatement const * parsed,
+	struct RlcScopedScope * parent)
 {
 	RLC_DASSERT(this != NULL);
 	RLC_DASSERT(file != NULL);
@@ -18,7 +19,8 @@ void rlc_scoped_block_statement_create(
 		RLC_BASE_CAST(this, RlcScopedStatement),
 		RLC_BASE_CAST(parsed, RlcParsedStatement),
 		kRlcScopedBlockStatement,
-		1);
+		1,
+		parent);
 
 	this->statementCount = parsed->fList.fStatementCount;
 	this->statements = NULL;
@@ -33,7 +35,8 @@ void rlc_scoped_block_statement_create(
 	for(RlcSrcIndex i = 0; i < this->statementCount; i++)
 		this->statements[i] = rlc_scoped_statement_new(
 			file,
-			parsed->fList.fStatements[i]);
+			parsed->fList.fStatements[i],
+			RLC_BASE_CAST(this, RlcScopedStatement)->scope);
 }
 
 void rlc_scoped_block_statement_destroy(

@@ -7,7 +7,8 @@
 void rlc_scoped_break_statement_create(
 	struct RlcScopedBreakStatement * this,
 	struct RlcSrcFile const * file,
-	struct RlcParsedBreakStatement const * parsed)
+	struct RlcParsedBreakStatement const * parsed,
+	struct RlcScopedScope * parent)
 {
 	RLC_DASSERT(this != NULL);
 	RLC_DASSERT(file != NULL);
@@ -17,7 +18,8 @@ void rlc_scoped_break_statement_create(
 		RLC_BASE_CAST(this, RlcScopedStatement),
 		RLC_BASE_CAST(parsed, RlcParsedStatement),
 		kRlcScopedBreakStatement,
-		0);
+		0,
+		parent);
 
 	rlc_scoped_control_label_create(&this->label, file, &parsed->fLabel);
 }

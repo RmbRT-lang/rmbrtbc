@@ -5,6 +5,7 @@
 #include "blockstatement.h"
 #include "ifstatement.h"
 #include "loopstatement.h"
+#include "variablestatement.h"
 #include "returnstatement.h"
 #include "breakstatement.h"
 #include "continuestatement.h"
@@ -14,6 +15,7 @@
 #include "../parser/blockstatement.h"
 #include "../parser/ifstatement.h"
 #include "../parser/loopstatement.h"
+#include "../parser/variablestatement.h"
 #include "../parser/returnstatement.h"
 #include "../parser/breakstatement.h"
 #include "../parser/continuestatement.h"
@@ -25,15 +27,18 @@
 
 struct RlcScopedStatement * rlc_scoped_statement_new(
 	struct RlcSrcFile const * file,
-	struct RlcParsedStatement const * parsed)
+	struct RlcParsedStatement const * parsed,
+	struct RlcScopedScope * parent)
 {
 	RLC_DASSERT(file != NULL);
 	RLC_DASSERT(parsed != NULL);
+	RLC_DASSERT(parent != NULL);
 
 	typedef void (*constructor_t)(
 		void *,
 		struct RlcSrcFile const *,
-		void const *);
+		void const *,
+		struct RlcScopedScope *);
 
 #define ENTRY(type, ctor) { \
 		(constructor_t) ctor, \
@@ -55,7 +60,7 @@ struct RlcScopedStatement * rlc_scoped_statement_new(
 		ENTRY(BlockStatement, rlc_scoped_block_statement_create),
 		ENTRY(IfStatement, rlc_scoped_if_statement_create),
 		ENTRY(LoopStatement, rlc_scoped_loop_statement_create),
-		NOENTRY(VariableStatement),
+		ENTRY(VariableStatement, rlc_scoped_variable_statement_create),
 		ENTRY(ReturnStatement, rlc_scoped_return_statement_create),
 		NOENTRY(SwitchStatement),
 		NOENTRY(CaseStatement),
@@ -81,7 +86,8 @@ struct RlcScopedStatement * rlc_scoped_statement_new(
 	k_vtable[type].ctor(
 		((uint8_t *) this) + k_vtable[type].offset,
 		file,
-		((uint8_t const *) parsed) + k_vtable[type].parsed_offset);
+		((uint8_t const *) parsed) + k_vtable[type].parsed_offset,
+		parent);
 
 	return this;
 }
@@ -110,7 +116,7 @@ void rlc_scoped_statement_delete(
 		ENTRY(BlockStatement, rlc_scoped_block_statement_destroy),
 		ENTRY(IfStatement, rlc_scoped_if_statement_destroy),
 		ENTRY(LoopStatement, rlc_scoped_loop_statement_destroy),
-		NOENTRY(VariableStatement),
+		ENTRY(VariableStatement, rlc_scoped_variable_statement_destroy),
 		ENTRY(ReturnStatement, rlc_scoped_return_statement_destroy),
 		NOENTRY(SwitchStatement),
 		NOENTRY(CaseStatement),
@@ -140,16 +146,18 @@ void rlc_scoped_statement_create(
 	struct RlcScopedStatement * this,
 	struct RlcParsedStatement const * parsed,
 	enum RlcScopedStatementType type,
-	int make_scope)
+	int make_scope,
+	struct RlcScopedScope * parent)
 {
 	RLC_DASSERT(this != NULL);
 	RLC_DASSERT(parsed != NULL);
 	RLC_DASSERT(RLC_IN_ENUM(type, RlcScopedStatementType));
 	RLC_DASSERT((int)type == (int)RLC_DERIVING_TYPE(parsed));
+	RLC_DASSERT(parent != NULL);
 
 	RLC_DERIVING_TYPE(this) = type;
 	this->parsed = parsed;
-
+	this->parent = parent;
 	this->scope = make_scope
 		? rlc_scoped_scope_new_for_statement(this)
 		: NULL;

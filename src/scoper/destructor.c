@@ -32,7 +32,8 @@ void rlc_scoped_destructor_create(
 		rlc_scoped_block_statement_create(
 			&this->body,
 			file,
-			&parsed->fBody);
+			&parsed->fBody,
+			group->parent);
 	}
 }
 

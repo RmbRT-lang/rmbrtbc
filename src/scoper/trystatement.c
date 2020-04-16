@@ -10,7 +10,8 @@
 static void rlc_scoped_catch_statement_create(
 	struct RlcScopedCatchStatement * this,
 	struct RlcSrcFile const * file,
-	struct RlcParsedCatchStatement const * parsed)
+	struct RlcParsedCatchStatement const * parsed,
+	struct RlcScopedScope * parent)
 {
 	RLC_DASSERT(this != NULL);
 	RLC_DASSERT(file != NULL);
@@ -20,7 +21,8 @@ static void rlc_scoped_catch_statement_create(
 		RLC_BASE_CAST(this, RlcScopedStatement),
 		RLC_BASE_CAST(parsed, RlcParsedStatement),
 		kRlcScopedCatchStatement,
-		1);
+		1,
+		parent);
 
 	this->exception = NULL;
 	if(!(this->isVoid = parsed->fIsVoid))
@@ -36,7 +38,10 @@ static void rlc_scoped_catch_statement_create(
 			struct RlcScopedGlobalVariable);
 	}
 
-	this->body = rlc_scoped_statement_new(file, parsed->fBody);
+	this->body = rlc_scoped_statement_new(
+		file,
+		parsed->fBody,
+		RLC_BASE_CAST(this, RlcScopedStatement)->scope);
 }
 
 static void rlc_scoped_catch_statement_destroy(
@@ -52,7 +57,8 @@ static void rlc_scoped_catch_statement_destroy(
 void rlc_scoped_try_statement_create(
 	struct RlcScopedTryStatement * this,
 	struct RlcSrcFile const * file,
-	struct RlcParsedTryStatement const * parsed)
+	struct RlcParsedTryStatement const * parsed,
+	struct RlcScopedScope * parent)
 {
 	RLC_DASSERT(this != NULL);
 	RLC_DASSERT(file != NULL);
@@ -62,9 +68,10 @@ void rlc_scoped_try_statement_create(
 		RLC_BASE_CAST(this, RlcScopedStatement),
 		RLC_BASE_CAST(parsed, RlcParsedStatement),
 		kRlcScopedTryStatement,
-		0);
+		0,
+		parent);
 
-	this->body = rlc_scoped_statement_new(file, parsed->fBody);
+	this->body = rlc_scoped_statement_new(file, parsed->fBody, parent);
 
 	this->catches = NULL;
 	if((this->catchCount = parsed->fCatchCount))
@@ -77,7 +84,8 @@ void rlc_scoped_try_statement_create(
 			rlc_scoped_catch_statement_create(
 				&this->catches[i],
 				file,
-				&parsed->fCatches[i]);
+				&parsed->fCatches[i],
+				parent);
 	}
 }
 

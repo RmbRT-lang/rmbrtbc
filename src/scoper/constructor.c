@@ -115,7 +115,11 @@ void rlc_scoped_constructor_create(
 		rlc_scoped_block_statement_create(
 			&this->body,
 			file,
-			&parsed->fBody);
+			&parsed->fBody,
+			RLC_BASE_CAST2(
+				this,
+				RlcScopedMember,
+				RlcScopedScopeItem)->children);
 	}
 	this->isInline = parsed->fIsInline;
 

@@ -16,6 +16,8 @@ extern "C" {
 struct RlcScopedStatement
 {
 	RLC_ABSTRACT(RlcScopedStatement);
+	/** The statement's parent scope. */
+	struct RlcScopedScope * parent;
 	/** The statement's scope (if applicable). */
 	struct RlcScopedScope * scope;
 	/** The parsed statement. */
@@ -34,7 +36,8 @@ struct RlcScopedStatement
 	The scoped statement. */
 struct RlcScopedStatement * rlc_scoped_statement_new(
 	struct RlcSrcFile const * file,
-	struct RlcParsedStatement const * parsed);
+	struct RlcParsedStatement const * parsed,
+	struct RlcScopedScope * parent);
 
 /** Destroys and deletes a scoped statement.
 @memberof RlcScopedStatement
@@ -61,7 +64,8 @@ void rlc_scoped_statement_create(
 	struct RlcScopedStatement * this,
 	struct RlcParsedStatement const * parsed,
 	enum RlcScopedStatementType type,
-	int make_scope);
+	int make_scope,
+	struct RlcScopedScope * parent);
 
 /** Destroys a scoped statement.
 @memberof RlcScopedStatement

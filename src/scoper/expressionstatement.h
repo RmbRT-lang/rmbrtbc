@@ -36,7 +36,8 @@ struct RlcScopedExpressionStatement
 void rlc_scoped_expression_statement_create(
 	struct RlcScopedExpressionStatement * this,
 	struct RlcSrcFile const * file,
-	struct RlcParsedExpressionStatement const * parsed);
+	struct RlcParsedExpressionStatement const * parsed,
+	struct RlcScopedScope * parent);
 
 /** Destroys a scoped expression statement.
 @memberof RlcScopedExpressionStatement

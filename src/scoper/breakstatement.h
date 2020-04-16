@@ -37,7 +37,8 @@ struct RlcScopedBreakStatement
 void rlc_scoped_break_statement_create(
 	struct RlcScopedBreakStatement * this,
 	struct RlcSrcFile const * file,
-	struct RlcParsedBreakStatement const * parsed);
+	struct RlcParsedBreakStatement const * parsed,
+	struct RlcScopedScope * parent);
 
 /** Destroys a scoped break statement.
 @memberof RlcScopedBreakStatement

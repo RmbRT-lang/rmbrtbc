@@ -40,7 +40,8 @@ struct RlcScopedReturnStatement
 void rlc_scoped_return_statement_create(
 	struct RlcScopedReturnStatement * this,
 	struct RlcSrcFile const * file,
-	struct RlcParsedReturnStatement const * parsed);
+	struct RlcParsedReturnStatement const * parsed,
+	struct RlcScopedScope * parent);
 
 /** Destroys a scoped return statement.
 @memberof RlcScopedReturnStatement

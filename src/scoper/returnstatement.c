@@ -6,7 +6,8 @@
 void rlc_scoped_return_statement_create(
 	struct RlcScopedReturnStatement * this,
 	struct RlcSrcFile const * file,
-	struct RlcParsedReturnStatement const * parsed)
+	struct RlcParsedReturnStatement const * parsed,
+	struct RlcScopedScope * parent)
 {
 	RLC_DASSERT(this != NULL);
 	RLC_DASSERT(file != NULL);
@@ -16,7 +17,8 @@ void rlc_scoped_return_statement_create(
 		RLC_BASE_CAST(this, RlcScopedStatement),
 		RLC_BASE_CAST(parsed, RlcParsedStatement),
 		kRlcScopedReturnStatement,
-		0);
+		0,
+		parent);
 
 	if(parsed->fExpression)
 		this->value = rlc_scoped_expression_new(parsed->fExpression, file);

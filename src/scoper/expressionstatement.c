@@ -8,7 +8,8 @@
 void rlc_scoped_expression_statement_create(
 	struct RlcScopedExpressionStatement * this,
 	struct RlcSrcFile const * file,
-	struct RlcParsedExpressionStatement const * parsed)
+	struct RlcParsedExpressionStatement const * parsed,
+	struct RlcScopedScope * parent)
 {
 	RLC_DASSERT(this != NULL);
 	RLC_DASSERT(file != NULL);
@@ -18,7 +19,8 @@ void rlc_scoped_expression_statement_create(
 		RLC_BASE_CAST(this, RlcScopedStatement),
 		RLC_BASE_CAST(parsed, RlcParsedStatement),
 		kRlcScopedExpressionStatement,
-		0);
+		0,
+		parent);
 
 	this->expression = rlc_scoped_expression_new(
 		parsed->fExpression,

@@ -39,7 +39,8 @@ struct RlcScopedBlockStatement
 void rlc_scoped_block_statement_create(
 	struct RlcScopedBlockStatement * this,
 	struct RlcSrcFile const * file,
-	struct RlcParsedBlockStatement const * parsed);
+	struct RlcParsedBlockStatement const * parsed,
+	struct RlcScopedScope * parent);
 
 /** Destroys a scoped block statement.
 @memberof RlcScopedBlockStatement

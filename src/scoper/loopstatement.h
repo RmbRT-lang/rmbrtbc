@@ -49,7 +49,8 @@ struct RlcScopedLoopStatement
 void rlc_scoped_loop_statement_create(
 	struct RlcScopedLoopStatement * this,
 	struct RlcSrcFile const * file,
-	struct RlcParsedLoopStatement * parsed);
+	struct RlcParsedLoopStatement * parsed,
+	struct RlcScopedScope * parent);
 
 /** Destroys a scoped loop statement.
 @memberof RlcScopedLoopStatement

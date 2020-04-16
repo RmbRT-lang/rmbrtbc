@@ -37,7 +37,8 @@ struct RlcScopedContinueStatement
 void rlc_scoped_continue_statement_create(
 	struct RlcScopedContinueStatement * this,
 	struct RlcSrcFile const * file,
-	struct RlcParsedContinueStatement const * parsed);
+	struct RlcParsedContinueStatement const * parsed,
+	struct RlcScopedScope * parent);
 
 /** Destroys a scoped continue statement.
 @memberof RlcScopedContinueStatement

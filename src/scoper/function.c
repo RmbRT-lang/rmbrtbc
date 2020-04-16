@@ -56,7 +56,8 @@ static void rlc_scoped_function_create(
 		else
 			this->body.statement = rlc_scoped_statement_new(
 				file,
-				RLC_BASE_CAST(&parsed->fBodyStatement, RlcParsedStatement));
+				RLC_BASE_CAST(&parsed->fBodyStatement, RlcParsedStatement),
+				scope);
 	}
 }
 

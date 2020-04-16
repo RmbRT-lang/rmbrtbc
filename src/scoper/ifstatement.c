@@ -12,7 +12,8 @@
 void rlc_scoped_if_statement_create(
 	struct RlcScopedIfStatement * this,
 	struct RlcSrcFile const * file,
-	struct RlcParsedIfStatement const * parsed)
+	struct RlcParsedIfStatement const * parsed,
+	struct RlcScopedScope * parent)
 {
 	RLC_DASSERT(this != NULL);
 	RLC_DASSERT(file != NULL);
@@ -22,7 +23,8 @@ void rlc_scoped_if_statement_create(
 		RLC_BASE_CAST(this, RlcScopedStatement),
 		RLC_BASE_CAST(parsed, RlcParsedStatement),
 		kRlcScopedIfStatement,
-		1);
+		1,
+		parent);
 
 	if(!parsed->fCondition.fIsVariable)
 	{
@@ -41,9 +43,10 @@ void rlc_scoped_if_statement_create(
 
 	rlc_scoped_control_label_create(&this->label, file, &parsed->fIfLabel);
 
-	this->ifBody = rlc_scoped_statement_new(file, parsed->fIf);
+	struct RlcScopedScope * scope = RLC_BASE_CAST(this, RlcScopedStatement)->scope;
+	this->ifBody = rlc_scoped_statement_new(file, parsed->fIf, scope);
 	this->elseBody = parsed->fElse
-		? rlc_scoped_statement_new(file, parsed->fElse)
+		? rlc_scoped_statement_new(file, parsed->fElse, scope)
 		: NULL;
 }
 
