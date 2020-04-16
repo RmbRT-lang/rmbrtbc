@@ -5,25 +5,18 @@
 #include "../malloc.h"
 
 #define kRlcScopedEnum kRlcParsedEnum
+#define kRlcScopedMemberEnum kRlcParsedMemberEnum
 #define kRlcScopedEnumConstant kRlcParsedEnumConstant
 
-void rlc_scoped_enum_create(
+static void rlc_scoped_enum_create(
 	struct RlcScopedEnum * this,
 	struct RlcSrcFile const * file,
 	struct RlcParsedEnum const * parsed,
-	struct RlcScopedScopeItemGroup * parent)
+	struct RlcScopedScope * scope)
 {
 	RLC_DASSERT(this != NULL);
+	RLC_DASSERT(file != NULL);
 	RLC_DASSERT(parsed != NULL);
-	RLC_DASSERT(parent != NULL);
-
-	rlc_scoped_scope_entry_create(
-		RLC_BASE_CAST(this, RlcScopedScopeEntry),
-		file,
-		RLC_BASE_CAST(parsed, RlcParsedScopeEntry),
-		parent,
-		kRlcScopedEnum,
-		NULL);
 
 	this->fSize = parsed->fConstantCount;
 
@@ -40,7 +33,7 @@ void rlc_scoped_enum_create(
 				nameToken.content = parsed->fConstants[i].fAliasTokens[j];
 
 			struct RlcScopedScopeItemGroup * group = rlc_scoped_scope_group(
-				RLC_BASE_CAST2(this, RlcScopedScopeEntry, RlcScopedScopeItem)->children,
+				scope,
 				&nameToken,
 				file);
 
@@ -49,7 +42,8 @@ void rlc_scoped_enum_create(
 					file,
 					&parsed->fConstants[i],
 					i,
-					group);
+					group,
+					this);
 
 			rlc_scoped_scope_item_group_add(
 				group,
@@ -60,20 +54,99 @@ void rlc_scoped_enum_create(
 		}
 }
 
-void rlc_scoped_enum_destroy(
+static void rlc_scoped_enum_destroy(
 	struct RlcScopedEnum * this)
+{
+	RLC_DASSERT(this != NULL);
+
+	(void) this;
+}
+
+void rlc_scoped_global_enum_create(
+	struct RlcScopedGlobalEnum * this,
+	struct RlcSrcFile const * file,
+	struct RlcParsedEnum const * parsed,
+	struct RlcScopedScopeItemGroup * parent)
+{
+	RLC_DASSERT(this != NULL);
+	RLC_DASSERT(parsed != NULL);
+	RLC_DASSERT(parent != NULL);
+
+	rlc_scoped_scope_entry_create(
+		RLC_BASE_CAST(this, RlcScopedScopeEntry),
+		file,
+		RLC_BASE_CAST(parsed, RlcParsedScopeEntry),
+		parent,
+		kRlcScopedEnum,
+		NULL);
+
+	rlc_scoped_enum_create(
+		RLC_BASE_CAST(this, RlcScopedEnum),
+		file,
+		parsed,
+		RLC_BASE_CAST2(
+			this,
+			RlcScopedScopeEntry,
+			RlcScopedScopeItem)->children);
+}
+
+void rlc_scoped_global_enum_destroy(
+	struct RlcScopedGlobalEnum * this)
 {
 	RLC_DASSERT(this != NULL);
 
 	rlc_scoped_scope_entry_destroy_base(
 		RLC_BASE_CAST(this, RlcScopedScopeEntry));
+
+	rlc_scoped_enum_destroy(
+		RLC_BASE_CAST(this, RlcScopedEnum));
+}
+
+void rlc_scoped_member_enum_create(
+	struct RlcScopedMemberEnum * this,
+	struct RlcSrcFile const * file,
+	struct RlcParsedMemberEnum * parsed,
+	struct RlcScopedScopeItemGroup * parent)
+{
+	RLC_DASSERT(this != NULL);
+	RLC_DASSERT(file != NULL);
+	RLC_DASSERT(parsed != NULL);
+	RLC_DASSERT(parent != NULL);
+
+	rlc_scoped_member_create(
+		RLC_BASE_CAST(this, RlcScopedMember),
+		file,
+		RLC_BASE_CAST(parsed, RlcParsedMember),
+		parent->parent,
+		kRlcScopedMemberEnum,
+		NULL);
+
+	rlc_scoped_enum_create(
+		RLC_BASE_CAST(this, RlcScopedEnum),
+		file,
+		RLC_BASE_CAST(parsed, RlcParsedEnum),
+		RLC_BASE_CAST2(this, RlcScopedMember, RlcScopedScopeItem)->children);
+
+}
+
+void rlc_scoped_member_enum_destroy(
+	struct RlcScopedMemberEnum * this)
+{
+	RLC_DASSERT(this != NULL);
+
+	rlc_scoped_member_destroy_base(
+		RLC_BASE_CAST(this, RlcScopedMember));
+
+	rlc_scoped_enum_destroy(
+		RLC_BASE_CAST(this, RlcScopedEnum));
 }
 
 struct RlcScopedEnumConstant * rlc_scoped_enum_constant_new(
 	struct RlcSrcFile const * file,
 	struct RlcParsedEnumConstant const * parsed,
 	RlcSrcIndex value,
-	struct RlcScopedScopeItemGroup * parent)
+	struct RlcScopedScopeItemGroup * group,
+	struct RlcScopedEnum * parent)
 {
 	RLC_DASSERT(file != NULL);
 	RLC_DASSERT(parsed != NULL);
@@ -86,19 +159,12 @@ struct RlcScopedEnumConstant * rlc_scoped_enum_constant_new(
 		RLC_BASE_CAST(ret, RlcScopedScopeEntry),
 		file,
 		RLC_BASE_CAST(parsed, RlcParsedScopeEntry),
-		parent,
+		group,
 		kRlcScopedEnumConstant,
 		NULL);
 
-	RLC_DASSERT(parent->parent->ownerIsItem);
 	ret->fValue = value;
-	ret->fType = RLC_DERIVE_CAST(
-		RLC_DERIVE_CAST(
-			parent->parent->ownerItem,
-			RlcScopedScopeItem,
-			struct RlcScopedScopeEntry),
-		RlcScopedScopeEntry,
-		struct RlcScopedEnum);
+	ret->fType = parent;
 
 	return ret;
 }
