@@ -7,12 +7,14 @@
 #include "loopstatement.h"
 #include "breakstatement.h"
 #include "continuestatement.h"
+#include "trystatement.h"
 #include "../parser/expressionstatement.h"
 #include "../parser/blockstatement.h"
 #include "../parser/ifstatement.h"
 #include "../parser/loopstatement.h"
 #include "../parser/breakstatement.h"
 #include "../parser/continuestatement.h"
+#include "../parser/trystatement.h"
 
 #include "../assert.h"
 #include "../malloc.h"
@@ -55,8 +57,9 @@ struct RlcScopedStatement * rlc_scoped_statement_new(
 		NOENTRY(CaseStatement),
 		ENTRY(BreakStatement, rlc_scoped_break_statement_create),
 		ENTRY(ContinueStatement, rlc_scoped_continue_statement_create),
-		NOENTRY(TryStatement),
-		NOENTRY(ThrowStatement)
+		ENTRY(TryStatement, rlc_scoped_try_statement_create),
+		NOENTRY(ThrowStatement),
+		NOENTRY(CatchStatement)
 	};
 #undef ENTRY
 #undef NOENTRY
@@ -109,8 +112,9 @@ void rlc_scoped_statement_delete(
 		NOENTRY(CaseStatement),
 		ENTRY(BreakStatement, rlc_scoped_break_statement_destroy),
 		ENTRY(ContinueStatement, rlc_scoped_continue_statement_destroy),
-		NOENTRY(TryStatement),
-		NOENTRY(ThrowStatement)
+		ENTRY(TryStatement, rlc_scoped_try_statement_destroy),
+		NOENTRY(ThrowStatement),
+		NOENTRY(CatchStatement)
 	};
 #undef ENTRY
 #undef NOENTRY
