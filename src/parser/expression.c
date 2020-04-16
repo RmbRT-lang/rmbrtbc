@@ -43,7 +43,7 @@ void rlc_parsed_expression_destroy_virtual(
 		(destructor_t)&rlc_parsed_character_expression_destroy,
 		(destructor_t)&rlc_parsed_string_expression_destroy,
 		(destructor_t)&rlc_parsed_operator_expression_destroy,
-		(destructor_t)&rlc_this_expression_destroy,
+		(destructor_t)&rlc_parsed_this_expression_destroy,
 		(destructor_t)&rlc_parsed_cast_expression_destroy,
 		(destructor_t)&rlc_parsed_sizeof_expression_destroy
 	};
@@ -57,7 +57,7 @@ void rlc_parsed_expression_destroy_virtual(
 		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcParsedCharacterExpression),
 		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcParsedStringExpression),
 		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcParsedOperatorExpression),
-		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcThisExpression),
+		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcParsedThisExpression),
 		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcParsedCastExpression),
 		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcParsedSizeofExpression),
 	};
@@ -80,7 +80,7 @@ union RlcExpressionStorage
 	struct RlcParsedSymbolExpression fRlcParsedSymbolExpression;
 	struct RlcParsedSymbolChildExpression fRlcParsedSymbolChildExpression;
 	struct RlcParsedOperatorExpression fRlcParsedOperatorExpression;
-	struct RlcThisExpression fRlcThisExpression;
+	struct RlcParsedThisExpression fRlcParsedThisExpression;
 	struct RlcParsedCastExpression fRlcParsedCastExpression;
 	struct RlcParsedSizeofExpression fRlcParsedSizeofExpression;
 };
@@ -127,7 +127,7 @@ struct RlcParsedExpression * rlc_parsed_expression_parse(
 		ENTRY(RlcParsedStringExpression, &rlc_parsed_string_expression_parse, 0),
 		ENTRY(RlcParsedSymbolExpression, &rlc_parsed_symbol_expression_parse, 0),
 		ENTRY(RlcParsedSymbolChildExpression, &rlc_parsed_symbol_child_expression_parse, 0),
-		ENTRY(RlcThisExpression, &rlc_this_expression_parse, 0),
+		ENTRY(RlcParsedThisExpression, &rlc_parsed_this_expression_parse, 0),
 		ENTRY(RlcParsedCastExpression, &rlc_parsed_cast_expression_parse, 0),
 		ENTRY(RlcParsedSizeofExpression, &rlc_parsed_sizeof_expression_parse, 0)
 	};

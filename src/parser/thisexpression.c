@@ -2,21 +2,21 @@
 
 #include "../assert.h"
 
-void rlc_this_expression_create(
-	struct RlcThisExpression * this,
+void rlc_parsed_this_expression_create(
+	struct RlcParsedThisExpression * this,
 	struct RlcSrcString const * string)
 {
 	RLC_DASSERT(this != NULL);
 
 	rlc_parsed_expression_create(
 		RLC_BASE_CAST(this, RlcParsedExpression),
-		kRlcThisExpression,
+		kRlcParsedThisExpression,
 		string->start,
 		rlc_src_string_end(string));
 }
 
-void rlc_this_expression_destroy(
-	struct RlcThisExpression * this)
+void rlc_parsed_this_expression_destroy(
+	struct RlcParsedThisExpression * this)
 {
 	RLC_DASSERT(this != NULL);
 
@@ -24,8 +24,8 @@ void rlc_this_expression_destroy(
 		RLC_BASE_CAST(this, RlcParsedExpression));
 }
 
-int rlc_this_expression_parse(
-	struct RlcThisExpression * out,
+int rlc_parsed_this_expression_parse(
+	struct RlcParsedThisExpression * out,
 	struct RlcParser * parser)
 {
 	int result;
@@ -35,7 +35,7 @@ int rlc_this_expression_parse(
 		&token,
 		kRlcTokThis)))
 	{
-		rlc_this_expression_create(
+		rlc_parsed_this_expression_create(
 			out,
 			&token.content);
 	}

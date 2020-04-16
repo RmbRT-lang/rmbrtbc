@@ -29,7 +29,7 @@ enum RlcParsedExpressionType {
 	/** RlcParsedOperatorExpression. */
 	kRlcParsedOperatorExpression,
 	/** RlcParsedThisExpression. */
-	kRlcThisExpression,
+	kRlcParsedThisExpression,
 	/** RlcParsedCastExpression. */
 	kRlcParsedCastExpression,
 	/** RlcParsedSizeofExpression. */

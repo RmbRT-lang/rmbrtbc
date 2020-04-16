@@ -14,32 +14,32 @@ extern "C" {
 
 /** The `this` expression.
 @implements RlcParsedExpression */
-struct RlcThisExpression
+struct RlcParsedThisExpression
 {
 	RLC_DERIVE(struct, RlcParsedExpression);
 };
 
 /** Creates a `this` expression.
-@memberof RlcThisExpression
+@memberof RlcParsedThisExpression
 @param[out] this:
 	The `this` expression to create.
 	@dassert @nonnull
 @param[in] first:
 	The expression's first token. */
-void rlc_this_expression_create(
-	struct RlcThisExpression * this,
+void rlc_parsed_this_expression_create(
+	struct RlcParsedThisExpression * this,
 	struct RlcSrcString const * string);
 
 /** Destroys a `this` expression.
-@memberof RlcThisExpression
+@memberof RlcParsedThisExpression
 @param[in,out] this:
 	The `this` expression to destroy.
 	@dassert @nonnull */
-void rlc_this_expression_destroy(
-	struct RlcThisExpression * this);
+void rlc_parsed_this_expression_destroy(
+	struct RlcParsedThisExpression * this);
 
 /** Parses a `this` expression.
-@memberof RlcThisExpression
+@memberof RlcParsedThisExpression
 @param[out] out:
 	The `this` expression to parse.
 	@dassert @nonnull
@@ -48,8 +48,8 @@ void rlc_this_expression_destroy(
 	@dassert @nonnull
 @return
 	Whether the `this` expression could be parsed. */
-_Nodiscard int rlc_this_expression_parse(
-	struct RlcThisExpression * out,
+_Nodiscard int rlc_parsed_this_expression_parse(
+	struct RlcParsedThisExpression * out,
 	struct RlcParser * parser);
 
 #ifdef __cplusplus
