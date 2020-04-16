@@ -40,6 +40,8 @@ enum RlcParsedMemberType
 	kRlcParsedMemberUnion,
 	/** Corresponds to `RlcParsedMemberClass`. */
 	kRlcParsedMemberClass,
+	/** Corresponds to `RlcParsedMemberEnum`. */
+	kRlcParsedMemberEnum,
 
 	/** Corresponds to `RlcParsedMemberTypedef`. */
 	kRlcParsedMemberTypedef,

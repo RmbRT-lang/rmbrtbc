@@ -186,3 +186,49 @@ int rlc_parsed_enum_parse(
 
 	return 1;
 }
+
+void rlc_parsed_member_enum_create(
+	struct RlcParsedMemberEnum * this,
+	struct RlcParsedMemberCommon const * member)
+{
+	RLC_DASSERT(this != NULL);
+	RLC_DASSERT(member != NULL);
+
+	rlc_parsed_member_create(
+		RLC_BASE_CAST(this, RlcParsedMember),
+		kRlcParsedMemberEnum,
+		member);
+}
+
+void rlc_parsed_member_enum_destroy(
+	struct RlcParsedMemberEnum * this)
+{
+	RLC_DASSERT(this != NULL);
+
+	rlc_parsed_enum_destroy(
+		RLC_BASE_CAST(this, RlcParsedEnum));
+	rlc_parsed_member_destroy_base(
+		RLC_BASE_CAST(this, RlcParsedMember));
+}
+
+int rlc_parsed_member_enum_parse(
+	struct RlcParsedMemberEnum * out,
+	struct RlcParser * parser,
+	struct RlcParsedMemberCommon const * member)
+{
+	RLC_DASSERT(out != NULL);
+	RLC_DASSERT(parser != NULL);
+	RLC_DASSERT(member != NULL);
+
+	if(!rlc_parsed_enum_parse(
+		RLC_BASE_CAST(out, RlcParsedEnum),
+		parser,
+		&member->templates))
+		return 0;
+
+	rlc_parsed_member_enum_create(
+		out,
+		member);
+
+	return 1;
+}

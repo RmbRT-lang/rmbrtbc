@@ -5,6 +5,7 @@
 
 #include "parser.h"
 #include "scopeentry.h"
+#include "member.h"
 #include "templatedecl.h"
 
 #include <stddef.h>
@@ -58,6 +59,7 @@ _Nodiscard int rlc_parsed_enum_constant_parse(
 	struct RlcParsedEnumConstant * out,
 	struct RlcParser * parser);
 
+
 /** Enum type.
 @extends RlcParsedScopeEntry */
 struct RlcParsedEnum
@@ -68,6 +70,15 @@ struct RlcParsedEnum
 	struct RlcParsedEnumConstant * fConstants;
 	/** The constant count. */
 	size_t fConstantCount;
+};
+
+/** Member enum type.
+@extends RlcParsedMember
+@extends RlcParsedEnum */
+struct RlcParsedMemberEnum
+{
+	RLC_DERIVE(struct,RlcParsedMember);
+	RLC_DERIVE(struct,RlcParsedEnum);
 };
 
 /** Creates an enum.
@@ -110,6 +121,42 @@ _Nodiscard int rlc_parsed_enum_parse(
 	struct RlcParsedEnum * out,
 	struct RlcParser * parser,
 	struct RlcParsedTemplateDecl const * templates);
+
+
+/** Creates a member enum.
+@param[out] this:
+	The member enum to create.
+	@dassert @nonnull
+@param[in] member:
+	The common part of the member.
+	@dassert @nonnull */
+void rlc_parsed_member_enum_create(
+	struct RlcParsedMemberEnum * this,
+	struct RlcParsedMemberCommon const * member);
+
+/** Destroys a member enum.
+@param[in,out] this:
+	The member enum to destroy.
+	@dassert @nonnull */
+void rlc_parsed_member_enum_destroy(
+	struct RlcParsedMemberEnum * this);
+
+/** Parses a member enum.
+@param[out] out:
+	The member enum to parse.
+	@dassert @nonnull
+@param[in,out] parser:
+	The parser.
+	@dassert @nonnull
+@param[in] member:
+	The member values.
+	@dassert @nonnull
+@return
+	Nonzero on success. */
+_Nodiscard int rlc_parsed_member_enum_parse(
+	struct RlcParsedMemberEnum * out,
+	struct RlcParser * parser,
+	struct RlcParsedMemberCommon const * member);
 
 #ifdef __cplusplus
 }

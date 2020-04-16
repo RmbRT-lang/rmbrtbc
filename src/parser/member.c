@@ -2,6 +2,7 @@
 #include "function.h"
 #include "variable.h"
 #include "class.h"
+#include "enum.h"
 #include "rawtype.h"
 #include "union.h"
 #include "typedef.h"
@@ -41,6 +42,7 @@ void rlc_parsed_member_destroy_virtual(
 		(destructor_t)&rlc_parsed_member_rawtype_destroy,
 		(destructor_t)&rlc_parsed_member_union_destroy,
 		(destructor_t)&rlc_parsed_member_class_destroy,
+		(destructor_t)&rlc_parsed_member_enum_destroy,
 		(destructor_t)&rlc_parsed_member_typedef_destroy,
 		(destructor_t)&rlc_parsed_constructor_destroy,
 		(destructor_t)&rlc_parsed_destructor_destroy
@@ -54,6 +56,7 @@ void rlc_parsed_member_destroy_virtual(
 		RLC_DERIVE_OFFSET(RlcParsedMember, struct RlcParsedMemberRawtype),
 		RLC_DERIVE_OFFSET(RlcParsedMember, struct RlcParsedMemberUnion),
 		RLC_DERIVE_OFFSET(RlcParsedMember, struct RlcParsedMemberClass),
+		RLC_DERIVE_OFFSET(RlcParsedMember, struct RlcParsedMemberEnum),
 		RLC_DERIVE_OFFSET(RlcParsedMember, struct RlcParsedMemberTypedef),
 		RLC_DERIVE_OFFSET(RlcParsedMember, struct RlcParsedConstructor),
 		RLC_DERIVE_OFFSET(RlcParsedMember, struct RlcParsedDestructor)
@@ -97,6 +100,7 @@ struct RlcSrcString const * rlc_parsed_member_name(
 		WITH_NAME(Rawtype),
 		WITH_NAME(Union),
 		WITH_NAME(Class),
+		WITH_NAME(Enum),
 		WITH_NAME(Typedef),
 		WITHOUT_NAME(RlcParsedConstructor),
 		WITHOUT_NAME(RlcParsedDestructor)
@@ -255,6 +259,7 @@ struct RlcParsedMember * rlc_parsed_member_parse(
 		struct RlcParsedMemberVariable fVariable;
 		struct RlcParsedMemberFunction fFunction;
 		struct RlcParsedMemberClass fClass;
+		struct RlcParsedMemberEnum fEnum;
 		struct RlcParsedMemberUnion fUnion;
 		struct RlcParsedMemberRawtype fRawtype;
 		struct RlcParsedMemberTypedef fTypedef;
@@ -285,6 +290,7 @@ struct RlcParsedMember * rlc_parsed_member_parse(
 		ENTRY(RlcParsedMemberFunction, &rlc_parsed_member_function_parse),
 		ENTRY(RlcParsedMemberVariable, &rlc_parsed_member_variable_parse),
 		ENTRY(RlcParsedMemberClass, &rlc_parsed_member_class_parse),
+		ENTRY(RlcParsedMemberEnum, &rlc_parsed_member_enum_parse),
 		ENTRY(RlcParsedMemberUnion, &rlc_parsed_member_union_parse),
 		ENTRY(RlcParsedMemberRawtype, &rlc_parsed_member_rawtype_parse),
 		ENTRY(RlcParsedMemberTypedef, &rlc_parsed_member_typedef_parse)
