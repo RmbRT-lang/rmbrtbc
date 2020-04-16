@@ -24,7 +24,7 @@ void rlc_scoped_if_statement_create(
 		kRlcScopedIfStatement,
 		1);
 
-	if(this->condition.isExpression)
+	if(!parsed->fCondition.fIsVariable)
 	{
 		rlc_scoped_maybe_exp_or_var_create_expression(
 			&this->condition,

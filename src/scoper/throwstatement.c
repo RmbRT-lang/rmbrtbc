@@ -11,7 +11,7 @@ void rlc_scoped_throw_statement_create(
 	RLC_DASSERT(parsed != NULL);
 
 	this->type = parsed->fType;
-	if(parsed->fValue)
+	if(parsed->fType == kRlcThrowTypeValue)
 		this->value = rlc_scoped_expression_new(parsed->fValue, file);
 	else
 		this->value = NULL;
