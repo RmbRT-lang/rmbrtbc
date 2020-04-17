@@ -35,7 +35,8 @@ int rlc_parsed_symbol_expression_parse(
 
 	if(!rlc_parsed_symbol_parse(
 		&out->fSymbol,
-		parser))
+		parser,
+		1))
 	{
 		return 0;
 	}

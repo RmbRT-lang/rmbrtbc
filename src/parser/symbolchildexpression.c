@@ -38,7 +38,8 @@ int rlc_parsed_symbol_child_expression_parse(
 
 	if(!rlc_parsed_symbol_child_parse(
 		RLC_BASE_CAST(out, RlcParsedSymbolChild),
-		parser))
+		parser,
+		1))
 	{
 		return 0;
 	}

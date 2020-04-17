@@ -222,7 +222,8 @@ int rlc_parsed_type_name_parse(
 			kRlcTokParentheseClose);
 	} else if(rlc_parsed_symbol_parse(
 		&parse.fSymbol,
-		parser))
+		parser,
+		0))
 	{
 		out->fValue = kRlcParsedTypeNameValueName;
 		rlc_malloc((void**)&out->fName, sizeof(struct RlcParsedSymbol));

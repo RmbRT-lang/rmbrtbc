@@ -98,7 +98,7 @@ int rlc_parsed_class_parse(
 				parser,
 				NULL,
 				kRlcTokVirtual);
-			if(!rlc_parsed_symbol_parse(&in->fBase, parser))
+			if(!rlc_parsed_symbol_parse(&in->fBase, parser, 0))
 				rlc_parser_fail(parser, "expected symbol");
 		} while(kRlcTokComma == rlc_parser_expect(
 			parser,

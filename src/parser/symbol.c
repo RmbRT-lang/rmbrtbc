@@ -73,7 +73,8 @@ static int rlc_parsed_symbol_child_template_parse(
 
 int rlc_parsed_symbol_child_parse(
 	struct RlcParsedSymbolChild * out,
-	struct RlcParser * parser)
+	struct RlcParser * parser,
+	int allowSpecialIdentifiers)
 {
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
@@ -88,13 +89,15 @@ int rlc_parsed_symbol_child_parse(
 		kRlcTokIdentifier))
 	{
 		out->fType = kRlcParsedSymbolChildTypeIdentifier;
-	} else if(rlc_parser_consume(
+	} else if(allowSpecialIdentifiers
+	&& rlc_parser_consume(
 		parser,
 		&name,
 		kRlcTokConstructor))
 	{
 		out->fType = kRlcParsedSymbolChildTypeConstructor;
-	} else if(!hasTemplate
+	} else if(allowSpecialIdentifiers
+	&& !hasTemplate
 	&& rlc_parser_consume(
 		parser,
 		&name,
@@ -204,7 +207,8 @@ void rlc_parsed_symbol_create(
 
 int rlc_parsed_symbol_parse(
 	struct RlcParsedSymbol * out,
-	struct RlcParser * parser)
+	struct RlcParser * parser,
+	int allowSpecialIdentifiers)
 {
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
@@ -222,7 +226,8 @@ int rlc_parsed_symbol_parse(
 		struct RlcParsedSymbolChild child;
 		if(rlc_parsed_symbol_child_parse(
 			&child,
-			parser))
+			parser,
+			allowSpecialIdentifiers))
 		{
 			parsed_any = 1;
 			rlc_parsed_symbol_add_child(
