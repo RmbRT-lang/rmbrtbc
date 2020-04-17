@@ -115,25 +115,6 @@ int rlc_parsed_if_statement_parse(
 		NULL,
 		kRlcTokElse))
 	{
-		rlc_parsed_control_label_parse(
-			&out->fElseLabel,
-			parser);
-
-		if(!out->fIfLabel.fExists
-		&& out->fElseLabel.fExists)
-		{
-			rlc_parser_fail(parser, "expected control label");
-		}
-
-		if(out->fElseLabel.fExists
-		&& !rlc_parser_equal_tokens(
-			parser,
-			&out->fIfLabel.fLabel,
-			&out->fElseLabel.fLabel))
-		{
-			rlc_parser_fail(parser, "control label strings mismatch");
-		}
-
 		if(!(out->fElse = rlc_parsed_statement_parse(
 			parser,
 			kBodyStatementFlags)))

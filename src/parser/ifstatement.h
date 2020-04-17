@@ -34,8 +34,6 @@ struct RlcParsedIfStatement
 
 	/** The if label. */
 	struct RlcParsedControlLabel fIfLabel;
-	/** The else label. */
-	struct RlcParsedControlLabel fElseLabel;
 
 	/** Statement to be executed if the condition evaluates to true. */
 	struct RlcParsedStatement * fIf;
