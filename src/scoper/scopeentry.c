@@ -8,6 +8,7 @@
 #include "typedef.h"
 #include "namespace.h"
 #include "variable.h"
+#include "externalsymbol.h"
 #include "../parser/class.h"
 #include "../parser/enum.h"
 #include "../parser/function.h"
@@ -16,6 +17,7 @@
 #include "../parser/union.h"
 #include "../parser/typedef.h"
 #include "../parser/variable.h"
+#include "../parser/externalsymbol.h"
 #include "../assert.h"
 #include "../malloc.h"
 
@@ -70,7 +72,7 @@ struct RlcScopedScopeEntry * rlc_scoped_scope_entry_new(
 		GLOBAL_ENTRY(rlc_scoped_global_enum_create, Enum),
 		NOENTRY(EnumConstant), // Needs more context to be created.
 		GLOBAL_ENTRY(rlc_scoped_global_typedef_create, Typedef),
-		NOENTRY(ExternalSymbol)
+		ENTRY(rlc_scoped_external_symbol_create, ExternalSymbol)
 	};
 #undef ENTRY
 #undef GLOBAL_ENTRY
@@ -166,7 +168,7 @@ void rlc_scoped_scope_entry_destroy_virtual(
 		GLOBAL_ENTRY(rlc_scoped_global_enum_destroy, Enum),
 		ENTRY(rlc_scoped_enum_constant_destroy, EnumConstant),
 		GLOBAL_ENTRY(rlc_scoped_global_typedef_destroy, Typedef),
-		NOENTRY(ExternalSymbol)
+		ENTRY(rlc_scoped_external_symbol_destroy, ExternalSymbol)
 	};
 #undef ENTRY
 #undef GLOBAL_ENTRY
