@@ -8,6 +8,7 @@
 #include "member.h"
 #include "symbol.h"
 #include "../parser/member.h"
+#include "destructor.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -43,6 +44,9 @@ struct RlcScopedClass
 	struct RlcScopedMemberVariable ** fields;
 	/** The class' field count. */
 	RlcSrcSize fieldCount;
+
+	/** The class' destructor, if any. */
+	struct RlcScopedDestructor * destructor;
 };
 
 /** Global scope classes as used by the scoper.

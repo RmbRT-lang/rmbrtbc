@@ -46,6 +46,7 @@ static void rlc_scoped_variable_destroy(
 
 	if(this->hasType)
 		rlc_scoped_type_name_destroy(&this->type.name);
+	this->hasType = 0;
 
 	for(RlcSrcIndex i = this->initArgCount; i --> 0;)
 		rlc_scoped_expression_delete_virtual(this->initArgs[i]);

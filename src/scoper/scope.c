@@ -56,6 +56,7 @@ void rlc_scoped_scope_delete(
 
 	if(this->groups)
 	{
+		RLC_DASSERT(this->groupCount);
 		for(RlcSrcIndex i = 0; i < this->groupCount; i++)
 		{
 			rlc_scoped_scope_item_group_destroy(this->groups[i]);

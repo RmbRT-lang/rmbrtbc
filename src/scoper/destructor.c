@@ -47,4 +47,7 @@ void rlc_scoped_destructor_destroy(
 		rlc_scoped_block_statement_destroy(&this->body);
 		this->isDefinition = 0;
 	}
+
+	rlc_scoped_member_destroy_base(
+		RLC_BASE_CAST(this, RlcScopedMember));
 }

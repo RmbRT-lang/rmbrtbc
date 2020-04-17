@@ -62,6 +62,9 @@ void rlc_scoped_switch_statement_destroy(
 
 	if(this->caseCount)
 	{
+		for(RlcSrcIndex i = 0; i < this->caseCount; i++)
+			rlc_scoped_case_statement_destroy(&this->cases[i]);
+
 		rlc_free((void**)&this->cases);
 		this->caseCount = 0;
 	}

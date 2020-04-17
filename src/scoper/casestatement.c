@@ -64,7 +64,7 @@ void rlc_scoped_case_statement_destroy(
 	{
 		for(RlcSrcIndex i = 0; i < this->valueCount; i++)
 			rlc_scoped_expression_delete_virtual(this->values[i]);
-		rlc_free((void**)&this->valueCount);
+		rlc_free((void**)&this->values);
 	}
 
 	rlc_scoped_statement_delete(this->body);

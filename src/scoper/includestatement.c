@@ -82,7 +82,7 @@ char const * rlc_scope_include_statement(
 
 	this->fIsRelative = in->fIsRelative;
 
-	char const * resolved_path;
+	char const * resolved_path = NULL;
 	if(this->fIsRelative)
 	{
 		size_t parent_len = parent_dir(src->fName);

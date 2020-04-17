@@ -34,5 +34,5 @@ void rlc_scoped_symbol_child_expression_delete(
 	rlc_scoped_expression_destroy_base(
 		RLC_BASE_CAST(this, RlcScopedExpression));
 
-	rlc_free((void**)this);
+	rlc_free((void**)&this);
 }

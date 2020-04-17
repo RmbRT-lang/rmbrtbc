@@ -23,7 +23,7 @@ static void rlc_scoped_function_create(
 	RLC_DASSERT(scope != NULL);
 
 	this->arguments = NULL;
-	if(parsed->fArgumentCount)
+	if((this->argumentCount = parsed->fArgumentCount))
 		rlc_malloc(
 			(void**)&this->arguments,
 			parsed->fArgumentCount * sizeof(struct RlcScopedVariable *));
@@ -41,15 +41,15 @@ static void rlc_scoped_function_create(
 			struct RlcScopedGlobalVariable);
 	}
 
-	if(parsed->fHasReturnType)
+	if((this->hasReturnType = parsed->fHasReturnType))
 		rlc_scoped_type_name_create(
 			&this->returnType,
 			file,
 			&parsed->fReturnType);
 
-	if(parsed->fHasBody)
+	if((this->hasBody = parsed->fHasBody))
 	{
-		if(parsed->fIsShortHandBody)
+		if((this->isShortHandBody = parsed->fIsShortHandBody))
 			this->body.expression = rlc_scoped_expression_new(
 				parsed->fReturnValue,
 				file);

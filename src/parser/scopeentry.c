@@ -64,7 +64,10 @@ void rlc_parsed_scope_entry_destroy_virtual(
 
 	static_assert(RLC_COVERS_ENUM(k_offsets, RlcParsedScopeEntryType), "ill-sized offset table.");
 
-	k_vtable[RLC_DERIVING_TYPE(this)]((uint8_t*)this + k_offsets[RLC_DERIVING_TYPE(this)]);
+	uint8_t * p = (uint8_t*)this + k_offsets[RLC_DERIVING_TYPE(this)];
+	k_vtable[RLC_DERIVING_TYPE(this)](p);
+
+	rlc_free((void**)&p);
 }
 
 void rlc_parsed_scope_entry_create(
@@ -222,11 +225,7 @@ void rlc_parsed_scope_entry_list_destroy(
 	RLC_DASSERT(this != NULL);
 
 	for(size_t i = 0; i < this->fEntryCount; i++)
-	{
-		rlc_parsed_scope_entry_destroy_virtual(
-			this->fEntries[i]);
-		rlc_free((void**)&this->fEntries[i]);
-	}
+		rlc_parsed_scope_entry_destroy_virtual(this->fEntries[i]);
 	this->fEntryCount = 0;
 	if(this->fEntries)
 		rlc_free((void**)&this->fEntries);

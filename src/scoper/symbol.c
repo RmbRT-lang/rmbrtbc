@@ -72,10 +72,9 @@ void rlc_scoped_symbol_child_create(
 		break;
 	}
 
-	if(parsed->fTemplateCount)
+	this->templates = NULL;
+	if((this->templateCount = parsed->fTemplateCount))
 	{
-		this->templateCount = parsed->fTemplateCount;
-		this->templates = NULL;
 		rlc_malloc(
 			(void**)&this->templates,
 			this->templateCount * sizeof(struct RlcScopedTemplateArgument));

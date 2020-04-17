@@ -5,7 +5,8 @@
 
 void rlc_parsed_union_create(
 	struct RlcParsedUnion * this,
-	struct RlcSrcString const * name)
+	struct RlcSrcString const * name,
+	struct RlcParsedTemplateDecl const * templates)
 {
 	RLC_DASSERT(this != NULL);
 
@@ -16,6 +17,8 @@ void rlc_parsed_union_create(
 
 	rlc_parsed_member_list_create(
 		&this->fMembers);
+
+	this->fTemplates = *templates;
 }
 
 void rlc_parsed_union_destroy(
@@ -50,13 +53,14 @@ int rlc_parsed_union_parse(
 	struct RlcToken name;
 	rlc_parser_expect(
 		parser,
-		NULL,
+		&name,
 		1,
 		kRlcTokIdentifier);
 
 	rlc_parsed_union_create(
 		out,
-		&name.content);
+		&name.content,
+		templates);
 
 	rlc_parser_expect(
 		parser,

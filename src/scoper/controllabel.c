@@ -14,7 +14,7 @@ void rlc_scoped_control_label_create(
 	if(!(this->exists = parsed->fExists))
 		return;
 
-	if(parsed->fLabel.type == kRlcTokStringLiteral)
+	if((this->isString = parsed->fLabel.type == kRlcTokStringLiteral))
 		rlc_scoped_text_create(&this->string, file, &parsed->fLabel);
 	else
 		rlc_scoped_identifier_from_token(

@@ -178,6 +178,7 @@ void rlc_scoped_member_destroy_virtual(
 	RLC_DASSERT(k_dtors[type].dtor);
 	RLC_DASSERT((unsigned)k_dtors[type].type == (unsigned)type);
 
-	k_dtors[RLC_DERIVING_TYPE(this)].dtor(
-		((char *)this) + k_dtors[RLC_DERIVING_TYPE(this)].deriveOffset);
+	char * p = ((char *)this) + k_dtors[RLC_DERIVING_TYPE(this)].deriveOffset;
+	k_dtors[RLC_DERIVING_TYPE(this)].dtor(p);
+	rlc_free((void**)&p);
 }

@@ -33,7 +33,8 @@ struct RlcParsedUnion
 	@dassert @nonnull */
 void rlc_parsed_union_create(
 	struct RlcParsedUnion * this,
-	struct RlcSrcString const * name);
+	struct RlcSrcString const * name,
+	struct RlcParsedTemplateDecl const * templates);
 
 /** Destroys a parsed union.
 @memberof RlcParsedUnion

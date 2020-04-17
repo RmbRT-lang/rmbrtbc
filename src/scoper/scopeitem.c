@@ -65,7 +65,7 @@ void rlc_scoped_scope_item_delete(
 		"ill-sized vtable");
 
 	RLC_DASSERT(k_vtable[RLC_DERIVING_TYPE(this)].type == RLC_DERIVING_TYPE(this));
-	k_vtable[RLC_DERIVING_TYPE(this)].dtor(
-		((char *) this) + k_vtable[RLC_DERIVING_TYPE(this)].offset);
-	rlc_free((void**)&this);
+
+	char * p = ((char *) this) + k_vtable[RLC_DERIVING_TYPE(this)].offset;
+	k_vtable[RLC_DERIVING_TYPE(this)].dtor(p);
 }

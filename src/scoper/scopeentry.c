@@ -40,14 +40,14 @@ struct RlcScopedScopeEntry * rlc_scoped_scope_entry_new(
 
 #define ENTRY(constructor, type) { \
 		(constructor_t)&constructor, \
-		RLC_DERIVE_OFFSET(RlcScopedScopeEntry, struct RlcScoped##type), \
+		RLC_BASE_OFFSET(RlcScopedScopeEntry, struct RlcScoped##type), \
 		RLC_DERIVE_OFFSET(RlcParsedScopeEntry, struct RlcParsed##type), \
 		kRlcParsed##type, \
 		sizeof(struct RlcScoped##type) \
 	}
 #define GLOBAL_ENTRY(constructor, type) { \
 		(constructor_t)&constructor, \
-		RLC_DERIVE_OFFSET(RlcScopedScopeEntry, struct RlcScopedGlobal##type), \
+		RLC_BASE_OFFSET(RlcScopedScopeEntry, struct RlcScopedGlobal##type), \
 		RLC_DERIVE_OFFSET(RlcParsedScopeEntry, struct RlcParsed##type), \
 		kRlcParsed##type, \
 		sizeof(struct RlcScopedGlobal##type) \
@@ -179,5 +179,8 @@ void rlc_scoped_scope_entry_destroy_virtual(
 	RLC_DASSERT(k_vtable[type].type == type);
 	RLC_DASSERT(k_vtable[type].dtor);
 
-	k_vtable[type].dtor(((uint8_t*)this) + k_vtable[type].offset);
+	uint8_t * p = ((uint8_t*)this) + k_vtable[type].offset;
+	k_vtable[type].dtor(p);
+
+	rlc_free((void**)&p);
 }

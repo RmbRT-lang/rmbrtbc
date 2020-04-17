@@ -103,4 +103,6 @@ void rlc_scoped_try_statement_destroy(
 			rlc_scoped_catch_statement_destroy(&this->catches[i]);
 		rlc_free((void**)&this->catches);
 	}
+
+	rlc_scoped_statement_delete(this->body);
 }

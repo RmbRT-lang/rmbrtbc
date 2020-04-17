@@ -56,6 +56,20 @@ static void rlc_scoped_class_create(
 			this->fields[this->fieldCount-1] = var;
 		}
 	}
+
+	this->destructor = NULL;
+	if(parsed->fHasDestructor)
+	{
+		struct RlcScopedMember * member = rlc_scoped_scope_add_member(
+			scope,
+			file,
+			RLC_BASE_CAST(&parsed->fDestructor, RlcParsedMember));
+
+		this->destructor = RLC_DERIVE_CAST(
+			member,
+			RlcScopedMember,
+			struct RlcScopedDestructor);
+	}
 }
 
 void rlc_scoped_global_class_create(
@@ -89,7 +103,11 @@ static void rlc_scoped_class_destroy(
 	RLC_DASSERT(this != NULL);
 
 	if(this->inheritanceCount)
+	{
+		for(RlcSrcSize i = 0; i < this->inheritanceCount; i++)
+			rlc_scoped_symbol_destroy(&this->inheritances[i].base);
 		rlc_free((void**)&this->inheritances);
+	}
 	if(this->fieldCount)
 		rlc_free((void**)&this->fields);
 }

@@ -52,7 +52,6 @@ void rlc_scoped_file_registry_create(
 void rlc_scoped_file_registry_destroy(
 	struct RlcScopedFileRegistry * this)
 {
-	rlc_parsed_file_registry_destroy(&this->fParseRegistry);
 	for(RlcSrcIndex i = 0; i < this->fIncludeDirCount; i++)
 		rlc_free((void**)&this->fIncludeDirs[i]);
 
@@ -69,6 +68,8 @@ void rlc_scoped_file_registry_destroy(
 	if(this->fFiles)
 		rlc_free((void**)&this->fFiles);
 	this->fFileCount = 0;
+
+	rlc_parsed_file_registry_destroy(&this->fParseRegistry);
 }
 
 /** Queries a file from the registry.

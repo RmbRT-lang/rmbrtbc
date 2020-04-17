@@ -42,7 +42,8 @@ void rlc_scoped_operator_expression_delete(
 	for(RlcSrcIndex i = rlc_scoped_operator_expression_argument_count(this); i--;)
 		rlc_scoped_expression_delete_virtual(this->arguments[i]);
 
-	rlc_free((void**)&this->arguments);
+	if(this->arguments)
+		rlc_free((void**)&this->arguments);
 
 	rlc_scoped_expression_destroy_base(
 		RLC_BASE_CAST(this, RlcScopedExpression));

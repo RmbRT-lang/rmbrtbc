@@ -23,6 +23,8 @@ void rlc_scoped_scope_item_group_destroy(
 {
 	RLC_DASSERT(this != NULL);
 
+	rlc_scoped_identifier_destroy(&this->name);
+
 	if(this->items)
 	{
 		for(RlcSrcIndex i = 0; i < this->itemCount; i++)

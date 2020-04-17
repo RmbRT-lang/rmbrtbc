@@ -47,6 +47,8 @@ static void rlc_scoped_initialiser_destroy(
 
 	if(this->argumentCount)
 	{
+		for(RlcSrcIndex i = 0; i < this->argumentCount; i++)
+			rlc_scoped_expression_delete_virtual(this->arguments[i]);
 		rlc_free((void**)&this->arguments);
 		this->argumentCount = 0;
 	}
@@ -146,4 +148,7 @@ void rlc_scoped_constructor_destroy(
 
 		rlc_free((void**)&this->initialisers);
 	}
+
+	if(this->isDefinition)
+		rlc_scoped_block_statement_destroy(&this->body);
 }

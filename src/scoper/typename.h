@@ -3,6 +3,7 @@
 #pragma once
 
 #include "../src/file.h"
+#include "../parser/typename.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -17,6 +18,8 @@ struct RlcParsedTypeName;
 	Builds upon a parsed type name and refines it. */
 struct RlcScopedTypeName
 {
+	/** Which kind of value the type name holds. */
+	enum RlcParsedTypeNameValue value;
 	/** The parsed type name. Contains the type's modifiers. */
 	struct RlcParsedTypeName const * fParsed;
 	/** Contains the scoped version of the type name's base type.

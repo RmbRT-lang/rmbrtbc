@@ -17,6 +17,7 @@ void rlc_scoped_type_name_create(
 
 	this->fName = NULL;
 	this->fParsed = parsed;
+	this->value = parsed->fValue;
 	switch(parsed->fValue)
 	{
 	default:
@@ -59,7 +60,7 @@ void rlc_scoped_type_name_destroy(
 {
 	RLC_DASSERT(this != NULL);
 
-	switch(this->fParsed->fValue)
+	switch(this->value)
 	{
 	default:
 		RLC_DASSERT(!"unhandled enum value");
