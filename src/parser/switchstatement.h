@@ -6,6 +6,7 @@
 #include "statement.h"
 #include "casestatement.h"
 #include "controllabel.h"
+#include "variable.h"
 
 #include "../macros.h"
 
@@ -21,8 +22,15 @@ struct RlcParsedSwitchStatement
 
 	/** The switch statement's control label. */
 	struct RlcParsedControlLabel fLabel;
-	/** The value to be switched. */
-	struct RlcParsedExpression * fSwitchValue;
+	/** Whether the switch value is a variable declaration or an expression. */
+	int fIsVariableSwitchValue;
+	/** The initial loop statement, if any. */
+	union {
+		/** The loop statement's initial expression. */
+		struct RlcParsedExpression * fExpression;
+		/** The loop statement's initial variable declaration.*/
+		struct RlcParsedVariable fVariable;
+	} fSwitchValue;
 	/** The switch statement's cases. */
 	struct RlcParsedCaseStatement * fCases;
 	/** The switch statement's case count. */

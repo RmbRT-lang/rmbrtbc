@@ -11,7 +11,8 @@ void rlc_parsed_switch_statement_create(
 		RLC_BASE_CAST(this, RlcParsedStatement),
 		kRlcParsedSwitchStatement);
 
-	this->fSwitchValue = NULL;
+	this->fIsVariableSwitchValue = 0;
+	this->fSwitchValue.fExpression = NULL;
 	this->fCases = NULL;
 	this->fCaseCount = 0;
 }
@@ -21,10 +22,13 @@ void rlc_parsed_switch_statement_destroy(
 {
 	RLC_DASSERT(this != NULL);
 
-	if(this->fSwitchValue)
+	if(this->fIsVariableSwitchValue)
 	{
-		rlc_parsed_expression_destroy_virtual(this->fSwitchValue);
-		rlc_free((void**)&this->fSwitchValue);
+		rlc_parsed_variable_destroy(&this->fSwitchValue.fVariable);
+	} else if(this->fSwitchValue.fExpression)
+	{
+		rlc_parsed_expression_destroy_virtual(this->fSwitchValue.fExpression);
+		rlc_free((void**)&this->fSwitchValue.fExpression);
 	}
 
 	if(this->fCases)
@@ -61,7 +65,16 @@ int rlc_parsed_switch_statement_parse(
 		1,
 		kRlcTokParentheseOpen);
 
-	if(!(out->fSwitchValue = rlc_parsed_expression_parse(
+	if(!(out->fIsVariableSwitchValue = rlc_parsed_variable_parse(
+		&out->fSwitchValue.fVariable,
+		parser,
+		NULL,
+		1,
+		1,
+		1,
+		0,
+		0))
+	&& !(out->fSwitchValue.fExpression = rlc_parsed_expression_parse(
 		parser,
 		RLC_ALL_FLAGS(RlcParsedExpressionType))))
 	{

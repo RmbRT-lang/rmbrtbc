@@ -6,6 +6,7 @@
 
 #include "statement.h"
 #include "controllabel.h"
+#include "maybeexporvar.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,7 +29,7 @@ struct RlcScopedSwitchStatement
 	/** The switch statement's control label. */
 	struct RlcScopedControlLabel label;
 	/** The value to be switched. */
-	struct RlcScopedExpression * switchValue;
+	struct RlcScopedMaybeExpOrVar switchValue;
 	/** The switch statement's cases. */
 	struct RlcScopedCaseStatement * cases;
 	/** The switch statement's case count. */

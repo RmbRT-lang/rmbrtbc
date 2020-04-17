@@ -21,7 +21,7 @@ void rlc_scoped_switch_statement_create(
 		RLC_BASE_CAST(this, RlcScopedStatement),
 		RLC_BASE_CAST(parsed, RlcParsedStatement),
 		kRlcScopedSwitchStatement,
-		0,
+		parsed->fIsVariableSwitchValue,
 		parent);
 
 	rlc_scoped_control_label_create(
@@ -29,9 +29,17 @@ void rlc_scoped_switch_statement_create(
 		file,
 		&parsed->fLabel);
 
-	this->switchValue = rlc_scoped_expression_new(
-		parsed->fSwitchValue,
-		file);
+	if(parsed->fIsVariableSwitchValue)
+		rlc_scoped_maybe_exp_or_var_create_variable(
+			&this->switchValue,
+			file,
+			&parsed->fSwitchValue.fVariable,
+			RLC_BASE_CAST(this, RlcScopedStatement)->scope);
+	else
+		rlc_scoped_maybe_exp_or_var_create_expression(
+			&this->switchValue,
+			file,
+			parsed->fSwitchValue.fExpression);
 
 	this->cases = NULL;
 	if((this->caseCount = parsed->fCaseCount))
@@ -58,7 +66,7 @@ void rlc_scoped_switch_statement_destroy(
 
 	rlc_scoped_control_label_destroy(&this->label);
 
-	rlc_scoped_expression_delete_virtual(this->switchValue);
+	rlc_scoped_maybe_exp_or_var_destroy(&this->switchValue);
 
 	if(this->caseCount)
 	{
