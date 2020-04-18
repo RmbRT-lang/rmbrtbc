@@ -31,6 +31,9 @@ struct RlcScopedScope
 		struct RlcScopedStatement * ownerStatement;
 	};
 
+	/** The file this scope belongs to. */
+	struct RlcSrcFile const * file;
+
 	/** The scope's siblings. */
 	struct RlcScopedScope ** siblings;
 	/** The scope's sibling count. */
@@ -48,12 +51,20 @@ struct RlcScopedScope * rlc_scoped_scope_new_for_item(
 struct RlcScopedScope * rlc_scoped_scope_new_for_statement(
 	struct RlcScopedStatement * owner);
 
+struct RlcScopedScope * rlc_scoped_scope_new_root(
+	struct RlcSrcFile const * file);
+
 void rlc_scoped_scope_delete(
 	struct RlcScopedScope * this);
 
 /** Returns a scope's parent scope, or NULL if it is the global scope.
 @memberof RlcScopedScope */
 struct RlcScopedScope * rlc_scoped_scope_parent(
+	struct RlcScopedScope * this);
+
+/** Returns the root scope containing the current scope.
+@memberof RlcScopedScope */
+struct RlcScopedScope * rlc_scoped_scope_root(
 	struct RlcScopedScope * this);
 
 /** A filter loop callback.

@@ -9,7 +9,8 @@
 #include "../malloc.h"
 
 static struct RlcScopedScope * rlc_scoped_scope_new(
-	int ownerIsItem)
+	int ownerIsItem,
+	struct RlcSrcFile const * file)
 {
 	struct RlcScopedScope * ret = NULL;
 	rlc_malloc(
@@ -21,6 +22,7 @@ static struct RlcScopedScope * rlc_scoped_scope_new(
 	ret->siblingCount = 0;
 	ret->groups = NULL;
 	ret->groupCount = 0;
+	ret->file = file;
 
 	return ret;
 }
@@ -28,7 +30,7 @@ static struct RlcScopedScope * rlc_scoped_scope_new(
 struct RlcScopedScope * rlc_scoped_scope_new_for_item(
 	struct RlcScopedScopeItem * owner)
 {
-	struct RlcScopedScope * ret = rlc_scoped_scope_new(1);
+	struct RlcScopedScope * ret = rlc_scoped_scope_new(1, owner->group->parent->file);
 	ret->ownerItem = owner;
 
 	return ret;
@@ -37,8 +39,17 @@ struct RlcScopedScope * rlc_scoped_scope_new_for_item(
 struct RlcScopedScope * rlc_scoped_scope_new_for_statement(
 	struct RlcScopedStatement * owner)
 {
-	struct RlcScopedScope * ret = rlc_scoped_scope_new(0);
+	struct RlcScopedScope * ret = rlc_scoped_scope_new(0, owner->parent->file);
 	ret->ownerStatement = owner;
+
+	return ret;
+}
+
+struct RlcScopedScope * rlc_scoped_scope_new_root(
+	struct RlcSrcFile const * file)
+{
+	struct RlcScopedScope * ret = rlc_scoped_scope_new(0, file);
+	ret->ownerItem = NULL;
 
 	return ret;
 }
@@ -78,17 +89,28 @@ struct RlcScopedScope * rlc_scoped_scope_parent(
 	{
 		if(this->ownerItem)
 		{
-			RLC_DASSERT(this->ownerItem->children != NULL);
-			return this->ownerItem->children;
+			RLC_DASSERT(this->ownerItem->group->parent != NULL);
+			return this->ownerItem->group->parent;
 		}
 	} else {
 		if(this->ownerStatement)
 		{
-			RLC_DASSERT(this->ownerStatement->scope != NULL);
-			return this->ownerStatement->scope;
+			RLC_DASSERT(this->ownerStatement->parent != NULL);
+			return this->ownerStatement->parent;
 		}
 	}
 	return NULL;
+}
+
+struct RlcScopedScope * rlc_scoped_scope_root(
+	struct RlcScopedScope * this)
+{
+	struct RlcScopedScope * parent;
+
+	while((parent = rlc_scoped_scope_parent(this)))
+		this = parent;
+
+	return this;
 }
 
 static int rlc_scoped_scope_filter_impl(
