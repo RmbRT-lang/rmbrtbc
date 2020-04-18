@@ -77,3 +77,19 @@ int rlc_scoped_identifier_compare(
 	else
 		return 0;
 }
+
+char const * rlc_scoped_identifier_cstr(
+	struct RlcScopedIdentifier const * this)
+{
+	RLC_DASSERT(this != NULL);
+
+	switch(this->type)
+	{
+	case kRlcScopedIdentifierTypeConstructor:
+		return "constructor";
+	case kRlcScopedIdentifierTypeDestructor:
+		return "destructor";
+	default:
+		return this->name;
+	}
+}

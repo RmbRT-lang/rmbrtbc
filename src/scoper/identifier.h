@@ -84,6 +84,16 @@ int rlc_scoped_identifier_compare(
 	struct RlcScopedIdentifier const * a,
 	struct RlcScopedIdentifier const * b);
 
+/** Returns an identifier's name.
+@memberof RlcScopedIdentifier
+@param[in] this:
+	The identifier whose name to return.
+	@dassert @nonnull
+@return
+	The identifier's name. */
+char const * rlc_scoped_identifier_cstr(
+	struct RlcScopedIdentifier const * this);
+
 #ifdef __cplusplus
 }
 #endif
