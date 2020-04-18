@@ -14,7 +14,32 @@ extern "C" {
 
 struct RlcParsedMember;
 
-#define RlcScopedMemberType RlcParsedMemberType
+/** The deriving type of RlcScopedMember. */
+enum RlcScopedMemberType
+{
+	/** Corresponds to `RlcScopedMemberFunction`. */
+	kRlcScopedMemberFunction,
+	/** Corresponds to `RlcScopedMemberVariable`. */
+	kRlcScopedMemberVariable,
+	/** Corresponds to `RlcScopedMemberRawtype`. */
+	kRlcScopedMemberRawtype,
+	/** Corresponds to `RlcScopedMemberUnion`. */
+	kRlcScopedMemberUnion,
+	/** Corresponds to `RlcScopedMemberClass`. */
+	kRlcScopedMemberClass,
+	/** Corresponds to `RlcScopedMemberEnum`. */
+	kRlcScopedMemberEnum,
+
+	/** Corresponds to `RlcScopedMemberTypedef`. */
+	kRlcScopedMemberTypedef,
+
+	/** Corresponds to `RlcScopedConstructor`. */
+	kRlcScopedConstructor,
+	/** Corresponds to `RlcScopedDestructor`.*/
+	kRlcScopedDestructor,
+
+	RLC_ENUM_END(RlcScopedMemberType)
+};
 
 /** Type member declaration as used by the scoper. */
 struct RlcScopedMember

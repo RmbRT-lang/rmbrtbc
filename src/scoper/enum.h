@@ -23,17 +23,9 @@ struct RlcScopedEnumConstant
 	struct RlcScopedEnum * fType;
 };
 
-enum RlcScopedEnumType
-{
-	kRlcScopedGlobalEnum,
-	kRlcScopedMemberEnum,
-	RLC_ENUM_END(RlcScopedEnumType)
-};
-
 /** A scoped enum. */
 struct RlcScopedEnum
 {
-	RLC_ABSTRACT(RlcScopedEnum);
 	/** The amount of unique enum values. */
 	RlcSrcSize fSize;
 };

@@ -6,10 +6,6 @@
 #include "../assert.h"
 #include "../malloc.h"
 
-#define kRlcScopedClass kRlcParsedClass
-#define kRlcScopedMemberClass kRlcParsedMemberClass
-#define kRlcScopedMemberVariable kRlcParsedMemberVariable
-
 static void rlc_scoped_class_create(
 	struct RlcScopedClass * this,
 	struct RlcSrcFile const * file,

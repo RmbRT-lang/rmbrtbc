@@ -8,9 +8,6 @@
 #include "../assert.h"
 #include "../malloc.h"
 
-#define kRlcScopedGlobalUnion kRlcParsedUnion
-#define kRlcScopedMemberUnion kRlcParsedMemberUnion
-
 static void rlc_scoped_union_create(
 	struct RlcScopedUnion * this,
 	struct RlcSrcFile const * file,
@@ -32,7 +29,7 @@ static void rlc_scoped_union_create(
 			file,
 			parsed->fMembers.fEntries[i]);
 
-		if(RLC_DERIVING_TYPE(member) == kRlcParsedMemberVariable)
+		if(RLC_DERIVING_TYPE(member) == kRlcScopedMemberVariable)
 		{
 			rlc_realloc(
 				(void**)&this->fields,
@@ -73,7 +70,7 @@ void rlc_scoped_global_union_create(
 		file,
 		RLC_BASE_CAST(parsed, RlcParsedScopeEntry),
 		group,
-		kRlcScopedGlobalUnion,
+		kRlcScopedUnion,
 		&parsed->fTemplates);
 
 	rlc_scoped_union_create(

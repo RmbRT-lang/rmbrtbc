@@ -11,7 +11,35 @@
 extern "C" {
 #endif
 
-#define RlcScopedScopeEntryType RlcParsedScopeEntryType
+
+/** Determines the deriving type of a RlcScopedScopeEntry. */
+enum RlcScopedScopeEntryType
+{
+	/** RlcScopedClass */
+	kRlcScopedClass,
+	/** RlcScopedRawtype */
+	kRlcScopedRawtype,
+	/** RlcScopedUnion */
+	kRlcScopedUnion,
+	/** RlcScopedNamespace */
+	kRlcScopedNamespace,
+	/** RlcScopedFunction */
+	kRlcScopedFunction,
+	/** RlcScopedVariable */
+	kRlcScopedVariable,
+	/** RlcScopedEnum */
+	kRlcScopedEnum,
+	/** RlcScopedEnumConstant. */
+	kRlcScopedEnumConstant,
+	/** RlcScopedTypedef */
+	kRlcScopedTypedef,
+	/** RlcScopedExternalSymbol */
+	kRlcScopedExternalSymbol,
+
+	RLC_ENUM_END(RlcScopedScopeEntryType)
+};
+
+
 
 /** An entry within a scoped scope.
 	This type is a shared resource. */
