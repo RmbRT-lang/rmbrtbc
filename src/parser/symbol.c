@@ -23,6 +23,12 @@ static int rlc_parsed_symbol_child_template_parse(
 		kRlcTokBracketOpen))
 		return 0;
 
+	if(rlc_parser_consume(
+		parser,
+		NULL,
+		kRlcTokBracketClose))
+		return 1;
+
 	struct RlcParsedSymbolChildTemplate template;
 	do {
 		if((template.fIsExpression = rlc_parser_consume(
