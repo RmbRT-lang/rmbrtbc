@@ -37,6 +37,8 @@ struct RlcScopedSymbolChild
 /** A scoped symbol. */
 struct RlcScopedSymbol
 {
+	/** The parsed symbol (needed for location). */
+	struct RlcParsedSymbol const * parsed;
 	/** Whether the symbol is to be resolved from the global scope. */
 	int fIsAbsolute;
 	/** The symbol's children. */

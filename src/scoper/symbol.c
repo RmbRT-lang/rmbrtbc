@@ -110,6 +110,7 @@ void rlc_scoped_symbol_create(
 	RLC_DASSERT(file != NULL);
 	RLC_DASSERT(parsed != NULL);
 
+	this->parsed = parsed;
 	this->fIsAbsolute = parsed->fIsRoot;
 	this->fChildren = NULL;
 	this->fChildCount = parsed->fChildCount;
