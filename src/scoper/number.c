@@ -133,7 +133,7 @@ void rlc_number_from_token(
 
 	if(error)
 		rlc_resolver_fail(
-			token,
+			&token->content,
 			file,
 			"could not parse number: %s",
 			error);

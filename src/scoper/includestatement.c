@@ -73,12 +73,12 @@ char const * rlc_scope_include_statement(
 
 	rlc_scoped_text_create(&this->fPath, src, &in->fFileName);
 	if(this->fPath.fSymbolSize != 1)
-		rlc_resolver_fail(&in->fFileName, src, "include path must be UTF-8");
+		rlc_resolver_fail(&in->fFileName.content, src, "include path must be UTF-8");
 
 	if(!this->fPath.fElements)
-		rlc_resolver_fail(&in->fFileName, src, "invalid empty include path");
+		rlc_resolver_fail(&in->fFileName.content, src, "invalid empty include path");
 	if(((char const*)this->fPath.fRaw)[0] == '/')
-		rlc_resolver_fail(&in->fFileName, src, "include paths must not start with /");
+		rlc_resolver_fail(&in->fFileName.content, src, "include paths must not start with /");
 
 	this->fIsRelative = in->fIsRelative;
 
@@ -104,7 +104,7 @@ char const * rlc_scope_include_statement(
 
 	if(!resolved_path)
 	{
-		rlc_resolver_fail(&in->fFileName, src, "failed to find %s include '%.*s'",
+		rlc_resolver_fail(&in->fFileName.content, src, "failed to find %s include '%.*s'",
 			this->fIsRelative ? "relative" : "global",
 			(int)this->fPath.fElements,
 			this->fPath.fRaw);

@@ -6,12 +6,12 @@
 #include <stdarg.h>
 
 static _Noreturn void va_fail(
-	struct RlcToken const * token,
+	struct RlcSrcString const * string,
 	struct RlcSrcFile const * file,
 	char const * msg,
 	va_list ap)
 {
-	RLC_DASSERT(token != NULL);
+	RLC_DASSERT(string != NULL);
 	RLC_DASSERT(file != NULL);
 	RLC_DASSERT(msg != NULL);
 
@@ -19,7 +19,7 @@ static _Noreturn void va_fail(
 	rlc_src_file_position(
 		file,
 		&pos,
-		token->content.start);
+		string->start);
 
 	fprintf(stderr, "%s:%u:%u: error: ",
 		file->fName,
@@ -33,14 +33,14 @@ static _Noreturn void va_fail(
 }
 
 _Noreturn void rlc_resolver_fail(
-	struct RlcToken const * token,
+	struct RlcSrcString const * string,
 	struct RlcSrcFile const * file,
 	char const * msg,
 	...)
 {
 	va_list ap;
 	va_start(ap, msg);
-	va_fail(token, file, msg, ap);
+	va_fail(string, file, msg, ap);
 }
 
 _Noreturn void rlc_resolver_fail_ctx(
@@ -50,5 +50,5 @@ _Noreturn void rlc_resolver_fail_ctx(
 {
 	va_list ap;
 	va_start(ap, msg);
-	va_fail(ctx->token, ctx->file, msg, ap);
+	va_fail(ctx->name, ctx->file, msg, ap);
 }

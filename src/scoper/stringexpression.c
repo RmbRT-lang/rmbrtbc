@@ -41,7 +41,7 @@ struct RlcScopedStringExpression * rlc_scoped_string_expression_new(
 		|| ret->fValue.fEndian != rhs.fEndian)
 		{
 			rlc_resolver_fail(
-				&parsed->fTokens[i],
+				&parsed->fTokens[i].content,
 				file,
 				"compound string literal has inconsistent size or endianness");
 		}

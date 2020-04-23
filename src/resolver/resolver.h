@@ -10,14 +10,14 @@ extern "C" {
 #endif
 
 _Noreturn void rlc_resolver_fail(
-	struct RlcToken const * token,
+	struct RlcSrcString const * token,
 	struct RlcSrcFile const * file,
 	char const * msg,
 	...);
 
 struct RlcResolverFailContext
 {
-	struct RlcToken const * token;
+	struct RlcSrcString const * name;
 	struct RlcSrcFile const * file;
 };
 
