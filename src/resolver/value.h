@@ -5,11 +5,16 @@
 
 #include "../scoper/number.h"
 #include "../scoper/string.h"
+#include "../scoper/expression.h"
 #include "resolver.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+
+struct RlcScopedScope;
+
 
 /** Represents a primitive value's type. */
 enum RlcValueType
@@ -37,11 +42,34 @@ struct RlcValue
 };
 
 /** Compares two values.
+	Both values must be of the same type. If they are not, then terminates with an error message.
 @memberof RlcValue */
 int rlc_value_cmp(
 	struct RlcValue const * lhs,
 	struct RlcValue const * rhs,
 	struct RlcResolverFailContext const * context);
+
+/** Compares two values.
+	Both values may be of different types.
+@memberof RlcValue*/
+int rlc_value_order(
+	struct RlcValue const * lhs,
+	struct RlcValue const * rhs);
+
+void rlc_value_destroy(
+	struct RlcValue * this);
+
+/** Checks whether a scoped expression holds a compile-time constant value.
+@memberof RlcScopedExpression
+@param[in] this:
+	The scoped expression.
+	@dassert @nonnull
+@param[in] scope:
+	The scope in which to look up the expression's symbols.
+	@dassert @nonnull*/
+int rlc_scoped_expression_is_constant(
+	struct RlcScopedExpression const * this,
+	struct RlcScopedScope const * scope);
 
 #ifdef __cplusplus
 }
