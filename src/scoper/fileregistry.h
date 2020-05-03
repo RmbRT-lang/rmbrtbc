@@ -35,6 +35,11 @@ struct RlcScopedFile * rlc_scoped_file_registry_get(
 	struct RlcScopedFileRegistry * this,
 	char const * file);
 
+char const * rlc_scoped_file_registry_resolve_global(
+	struct RlcScopedFileRegistry const * this,
+	char const * path,
+	size_t path_len);
+
 #ifdef __cplusplus
 }
 #endif

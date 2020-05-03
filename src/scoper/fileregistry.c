@@ -106,3 +106,24 @@ struct RlcScopedFile * rlc_scoped_file_registry_get(
 
 	return scoped;
 }
+
+char const * rlc_scoped_file_registry_resolve_global(
+	struct RlcScopedFileRegistry const * this,
+	char const * path,
+	size_t path_len)
+{
+	RLC_DASSERT(this != NULL);
+	RLC_DASSERT(path != NULL);
+
+	for(RlcSrcSize i = 0; i < this->fIncludeDirCount; i++)
+	{
+		char const *resolved_path = resolve_relative_path(
+			this->fIncludeDirs[i], 0,
+			path, path_len);
+
+		if(resolved_path)
+			return resolved_path;
+	}
+
+	return NULL;
+}

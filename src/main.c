@@ -72,6 +72,71 @@ int main(
 	int argc,
 	char ** argv)
 {
+	if(argc == 1
+	|| (argc == 2 && !strcmp(argv[1], "--help")))
+	{
+		fprintf(argc == 2 ? stdout : stderr,
+			"usage:\n"
+			"\t%s f1 f2 ... fN\n"
+			"\t\tcompiles f1...fN into executable 'a.out'.\n"
+			"\t%s --help\n"
+				"\t\tprints this message.\n"
+			"\t%s --license\n"
+				"\t\tprints the license information.\n"
+			"\t%s --find path\n"
+				"\t\tresolves the requested include path.\n",
+			argv[0],
+			argv[0],
+			argv[0],
+			argv[0]);
+
+		return argc == 2;
+	}
+	if(argc == 2 && !strcmp(argv[1], "--license"))
+	{
+		puts(
+			"github.com/RmbRT/rlc - RmbRT language compiler (C bootstrap ver.)\n"
+			"Copyright (C) 2020 Steffen \"RmbRT\" Rattay <steffen@sm2.network>\n"
+			"\n"
+			"This program is free software: you can redistribute it and/or modify\n"
+			"it under the terms of the GNU Affero General Public License as published by\n"
+			"the Free Software Foundation, either version 3 of the License, or\n"
+			"(at your option) any later version.\n"
+			"\n"
+			"\nThis program is distributed in the hope that it will be useful,\n"
+			"\nbut WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+			"\nMERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
+			"\nGNU Affero General Public License for more details.\n"
+			"\n"
+			"\nYou should have received a copy of the GNU Affero General Public License\n"
+			"along with this program.  If not, see <https://www.gnu.org/licenses/>.n");
+		return 0;
+	}
+	if(argc >= 2 && !strcmp(argv[1], "--find"))
+	{
+		if(argc != 3)
+		{
+			fprintf(stderr, "usage: %s --find path\n", argv[0]);
+			return 1;
+		}
+
+		struct RlcScopedFileRegistry r;
+		rlc_scoped_file_registry_create(&r);
+		char const * path = rlc_scoped_file_registry_resolve_global(
+			&r,
+			argv[2],
+			strlen(argv[2]));
+		if(!path)
+		{
+			fputs("error: could not resolve file.\n", stderr);
+			return 1;
+		}
+		printf("%s\n", path);
+		rlc_free((void**)&path);
+		rlc_scoped_file_registry_destroy(&r);
+		return 0;
+	}
+
 	struct RlcScopedFileRegistry scoped_registry;
 	rlc_scoped_file_registry_create(&scoped_registry);
 

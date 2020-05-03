@@ -91,15 +91,10 @@ char const * rlc_scope_include_statement(
 			this->fPath.fRaw, this->fPath.fElements);
 	} else
 	{
-		for(RlcSrcSize i = 0; i < registry->fIncludeDirCount; i++)
-		{
-			resolved_path = resolve_relative_path(
-				registry->fIncludeDirs[i], 0,
-				this->fPath.fRaw, this->fPath.fElements);
-
-			if(resolved_path)
-				break;
-		}
+		resolved_path = rlc_scoped_file_registry_resolve_global(
+			registry,
+			this->fPath.fRaw,
+			this->fPath.fElements);
 	}
 
 	if(!resolved_path)
