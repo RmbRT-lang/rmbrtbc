@@ -132,4 +132,6 @@ typedef nullptr_t null_t;
 #define __rl_unnamed __rl_unnamed_impl(__COUNTER__)
 #define __rl_unnamed_impl(x) __rl_unnamed_ ## x
 
+#define __cpp_std std
+
 // Generated code starts here.
