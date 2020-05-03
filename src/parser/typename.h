@@ -141,6 +141,8 @@ struct RlcParsedTypeName
 		struct RlcParsedExpression * fExpression;
 	};
 
+	int fNoDecay;
+
 	/** The type modifiers list. */
 	struct RlcTypeModifier * fTypeModifiers;
 	/** The type modifier count. */

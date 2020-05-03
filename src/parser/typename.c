@@ -218,6 +218,7 @@ int rlc_parsed_type_name_parse(
 	rlc_parsed_type_name_create(out);
 
 	out->fValue = kRlcParsedTypeNameValueVoid;
+	out->fNoDecay = 0;
 
 	union {
 		struct RlcParsedSymbol fSymbol;
@@ -262,6 +263,10 @@ int rlc_parsed_type_name_parse(
 		out->fValue = kRlcParsedTypeNameValueName;
 		rlc_malloc((void**)&out->fName, sizeof(struct RlcParsedSymbol));
 		*out->fName = parse.fSymbol;
+		out->fNoDecay = rlc_parser_consume(
+			parser,
+			NULL,
+			kRlcTokExclamationMark);
 	} else if(rlc_parsed_function_signature_parse(
 		&parse.fFunction,
 		parser))
@@ -347,10 +352,14 @@ void rlc_parsed_type_name_print(
 		} break;
 	case kRlcParsedTypeNameValueName:
 		{
+			if(!this->fNoDecay)
+				fputs("::std::decay_t<", out);
 			rlc_parsed_symbol_print(
 				this->fName,
 				file,
 				out);
+			if(!this->fNoDecay)
+				fputs(">", out);
 		} break;
 	case kRlcParsedTypeNameValueFunction:
 		{
