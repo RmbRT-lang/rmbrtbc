@@ -241,3 +241,10 @@ int rlc_number_cmp(
 
 	return lhs->value - rhs->value;
 }
+
+void rlc_number_fprint(
+	struct RlcNumber const * this,
+	FILE * file)
+{
+	fprintf(file, "%ld", this->value);
+}

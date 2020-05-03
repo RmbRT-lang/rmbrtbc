@@ -114,6 +114,42 @@ int rlc_parsed_rawtype_parse(
 	return 1;
 }
 
+void rlc_parsed_rawtype_print(
+	struct RlcParsedRawtype const * this,
+	struct RlcSrcFile const * file,
+	struct RlcPrinter * printer)
+{
+	struct RlcPrinterCtx ctx;
+	rlc_printer_add_ctx(
+		printer,
+		&ctx,
+		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+		&this->fTemplates);
+
+	FILE * out = printer->fTypes;
+	fprintf(out, "class ");
+	rlc_src_string_print(
+		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+		file,
+		out);
+	fprintf(out, ";");
+
+	out = printer->fTypesImpl;
+	fprintf(out, "class ");
+	rlc_src_string_print(
+		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+		file,
+		out);
+	fprintf(out, " { char __[");
+	rlc_parsed_expression_print(this->fSize, file, out);
+	fprintf(out, "];\n");
+
+	rlc_parsed_member_list_print(&this->fMembers, file, printer);
+
+	fprintf(out, "};\n");
+	rlc_printer_pop_ctx(printer);
+}
+
 void rlc_parsed_member_rawtype_create(
 	struct RlcParsedMemberRawtype * this,
 	struct RlcParsedMemberCommon const * member)

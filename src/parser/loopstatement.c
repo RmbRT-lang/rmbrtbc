@@ -279,3 +279,64 @@ int rlc_parsed_loop_statement_parse(
 
 	return 1;
 }
+
+void rlc_parsed_loop_statement_print(
+	struct RlcParsedLoopStatement const * this,
+	struct RlcSrcFile const * file,
+	FILE * out)
+{
+	if(this->fIsVariableInitial)
+	{
+		fputs("{", out);
+		rlc_parsed_variable_print_argument(&this->fInitial.fVariable, file, out, 1);
+		fputs(";\n", out);
+	} else
+	{
+		if(this->fInitial.fExpression)
+		{
+			rlc_parsed_expression_print(this->fInitial.fExpression, file, out);
+			fputs(";\n", out);
+		}
+	}
+
+	if(this->fIsPostCondition)
+	{
+		fputs("for(;;", out);
+		if(this->fPostLoop)
+			rlc_parsed_expression_print(this->fPostLoop, file, out);
+		fputs(")\n{\n", out);
+		rlc_parsed_statement_print(this->fBody, file, out);
+		fputs("if(!(", out);
+		if(this->fIsVariableCondition)
+		{
+			rlc_src_string_print(
+				&RLC_BASE_CAST(
+					&this->fCondition.fVariable,
+					RlcParsedScopeEntry)->fName,
+				file,
+				out);
+		} else
+		{
+			rlc_parsed_expression_print(this->fCondition.fExpression, file, out);
+		}
+
+		fputs(")) break;\n}\n", out);
+	} else
+	{
+		RLC_DASSERT(!this->fIsVariableCondition);
+
+		fputs("for(;", out);
+		rlc_parsed_expression_print(this->fCondition.fExpression, file, out);
+		fputs("; ", out);
+
+		if(this->fPostLoop)
+			rlc_parsed_expression_print(this->fPostLoop, file, out);
+		fputs(")\n\t", out);
+		rlc_parsed_statement_print(this->fBody, file, out);
+	}
+
+	rlc_parsed_control_label_print(&this->fLabel, file, out, "_break");
+
+	if(this->fIsVariableInitial)
+		fputs("}\n", out);
+}

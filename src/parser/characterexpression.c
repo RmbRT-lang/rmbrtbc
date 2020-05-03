@@ -42,3 +42,11 @@ int rlc_parsed_character_expression_parse(
 	rlc_parsed_character_expression_create(out, &token);
 	return 1;
 }
+
+void rlc_parsed_character_expression_print(
+	struct RlcParsedCharacterExpression const * this,
+	struct RlcSrcFile const * file,
+	FILE * out)
+{
+	rlc_src_string_print(&this->fToken.content, file, out);
+}

@@ -47,3 +47,11 @@ int rlc_parsed_symbol_expression_parse(
 
 	return 1;
 }
+
+void rlc_parsed_symbol_expression_print(
+	struct RlcParsedSymbolExpression const * this,
+	struct RlcSrcFile const * file,
+	FILE * out)
+{
+	rlc_parsed_symbol_print(&this->fSymbol, file, out);
+}

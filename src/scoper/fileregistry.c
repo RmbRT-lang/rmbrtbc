@@ -87,7 +87,7 @@ struct RlcScopedFile * rlc_scoped_file_registry_get(
 		}
 	}
 
-	struct RlcParsedFile const * parsed = rlc_parsed_file_registry_get(
+	struct RlcParsedFile * parsed = rlc_parsed_file_registry_get(
 		&this->fParseRegistry,
 		file);
 

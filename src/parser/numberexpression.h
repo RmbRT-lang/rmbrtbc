@@ -56,6 +56,11 @@ _Nodiscard int rlc_parsed_number_expression_parse(
 	struct RlcParsedNumberExpression * out,
 	struct RlcParser * parser);
 
+void rlc_parsed_number_expression_print(
+	struct RlcParsedNumberExpression const * this,
+	struct RlcSrcFile const * file,
+	FILE * out);
+
 #ifdef __cplusplus
 }
 #endif

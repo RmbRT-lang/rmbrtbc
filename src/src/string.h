@@ -3,6 +3,7 @@
 #pragma once
 
 #include <inttypes.h>
+#include <stdio.h>
 
 #include "../assert.h"
 
@@ -61,6 +62,12 @@ char const * rlc_src_string_cstr(
 	The source string's end. */
 static inline RlcSrcIndex rlc_src_string_end(
 	struct RlcSrcString const * this);
+
+/** Prints a source string. */
+void rlc_src_string_print(
+	struct RlcSrcString const * this,
+	struct RlcSrcFile const * file,
+	FILE * out);
 
 #include "string.inl"
 

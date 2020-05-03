@@ -26,6 +26,11 @@ int rlc_parsed_return_statement_parse(
 	struct RlcParsedReturnStatement * out,
 	struct RlcParser * parser);
 
+void rlc_parsed_return_statement_print(
+	struct RlcParsedReturnStatement const * this,
+	struct RlcSrcFile const * file,
+	FILE * out);
+
 #ifdef __cplusplus
 }
 #endif

@@ -58,3 +58,12 @@ int rlc_parsed_expression_statement_parse(
 
 	return 1;
 }
+
+void rlc_parsed_expression_statement_print(
+	struct RlcParsedExpressionStatement const * this,
+	struct RlcSrcFile const * file,
+	FILE * out)
+{
+	rlc_parsed_expression_print(this->fExpression, file, out);
+	fputs(";\n", out);
+}

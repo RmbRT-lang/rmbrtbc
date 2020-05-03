@@ -93,6 +93,11 @@ void rlc_parsed_operator_expression_add(
 	struct RlcParsedOperatorExpression * this,
 	struct RlcParsedExpression * expression);
 
+void rlc_parsed_operator_expression_print(
+	struct RlcParsedOperatorExpression const * this,
+	struct RlcSrcFile const * file,
+	FILE * out);
+
 #ifdef __cplusplus
 }
 #endif

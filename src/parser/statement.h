@@ -108,6 +108,11 @@ void rlc_parsed_statement_list_add(
 	struct RlcParsedStatementList * this,
 	struct RlcParsedStatement * stmt);
 
+void rlc_parsed_statement_print(
+	struct RlcParsedStatement * this,
+	struct RlcSrcFile const * file,
+	FILE * out);
+
 #ifdef __cplusplus
 }
 #endif

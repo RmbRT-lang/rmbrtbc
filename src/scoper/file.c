@@ -1,20 +1,21 @@
 #include "file.h"
 #include "fileregistry.h"
 #include "../malloc.h"
+#include "../printer.h"
 
 void rlc_scoped_file_create(
 	struct RlcScopedFile * this,
 	char const * path,
-	struct RlcParsedFile const * parsed)
+	struct RlcParsedFile * parsed)
 {
 	RLC_DASSERT(this != NULL);
 	RLC_DASSERT(path != NULL);
 
 	this->path = path;
+	this->parsed = parsed;
+	this->lastPrinted = 0;
 	rlc_scoped_include_list_create(&this->includes);
 	rlc_scoped_include_list_create(&this->includedBy);
-	this->globalScope = rlc_scoped_scope_new_root(&parsed->fSource);
-	rlc_scoped_scope_populate(this->globalScope, parsed);
 }
 
 void rlc_scoped_file_destroy(
@@ -25,7 +26,6 @@ void rlc_scoped_file_destroy(
 	rlc_free((void**)&this->path);
 	rlc_scoped_include_list_destroy(&this->includes);
 	rlc_scoped_include_list_destroy(&this->includedBy);
-	rlc_scoped_scope_delete(this->globalScope);
 }
 
 void rlc_scoped_file_populate_includes(
@@ -64,4 +64,36 @@ void rlc_scoped_file_populate_includes(
 			}
 		}
 	}
+}
+
+void rlc_scoped_file_print(
+	struct RlcScopedFile * this,
+	struct RlcScopedFileRegistry * registry,
+	struct RlcPrinter const * printer)
+{
+	RLC_DASSERT(this != NULL);
+	RLC_DASSERT(registry != NULL);
+	RLC_DASSERT(printer != NULL);
+
+	if(this->lastPrinted > printer->fCompilationUnit)
+		return;
+
+
+	this->lastPrinted = printer->fCompilationUnit + 1;
+
+	for(RlcSrcIndex i = 0; i < this->includes.fPathCount; i++)
+		rlc_scoped_file_print(
+			this->includes.fPaths[i].fFile,
+			registry,
+			printer);
+
+	fprintf(printer->fTypes, "////// %s:Types\n", this->path);
+	fprintf(printer->fVars, "////// %s:Vars\n", this->path);
+	fprintf(printer->fFuncs, "////// %s:Funcs\n", this->path);
+	fprintf(printer->fTypesImpl, "////// %s:TypesImpl\n", this->path);
+	fprintf(printer->fVarsImpl, "////// %s:VarsImpl\n", this->path);
+	fprintf(printer->fFuncsImpl, "////// %s:FuncsImpl\n", this->path);
+	rlc_parsed_file_print(
+		this->parsed,
+		printer);
 }

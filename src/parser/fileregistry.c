@@ -63,7 +63,7 @@ static void rlc_parsed_file_registry_add_failure(
 	this->fFailedFiles[this->fFailedFileCount-1] = name;
 }
 
-struct RlcParsedFile const * rlc_parsed_file_registry_get(
+struct RlcParsedFile * rlc_parsed_file_registry_get(
 	struct RlcParsedFileRegistry * this,
 	char const * file)
 {

@@ -48,6 +48,11 @@ int rlc_parsed_block_statement_parse(
 	struct RlcParsedBlockStatement * out,
 	struct RlcParser * parser);
 
+void rlc_parsed_block_statement_print(
+	struct RlcParsedBlockStatement const * this,
+	struct RlcSrcFile const * file,
+	FILE * out);
+
 #ifdef __cplusplus
 }
 #endif

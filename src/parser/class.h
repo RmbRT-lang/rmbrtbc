@@ -40,6 +40,7 @@ struct RlcParsedClass
 	/** The list of members. */
 	struct RlcParsedMemberList fMembers;
 
+	struct RlcParsedMemberList fConstructors;
 	/** Whether the class has a destructor. */
 	int fHasDestructor;
 	/** The class' destructor. */
@@ -85,6 +86,11 @@ _Nodiscard int rlc_parsed_class_parse(
 	struct RlcParsedClass * out,
 	struct RlcParser * parser,
 	struct RlcParsedTemplateDecl const * templates);
+
+void rlc_parsed_class_print(
+	struct RlcParsedClass const * this,
+	struct RlcSrcFile const * file,
+	struct RlcPrinter * printer);
 
 /** The member class type as used by the parser.
 @extends RlcParsedClass
@@ -132,6 +138,11 @@ _Nodiscard int rlc_parsed_member_class_parse(
 	struct RlcParsedMemberClass * this,
 	struct RlcParser * parser,
 	struct RlcParsedMemberCommon const * member);
+
+void rlc_parsed_member_class_print(
+	struct RlcParsedMemberClass const * this,
+	struct RlcSrcFile const * file,
+	struct RlcPrinter * printer);
 
 #ifdef __cplusplus
 }

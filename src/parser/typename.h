@@ -10,6 +10,18 @@
 extern "C" {
 #endif
 
+/** Reference types. */
+enum RlcReferenceType
+{
+	/** Not a reference. */
+	kRlcReferenceTypeNone,
+	/** A normal const reference. */
+	kRlcReferenceTypeReference,
+	/** A temporary object reference. */
+	kRlcReferenceTypeTempReference
+};
+
+
 /** Type indirection.
 	@see
 		`rlc_type_indirection_parse()`. */
@@ -79,6 +91,10 @@ struct RlcTypeModifier
 	enum RlcTypeIndirection fTypeIndirection;
 	/** The cv qualifier. */
 	enum RlcTypeQualifier fTypeQualifier;
+	/** Whether it is an array type. */
+	int fIsArray;
+	/** The optional array dimensions. */
+	struct RlcParsedExpression * fArraySize;
 };
 
 /** Parses a type modifier.
@@ -94,6 +110,9 @@ _Nodiscard int rlc_type_modifier_parse(
 	struct RlcTypeModifier * out,
 	struct RlcParser * parser,
 	int expect_indirection);
+
+void rlc_type_modifier_destroy(
+	struct RlcTypeModifier * this);
 
 /** Controls what value the type name has. */
 enum RlcParsedTypeNameValue
@@ -127,7 +146,7 @@ struct RlcParsedTypeName
 	/** The type modifier count. */
 	size_t fTypeModifierCount;
 	/** Whether the type is a reference. */
-	int fIsReference;
+	enum RlcReferenceType fReferenceType;
 };
 
 
@@ -171,7 +190,8 @@ void rlc_parsed_type_name_create(
 	Nonzero on success, 0 on error. */
 int rlc_parsed_type_name_parse(
 	struct RlcParsedTypeName * out,
-	struct RlcParser * parser);
+	struct RlcParser * parser,
+	int allow_reference);
 
 /** Retrieves a type name's top level modifier.
 @param[in] this:
@@ -181,6 +201,11 @@ int rlc_parsed_type_name_parse(
 	The type's top level modifier (does not resolve types). */
 struct RlcTypeModifier const * rlc_parsed_type_name_top_modifier(
 	struct RlcParsedTypeName const * this);
+
+void rlc_parsed_type_name_print(
+	struct RlcParsedTypeName const * this,
+	struct RlcSrcFile const * file,
+	FILE * out);
 
 
 /** A function signature. */
@@ -240,6 +265,11 @@ void rlc_parsed_function_signature_add_argument(
 int rlc_parsed_function_signature_parse(
 	struct RlcParsedFunctionSignature * out,
 	struct RlcParser * parser);
+
+void rlc_parsed_function_signature_print(
+	struct RlcParsedFunctionSignature const * this,
+	struct RlcSrcFile const * file,
+	FILE * out);
 
 #ifdef __cplusplus
 }

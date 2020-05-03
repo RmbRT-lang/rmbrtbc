@@ -41,3 +41,13 @@ int rlc_parsed_this_expression_parse(
 	}
 	return result;
 }
+
+void rlc_parsed_this_expression_print(
+	struct RlcParsedThisExpression const * this,
+	struct RlcSrcFile const * file,
+	FILE * out)
+{
+	(void) this;
+	(void) file;
+	fprintf(out, "this");
+}

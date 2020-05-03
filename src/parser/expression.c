@@ -183,6 +183,55 @@ struct RlcParsedExpression * rlc_parsed_expression_parse(
 	return NULL;
 }
 
+void rlc_parsed_expression_print(
+	struct RlcParsedExpression const * this,
+	struct RlcSrcFile const * file,
+	FILE * out)
+{
+
+	RLC_DASSERT(this != NULL);
+	RLC_DASSERT(RLC_IN_ENUM(RLC_DERIVING_TYPE(this), RlcParsedExpressionType));
+
+	typedef void (*print_fn_t) (
+		void *,
+		struct RlcSrcFile const *,
+		FILE *);
+
+	static print_fn_t const k_vtable[] = {
+		(print_fn_t)&rlc_parsed_symbol_expression_print,
+		(print_fn_t)&rlc_parsed_symbol_child_expression_print,
+		(print_fn_t)&rlc_parsed_number_expression_print,
+		(print_fn_t)&rlc_parsed_character_expression_print,
+		(print_fn_t)&rlc_parsed_string_expression_print,
+		(print_fn_t)&rlc_parsed_operator_expression_print,
+		(print_fn_t)&rlc_parsed_this_expression_print,
+		(print_fn_t)&rlc_parsed_cast_expression_print,
+		(print_fn_t)&rlc_parsed_sizeof_expression_print
+	};
+
+	static_assert(RLC_COVERS_ENUM(k_vtable, RlcParsedExpressionType), "ill sized vtable.");
+
+	static intptr_t const k_offsets[] = {
+		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcParsedSymbolExpression),
+		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcParsedSymbolChildExpression),
+		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcParsedNumberExpression),
+		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcParsedCharacterExpression),
+		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcParsedStringExpression),
+		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcParsedOperatorExpression),
+		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcParsedThisExpression),
+		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcParsedCastExpression),
+		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcParsedSizeofExpression),
+	};
+
+	static_assert(RLC_COVERS_ENUM(k_offsets, RlcParsedExpressionType), "ill sized offset table.");
+
+	if(k_vtable[RLC_DERIVING_TYPE(this)])
+		k_vtable[RLC_DERIVING_TYPE(this)](
+			(uint8_t*)this + k_offsets[RLC_DERIVING_TYPE(this)],
+			file,
+			out);
+}
+
 void rlc_parsed_expression_list_create(
 	struct RlcParsedExpressionList * this)
 {

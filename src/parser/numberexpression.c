@@ -2,6 +2,7 @@
 
 #include "../malloc.h"
 #include "../assert.h"
+#include "../scoper/number.h"
 
 
 void rlc_parsed_number_expression_create(
@@ -49,4 +50,14 @@ int rlc_parsed_number_expression_parse(
 	}
 
 	return 0;
+}
+
+void rlc_parsed_number_expression_print(
+	struct RlcParsedNumberExpression const * this,
+	struct RlcSrcFile const * file,
+	FILE * out)
+{
+	struct RlcNumber number;
+	rlc_number_from_token(&number, file, &this->fNumberToken);
+	rlc_number_fprint(&number, out);
 }

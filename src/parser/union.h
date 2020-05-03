@@ -48,6 +48,11 @@ _Nodiscard int rlc_parsed_union_parse(
 	struct RlcParser * parser,
 	struct RlcParsedTemplateDecl const * templates);
 
+void rlc_parsed_union_print(
+	struct RlcParsedUnion const * this,
+	struct RlcSrcFile const * file,
+	struct RlcPrinter * printer);
+
 /** A member union as used by the parser.
 @implements RlcParsedMember
 @implements RlcParsedUnion */

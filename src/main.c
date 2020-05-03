@@ -1,9 +1,72 @@
 #include "scoper/fileregistry.h"
+#include "printer.h"
 #include "unicode.h"
 #include "malloc.h"
 #include "fs.h"
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+#include <linux/limits.h>
+#include <unistd.h>
+#include <sys/socket.h>
+
+void pipe_file(
+	char const * src,
+	int pipe)
+{
+	char buf[1024];
+	FILE * f = fopen(src, "r");
+	if(!f)
+	{
+		perror("fopen");
+		puts(src);
+		puts("\n");
+		abort();
+	}
+
+	while(!feof(f))
+	{
+		size_t size = fread(buf, 1, sizeof(buf), f);
+		if(!size)
+		{
+			perror("fread");
+			exit(1);
+		}
+
+		char const * p = buf;
+		while(size)
+		{
+			size_t sent = write(pipe, p, size);
+			if(0 == sent)
+			{
+				perror("send");
+				exit(1);
+			}
+			p += sent;
+			size -= sent;
+		}
+	}
+}
+
+void read_into_pipe_and_close(FILE* fd, char ** contents, size_t * size, int pipe)
+{
+	fclose(fd);
+	char const * p = *contents;
+	while(*size)
+	{
+		size_t sent = write(pipe, p, *size);
+		if(0 == sent)
+		{
+			perror("send");
+			exit(1);
+		}
+		p += sent;
+		*size -= sent;
+	}
+	free(*contents);
+}
 
 int main(
 	int argc,
@@ -12,16 +75,39 @@ int main(
 	struct RlcScopedFileRegistry scoped_registry;
 	rlc_scoped_file_registry_create(&scoped_registry);
 
+
+	char * typesBuf, * typesImplBuf;
+	size_t typesLen, typesImplLen;
+	char * funcsBuf, * funcsImplBuf;
+	size_t funcsLen, funcsImplLen;
+	char * varsBuf, * varsImplBuf;
+	size_t varsLen, varsImplLen;
+
+	struct RlcPrinter printer = {
+		0,
+		open_memstream(&typesBuf, &typesLen),
+		open_memstream(&varsBuf, &varsLen),
+		open_memstream(&funcsBuf, &funcsLen),
+		open_memstream(&typesImplBuf, &typesImplLen),
+		open_memstream(&varsImplBuf, &varsImplLen),
+		open_memstream(&funcsImplBuf, &funcsImplLen),
+		NULL,
+		NULL
+	};
+
 	int status = 1;
 	for(int i = 1; i < argc; i++)
 	{
 		char const * abs = to_absolute_path(argv[i]);
-		if(rlc_scoped_file_registry_get(
+		struct RlcScopedFile * file;
+		if((file = rlc_scoped_file_registry_get(
 			&scoped_registry,
-			abs))
+			abs)))
 		{
-			printf("parsed file %s\n",
+			fprintf(
+				stdout, "parsed %s\n",
 				argv[i]);
+			rlc_scoped_file_print(file, &scoped_registry, &printer);
 		} else
 		{
 			fprintf(
@@ -32,6 +118,39 @@ int main(
 	}
 
 	rlc_scoped_file_registry_destroy(&scoped_registry);
+
+	int pipefd;
+	static char pipename[] = "/tmp/.rlc_pipe_XXXXXX.cpp\0";
+	if(-1 == (pipefd = mkstemps(pipename, 4)))
+	{
+		perror("mkstemp");
+		return 1;
+	}
+	char out_file[PATH_MAX];
+	char rlc_dir[PATH_MAX];
+	ssize_t rlc_dir_len;
+	if((rlc_dir_len = readlink("/proc/self/exe", rlc_dir, sizeof(rlc_dir))) == -1)
+	{
+		perror("readlink");
+		return 1;
+	}
+	rlc_dir[rlc_dir_len] = '\0';
+	snprintf(out_file, sizeof(out_file), "%.*s/out/helper.cpp", parent_dir(rlc_dir), rlc_dir);
+	pipe_file(out_file, pipefd);
+	read_into_pipe_and_close(printer.fTypes, &typesBuf, &typesLen, pipefd);
+	read_into_pipe_and_close(printer.fFuncs, &funcsBuf, &funcsLen, pipefd);
+	read_into_pipe_and_close(printer.fTypesImpl, &typesImplBuf, &typesImplLen, pipefd);
+	read_into_pipe_and_close(printer.fVars, &varsBuf, &varsLen, pipefd);
+	read_into_pipe_and_close(printer.fFuncsImpl, &funcsImplBuf, &funcsImplLen, pipefd);
+	read_into_pipe_and_close(printer.fVarsImpl, &varsImplBuf, &varsImplLen, pipefd);
+	shutdown(pipefd, SHUT_WR);
+
+	char command[PATH_MAX+128];
+	snprintf(command, sizeof(command), "c++ -std=gnu++2a -x c++ -Werror %s -o a.out",
+		pipename);
+	if(!system(command))
+		puts("compiled!");
+	close(pipefd);
 
 	size_t allocs;
 	if((allocs = rlc_allocations()))

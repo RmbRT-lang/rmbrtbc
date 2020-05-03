@@ -162,7 +162,8 @@ int rlc_parsed_function_parse(
 
 	if((out->fHasReturnType = rlc_parsed_type_name_parse(
 		&out->fReturnType,
-		parser)))
+		parser,
+		1)))
 	{
 		if(rlc_parser_consume(
 			parser,
@@ -179,9 +180,9 @@ int rlc_parsed_function_parse(
 
 	out->fHasBody = 1;
 
-	if((out->fIsShortHandBody = !rlc_parsed_block_statement_parse(
+	if((out->fIsShortHandBody = (!out->fHasReturnType || !rlc_parsed_block_statement_parse(
 		&out->fBodyStatement,
-		parser)))
+		parser))))
 	{
 		rlc_parser_expect(
 			parser,
@@ -207,6 +208,108 @@ int rlc_parsed_function_parse(
 
 	rlc_parser_untrace(parser, &tracer);
 	return 1;
+}
+
+static void rlc_parsed_function_print_head_1(
+	struct RlcParsedFunction const * this,
+	struct RlcSrcFile const * file,
+	FILE * out,
+	int templates)
+{
+	if(templates)
+		rlc_parsed_template_decl_print(&this->fTemplates, file, out);
+
+
+	if(this->fHasReturnType)
+		rlc_parsed_type_name_print(&this->fReturnType, file, out);
+	else
+		fputs("auto", out);
+
+	fputc(' ', out);
+}
+
+static void rlc_parsed_function_print_head_2(
+	struct RlcParsedFunction const * this,
+	struct RlcSrcFile const * file,
+	FILE * out)
+{
+	rlc_src_string_print(
+		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+		file,
+		out);
+
+	fputc('(', out);
+	for(RlcSrcIndex i = 0; i < this->fArgumentCount; i++)
+	{
+		if(i)
+			fputc(',', out);
+		fprintf(out, "\n\t");
+		rlc_parsed_variable_print_argument(
+			&this->fArguments[i],
+			file,
+			out,
+			1);
+	}
+	fprintf(out, ")");
+}
+
+static void rlc_parsed_function_print_head_3(
+	struct RlcParsedFunction const * this,
+	struct RlcSrcFile const * file,
+	FILE * out)
+{
+	if(!this->fHasReturnType)
+	{
+		RLC_ASSERT(this->fIsShortHandBody);
+		fputs(" -> decltype(", out);
+		rlc_parsed_expression_print(this->fReturnValue, file, out);
+		fputs(")\n", out);
+	}
+}
+
+void rlc_parsed_function_print_head(
+	struct RlcParsedFunction const * this,
+	struct RlcSrcFile const * file,
+	FILE * out,
+	int templates)
+{
+	rlc_parsed_function_print_head_1(this, file, out, templates);
+	rlc_parsed_function_print_head_2(this, file, out);
+	rlc_parsed_function_print_head_3(this, file, out);
+}
+
+static void rlc_parsed_function_print_body(
+	struct RlcParsedFunction const * this,
+	struct RlcSrcFile const * file,
+	FILE * out)
+{
+	if(!this->fHasBody)
+	{
+		fprintf(out, ";\n");
+		return;
+	}
+
+	if(this->fIsShortHandBody)
+	{
+		fprintf(out, "\n{ return ");
+		rlc_parsed_expression_print(this->fReturnValue, file, out);
+		fprintf(out, "; }\n");
+	} else
+	{
+		rlc_parsed_block_statement_print(&this->fBodyStatement, file, out);
+	}
+}
+
+void rlc_parsed_function_print(
+	struct RlcParsedFunction const * this,
+	struct RlcSrcFile const * file,
+	struct RlcPrinter const * printer)
+{
+
+	rlc_parsed_function_print_head(this, file, printer->fFuncs, 1);
+	fputs(";\n", printer->fFuncs);
+	rlc_parsed_function_print_head(this, file, printer->fFuncsImpl, 1);
+	rlc_parsed_function_print_body(this, file, printer->fFuncsImpl);
 }
 
 void rlc_parsed_member_function_create(
@@ -262,7 +365,7 @@ int rlc_parsed_member_function_parse(
 		out->fAbstractness != kRlcMemberFunctionAbstractnessAbstract))
 	{
 		if(any)
-			rlc_parser_fail(parser, "expected function after 'abstract'");
+			rlc_parser_fail(parser, "expected function");
 		else
 			return 0;
 	}
@@ -284,4 +387,112 @@ void rlc_parsed_member_function_destroy(
 
 	rlc_parsed_member_destroy_base(
 		RLC_BASE_CAST(this, RlcParsedMember));
+}
+
+void rlc_parsed_member_function_print(
+	struct RlcParsedMemberFunction const * this,
+	struct RlcSrcFile const * file,
+	struct RlcPrinter const * printer)
+{
+	struct RlcParsedMember const * member = RLC_BASE_CAST(
+		this,
+		RlcParsedMember);
+
+	FILE * out = printer->fTypesImpl;
+
+	rlc_visibility_print(
+		member->fVisibility,
+		1,
+		out);
+
+	rlc_parsed_template_decl_print(
+		&RLC_BASE_CAST(this, RlcParsedFunction)->fTemplates,
+		file,
+		out);
+
+	if(member->fAttribute == kRlcMemberAttributeStatic)
+		fputs(" static ", out);
+
+	switch(this->fAbstractness)
+	{
+	case kRlcMemberFunctionAbstractnessVirtual:
+	case kRlcMemberFunctionAbstractnessAbstract:
+	case kRlcMemberFunctionAbstractnessOverride:
+		fputs(" virtual ", out);
+	default:;
+	}
+
+	rlc_parsed_function_print_head_1(
+		RLC_BASE_CAST(this, RlcParsedFunction),
+		file,
+		out,
+		0);
+
+	rlc_parsed_function_print_head_2(
+		RLC_BASE_CAST(this, RlcParsedFunction),
+		file,
+		out);
+
+	if(member->fAttribute == kRlcMemberAttributeIsolated)
+		fputs(" const", out);
+
+	rlc_parsed_function_print_head_3(
+		RLC_BASE_CAST(this, RlcParsedFunction),
+		file,
+		out);
+
+	switch(this->fAbstractness)
+	{
+	case kRlcMemberFunctionAbstractnessAbstract:
+		fputs(" = 0\n", out);
+		break;
+	case kRlcMemberFunctionAbstractnessFinal:
+		fputs(" final\n", out);
+		break;
+	case kRlcMemberFunctionAbstractnessOverride:
+		fputs(" override\n", out);
+		break;
+	default:;
+	}
+
+	fputs(";\n", out);
+
+
+	if(RLC_BASE_CAST(this, RlcParsedFunction)->fHasBody)
+	{
+		out = printer->fFuncsImpl;
+
+		rlc_printer_print_ctx_tpl(printer, file, out);
+		rlc_parsed_template_decl_print(
+			&RLC_BASE_CAST(this, RlcParsedFunction)->fTemplates,
+			file,
+			out);
+
+		rlc_parsed_function_print_head_1(
+			RLC_BASE_CAST(this, RlcParsedFunction),
+			file,
+			out,
+			0);
+
+		rlc_printer_print_ctx_symbol(printer, file, out);
+		fputs("::", out);
+
+		rlc_parsed_function_print_head_2(
+			RLC_BASE_CAST(this, RlcParsedFunction),
+			file,
+			out);
+
+		if(member->fAttribute == kRlcMemberAttributeIsolated)
+			fputs(" const", out);
+
+		rlc_parsed_function_print_head_3(
+			RLC_BASE_CAST(this, RlcParsedFunction),
+			file,
+			out);
+
+		rlc_parsed_function_print_body(
+			RLC_BASE_CAST(this, RlcParsedFunction),
+			file,
+			out);
+	}
 }

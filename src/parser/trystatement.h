@@ -53,6 +53,11 @@ _Nodiscard int rlc_parsed_try_statement_parse(
 	struct RlcParsedTryStatement * out,
 	struct RlcParser * parser);
 
+void rlc_parsed_try_statement_print(
+	struct RlcParsedTryStatement const * this,
+	struct RlcSrcFile const * file,
+	FILE * out);
+
 /** A catch-clause as used by the parser. */
 struct RlcParsedCatchStatement
 {

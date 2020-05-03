@@ -73,3 +73,22 @@ int rlc_parsed_block_statement_parse(
 
 	return 1;
 }
+
+void rlc_parsed_block_statement_print(
+	struct RlcParsedBlockStatement const * this,
+	struct RlcSrcFile const * file,
+	FILE * out)
+{
+	if(this->fList.fStatementCount == 0)
+	{
+		fputs("{ ; }\n", out);
+		return;
+	}
+
+	fputs("{\n", out);
+
+	for(RlcSrcIndex i = 0; i < this->fList.fStatementCount; i++)
+		rlc_parsed_statement_print(this->fList.fStatements[i], file, out);
+
+	fputs("}\n", out);
+}

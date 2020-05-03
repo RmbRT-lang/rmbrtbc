@@ -27,6 +27,11 @@ int rlc_parsed_variable_statement_parse(
 	struct RlcParsedVariableStatement * out,
 	struct RlcParser * parser)
 {
+	int isStatic = rlc_parser_consume(
+		parser,
+		NULL,
+		kRlcTokStatic);
+
 	if(!rlc_parsed_variable_parse(
 		&out->fVariable,
 		parser,
@@ -40,6 +45,7 @@ int rlc_parsed_variable_statement_parse(
 		return 0;
 	}
 	rlc_parsed_variable_statement_create(out);
+	out->fIsStatic = isStatic;
 
 	rlc_parser_expect(
 		parser,
@@ -48,4 +54,15 @@ int rlc_parsed_variable_statement_parse(
 		kRlcTokSemicolon);
 
 	return 1;
+}
+
+void rlc_parsed_variable_statement_print(
+	struct RlcParsedVariableStatement const * this,
+	struct RlcSrcFile const * file,
+	FILE * out)
+{
+	if(this->fIsStatic)
+		fputs("static ", out);
+	rlc_parsed_variable_print_argument(&this->fVariable, file, out, 1);
+	fputs(";\n", out);
 }

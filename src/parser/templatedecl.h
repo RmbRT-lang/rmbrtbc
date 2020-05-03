@@ -94,6 +94,11 @@ static inline int rlc_parsed_template_decl_exists(
 void rlc_parsed_template_decl_child_destroy(
 	struct RlcParsedTemplateDeclChild * this);
 
+void rlc_parsed_template_decl_print(
+	struct RlcParsedTemplateDecl const * this,
+	struct RlcSrcFile const * file,
+	FILE * out);
+
 #include "templatedecl.inl"
 
 

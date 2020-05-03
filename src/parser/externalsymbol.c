@@ -19,6 +19,7 @@ void rlc_parsed_external_symbol_create(
 		this->fCustomLinkName = *linkname;
 
 	rlc_parsed_type_name_create(&this->fType);
+	this->fIsFunction = 0;
 }
 
 void rlc_parsed_external_symbol_destroy(
@@ -29,7 +30,10 @@ void rlc_parsed_external_symbol_destroy(
 	rlc_parsed_scope_entry_destroy_base(
 		RLC_BASE_CAST(this, RlcParsedScopeEntry));
 
-	rlc_parsed_type_name_destroy(&this->fType);
+	if(this->fIsFunction)
+		rlc_parsed_function_destroy(&this->fFunction);
+	else
+		rlc_parsed_type_name_destroy(&this->fType);
 }
 
 int rlc_parsed_external_symbol_parse(
@@ -70,35 +74,81 @@ int rlc_parsed_external_symbol_parse(
 			kRlcTokBracketClose);
 	}
 
-
-	struct RlcToken name;
-	rlc_parser_expect(
+	if((out->fIsFunction = rlc_parsed_function_parse(
+		&out->fFunction,
 		parser,
-		&name,
-		1,
-		kRlcTokIdentifier);
+		templates,
+		0)))
+	{
+		RLC_ASSERT(!hasLinkName);
+		rlc_parsed_scope_entry_create(
+			RLC_BASE_CAST(out, RlcParsedScopeEntry),
+			kRlcParsedExternalSymbol,
+			&RLC_BASE_CAST(&out->fFunction, RlcParsedScopeEntry)->fName);
 
-	rlc_parsed_external_symbol_create(
-		out,
-		hasLinkName ? &linkname : NULL,
-		&name.content);
+		out->fHasCustomLinkName = 0;
+		if(hasLinkName)
+			out->fCustomLinkName = linkname;
+	} else
+	{
+		struct RlcToken name;
+		rlc_parser_expect(
+			parser,
+			&name,
+			1,
+			kRlcTokIdentifier);
 
-	rlc_parser_expect(
-		parser,
-		NULL,
-		1,
-		kRlcTokColon);
+		rlc_parsed_external_symbol_create(
+			out,
+			hasLinkName ? &linkname : NULL,
+			&name.content);
 
-	if(!rlc_parsed_type_name_parse(
-		&out->fType,
-		parser))
-		rlc_parser_fail(parser, "expected type name");
+		rlc_parser_expect(
+			parser,
+			NULL,
+			1,
+			kRlcTokColon);
 
-	rlc_parser_expect(
-		parser,
-		NULL,
-		1,
-		kRlcTokSemicolon);
+		if(!rlc_parsed_type_name_parse(
+			&out->fType,
+			parser,
+			0))
+			rlc_parser_fail(parser, "expected type name");
+
+		rlc_parser_expect(
+			parser,
+			NULL,
+			1,
+			kRlcTokSemicolon);
+	}
 
 	return 1;
+}
+
+void rlc_parsed_external_symbol_print(
+	struct RlcParsedExternalSymbol const * this,
+	struct RlcSrcFile const * file,
+	struct RlcPrinter const * printer)
+{
+	RLC_ASSERT(!this->fHasCustomLinkName);
+	FILE * out;
+	if(this->fIsFunction)
+	{
+		out = printer->fFuncs;
+		fputs("extern \"C\" ", out);
+		rlc_parsed_function_print_head(&this->fFunction, file, out, 0);
+	} else
+	{
+		out = printer->fVars;
+		fputs("extern \"C\" ", out);
+		rlc_parsed_type_name_print(&this->fType, file, out);
+		fputc(' ', out);
+		rlc_src_string_print(
+			&RLC_BASE_CAST(
+				this,
+				RlcParsedScopeEntry)->fName,
+			file,
+			out);
+	}
+	fputs(";\n", out);
 }

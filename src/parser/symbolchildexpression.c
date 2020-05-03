@@ -50,3 +50,15 @@ int rlc_parsed_symbol_child_expression_parse(
 
 	return 1;
 }
+
+void rlc_parsed_symbol_child_expression_print(
+	struct RlcParsedSymbolChildExpression const * this,
+	struct RlcSrcFile const * file,
+	FILE * out)
+{
+	rlc_parsed_symbol_child_print(
+		RLC_BASE_CAST(this, RlcParsedSymbolChild),
+		file,
+		out,
+		1);
+}

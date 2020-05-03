@@ -7,6 +7,7 @@
 #include "parser.h"
 
 #include "../macros.h"
+#include "../printer.h"
 
 #include <stddef.h>
 
@@ -93,6 +94,11 @@ void rlc_parsed_scope_entry_add_name(
 struct RlcParsedScopeEntry * rlc_parsed_scope_entry_parse(
 	struct RlcParser * parser);
 
+void rlc_parsed_scope_entry_print(
+	struct RlcParsedScopeEntry const * this,
+	struct RlcSrcFile const * file,
+	struct RlcPrinter const * printer);
+
 /** List of scope entries. */
 struct RlcParsedScopeEntryList
 {
@@ -128,6 +134,11 @@ void rlc_parsed_scope_entry_list_add(
 	@dassert @nonnull */
 void rlc_parsed_scope_entry_list_destroy(
 	struct RlcParsedScopeEntryList * this);
+
+void rlc_parsed_scope_entry_list_print(
+	struct RlcParsedScopeEntryList const * this,
+	struct RlcSrcFile const * file,
+	struct RlcPrinter const * printer);
 
 #ifdef __cplusplus
 }

@@ -90,3 +90,49 @@ int rlc_parsed_namespace_parse(
 	rlc_parser_untrace(parser, &tracer);
 	return 1;
 }
+
+void rlc_parsed_namespace_print(
+	struct RlcParsedNamespace const * this,
+	struct RlcSrcFile const * file,
+	struct RlcPrinter const * printer)
+{
+	FILE * out;
+	for(int i = 0; i<6; i++)
+	{
+		switch(i)
+		{
+		case 0: out = printer->fTypes; break;
+		case 1: out = printer->fVars; break;
+		case 2: out = printer->fFuncs; break;
+		case 3: out = printer->fTypesImpl; break;
+		case 4: out = printer->fVarsImpl; break;
+		case 5: out = printer->fFuncsImpl; break;
+		}
+		fprintf(out, "namespace ");
+		rlc_src_string_print(
+			&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+			file,
+			out);
+		fprintf(out, " {\n");
+	}
+
+	rlc_parsed_scope_entry_list_print(
+		&this->fEntryList,
+		file,
+		printer);
+
+
+	for(int i = 0; i < 6; i++)
+	{
+		switch(i)
+		{
+		case 0: out = printer->fTypes; break;
+		case 1: out = printer->fVars; break;
+		case 2: out = printer->fFuncs; break;
+		case 3: out = printer->fTypesImpl; break;
+		case 4: out = printer->fVarsImpl; break;
+		case 5: out = printer->fFuncsImpl; break;
+		}
+		fputs("}\n", out);
+	}
+}

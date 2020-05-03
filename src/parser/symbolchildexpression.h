@@ -53,6 +53,11 @@ _Nodiscard int rlc_parsed_symbol_child_expression_parse(
 	struct RlcParsedSymbolChildExpression * out,
 	struct RlcParser * parser);
 
+void rlc_parsed_symbol_child_expression_print(
+	struct RlcParsedSymbolChildExpression const * this,
+	struct RlcSrcFile const * file,
+	FILE * out);
+
 #ifdef __cplusplus
 }
 #endif

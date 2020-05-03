@@ -71,6 +71,11 @@ int rlc_parsed_if_statement_parse(
 	struct RlcParsedIfStatement * out,
 	struct RlcParser * parser);
 
+void rlc_parsed_if_statement_print(
+	struct RlcParsedIfStatement const * this,
+	struct RlcSrcFile const * file,
+	FILE * out);
+
 #ifdef __cplusplus
 }
 #endif

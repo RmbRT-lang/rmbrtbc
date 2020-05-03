@@ -1,6 +1,7 @@
 #include "typedef.h"
 #include "parser.h"
 #include "../assert.h"
+#include "../printer.h"
 
 
 int rlc_parsed_typedef_parse(
@@ -37,7 +38,8 @@ int rlc_parsed_typedef_parse(
 
 	if(!rlc_parsed_type_name_parse(
 		&out->fType,
-		parser))
+		parser,
+		0))
 	{
 		rlc_parser_fail(parser, "exected type name");
 	}
@@ -133,4 +135,20 @@ int rlc_parsed_member_typedef_parse(
 		common);
 
 	return 1;
+}
+
+void rlc_parsed_typedef_print(
+	struct RlcParsedTypedef const * this,
+	struct RlcSrcFile const * file,
+	struct RlcPrinter const * printer)
+{
+	rlc_parsed_template_decl_print(&this->fTemplates, file, printer->fTypes);
+	fputs("using ", printer->fTypes);
+	rlc_src_string_print(
+		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+		file,
+		printer->fTypes);
+	fputs(" = ", printer->fTypes);
+	rlc_parsed_type_name_print(&this->fType, file, printer->fTypes);
+	fputs(";\n", printer->fTypes);
 }

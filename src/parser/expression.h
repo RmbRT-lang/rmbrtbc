@@ -89,6 +89,11 @@ struct RlcParsedExpression * rlc_parsed_expression_parse(
 	struct RlcParser * parser,
 	int flags);
 
+void rlc_parsed_expression_print(
+	struct RlcParsedExpression const * this,
+	struct RlcSrcFile const * file,
+	FILE * out);
+
 /** A list of expressions. */
 struct RlcParsedExpressionList
 {

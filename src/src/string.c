@@ -81,3 +81,36 @@ char const * rlc_src_string_cstr(
 
 	return ret;
 }
+
+void rlc_src_string_print(
+	struct RlcSrcString const * this,
+	struct RlcSrcFile const * file,
+	FILE * out)
+{
+	RLC_DASSERT(this != NULL);
+	RLC_DASSERT(file != NULL);
+	RLC_DASSERT(out != NULL);
+
+	static char const * s_special_identifiers[] = {
+		"auto",
+		"class",
+		"const",
+		"delete",
+		"new",
+		"struct",
+		"template",
+		"typedef",
+		"typename",
+		"using"
+		"volatile",
+	};
+
+	for(size_t i = 0; i < _countof(s_special_identifiers); i++)
+		if(0 == rlc_src_string_cmp_cstr(file, this, s_special_identifiers[i]))
+		{
+			fputs("__rlc_", out);
+			break;
+		}
+
+	fprintf(out, "%.*s", (int)this->length, &file->fContents[this->start]);
+}

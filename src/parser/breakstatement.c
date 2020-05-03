@@ -48,3 +48,19 @@ int rlc_parsed_break_statement_parse(
 
 	return 1;
 }
+
+void rlc_parsed_break_statement_print(
+	struct RlcParsedBreakStatement const * this,
+	struct RlcSrcFile const * file,
+	FILE * out)
+{
+	if(this->fLabel.fExists)
+	{
+		fputs("goto ", out);
+		rlc_parsed_control_label_print_name(&this->fLabel, file, out, "_break");
+		fputs(";\n", out);
+	} else
+	{
+		fputs("break;\n", out);
+	}
+}

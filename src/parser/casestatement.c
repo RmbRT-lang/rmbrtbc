@@ -91,3 +91,25 @@ int rlc_parsed_case_statement_parse(
 
 	return 1;
 }
+
+void rlc_parsed_case_statement_print(
+	struct RlcParsedCaseStatement const * this,
+	struct RlcSrcFile const * file,
+	FILE * out)
+{
+	RLC_ASSERT(!this->fControlLabel.fExists);
+
+	if(this->fIsDefault)
+		fputs("default:\n", out);
+	else
+	{
+		for(size_t i = 0; i < this->fValues.fCount; i++)
+		{
+			fputs("case ", out);
+			rlc_parsed_expression_print(this->fValues.fValues[i], file, out);
+			fputs(":\n", out);
+		}
+	}
+
+	rlc_parsed_statement_print(this->fBody, file, out);
+}

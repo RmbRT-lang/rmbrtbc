@@ -60,6 +60,11 @@ int rlc_parsed_cast_expression_parse(
 	struct RlcParsedCastExpression * out,
 	struct RlcParser * parser);
 
+void rlc_parsed_cast_expression_print(
+	struct RlcParsedCastExpression const * this,
+	struct RlcSrcFile const * file,
+	FILE * out);
+
 #ifdef __cplusplus
 }
 #endif

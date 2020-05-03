@@ -14,6 +14,25 @@
 
 #include <string.h>
 
+void rlc_visibility_print(
+	enum RlcVisibility this,
+	int printColon,
+	FILE * out)
+{
+	RLC_DASSERT(RLC_IN_ENUM(this, RlcVisibility));
+	RLC_DASSERT(out != NULL);
+
+	char const * const k_strs[] = {
+		"public",
+		"protected",
+		"private"
+	};
+
+	fprintf(out, " %s%s ",
+		k_strs[this],
+		printColon ? ":" : "");
+}
+
 void rlc_parsed_member_create(
 	struct RlcParsedMember * this,
 	enum RlcParsedMemberType type,
@@ -27,7 +46,7 @@ void rlc_parsed_member_create(
 	this->fAttribute = member->attribute;
 }
 
-void rlc_parsed_member_destroy_virtual(
+void rlc_parsed_member_delete_virtual(
 	struct RlcParsedMember * this)
 {
 	RLC_DASSERT(this != NULL);
@@ -65,8 +84,10 @@ void rlc_parsed_member_destroy_virtual(
 	static_assert(RLC_COVERS_ENUM(k_offsets, RlcParsedMemberType), "ill-sized offset table.");
 
 
-	k_vtable[RLC_DERIVING_TYPE(this)](
-		(uint8_t*)this + k_offsets[RLC_DERIVING_TYPE(this)]);
+	void * p = (uint8_t*)this + k_offsets[RLC_DERIVING_TYPE(this)];
+	k_vtable[RLC_DERIVING_TYPE(this)](p);
+
+	rlc_free(&p);
 }
 
 void rlc_parsed_member_destroy_base(
@@ -117,6 +138,57 @@ struct RlcSrcString const * rlc_parsed_member_name(
 	if(k_name_table[type].has_name)
 		return
 			(struct RlcSrcString const *)
+				(((uintptr_t)this) + k_name_table[type].name_offset);
+	else
+		return NULL;
+}
+
+struct RlcParsedTemplateDecl const * rlc_parsed_member_templates(
+	struct RlcParsedMember const * this)
+{
+	#define WITH_TEMPLATES(Prefix, Type, tplName) \
+	{ \
+		kRlcParsed ## Type, \
+		1, \
+		RLC_DERIVE_OFFSET(RlcParsedMember, struct RlcParsed##Prefix##Type) \
+			+ RLC_BASE_OFFSET(RlcParsed##Type, struct RlcParsed##Prefix##Type) \
+			+ RLC_OFFSETOF(struct RlcParsed##Type, tplName) \
+	}
+#define WITHOUT_TEMPLATES(Type) { k ## Type, 0, 0 }
+
+	static struct {
+		// As a sanity check.
+		enum RlcParsedMemberType type;
+		int8_t has_name;
+		int16_t name_offset;
+	} const k_name_table[] = {
+		WITH_TEMPLATES(Member,Function, fTemplates),
+		WITH_TEMPLATES(Member,Variable, fTemplates),
+		WITH_TEMPLATES(Member,Rawtype, fTemplates),
+		WITH_TEMPLATES(Member,Union, fTemplates),
+		WITH_TEMPLATES(Member,Class, fTemplateDecl),
+		WITHOUT_TEMPLATES(RlcParsedEnum),
+		WITH_TEMPLATES(Member,Typedef, fTemplates),
+		{
+			kRlcParsedConstructor,
+			1,
+			RLC_DERIVE_OFFSET(RlcParsedMember, struct RlcParsedConstructor)
+				+ RLC_OFFSETOF(struct RlcParsedConstructor, fTemplates)
+		},
+		WITHOUT_TEMPLATES(RlcParsedDestructor)
+	};
+
+	static_assert(RLC_COVERS_ENUM(k_name_table, RlcParsedMemberType), "ill-sized table");
+
+	RLC_DASSERT(this != NULL);
+
+	enum RlcParsedMemberType const type = RLC_DERIVING_TYPE(this);
+	RLC_DASSERT(RLC_IN_ENUM(type, RlcParsedMemberType));
+	RLC_DASSERT(type == k_name_table[type].type);
+
+	if(k_name_table[type].has_name)
+		return
+			(struct RlcParsedTemplateDecl const *)
 				(((uintptr_t)this) + k_name_table[type].name_offset);
 	else
 		return NULL;
@@ -277,7 +349,7 @@ struct RlcParsedMember * rlc_parsed_member_parse(
 		k ## Type,\
 		(parse_fn_t)parse, \
 		sizeof(struct Type), \
-		RLC_DERIVE_OFFSET(RlcParsedMember, struct Type) }
+		RLC_BASE_OFFSET(RlcParsedMember, struct Type) }
 
 	static struct {
 		enum RlcParsedMemberType fType;
@@ -295,6 +367,7 @@ struct RlcParsedMember * rlc_parsed_member_parse(
 		ENTRY(RlcParsedMemberRawtype, &rlc_parsed_member_rawtype_parse),
 		ENTRY(RlcParsedMemberTypedef, &rlc_parsed_member_typedef_parse)
 	};
+#undef ENTRY
 
 	static_assert(RLC_COVERS_ENUM(k_parse_lookup, RlcParsedMemberType), "ill-sized parse table.");
 
@@ -326,6 +399,53 @@ struct RlcParsedMember * rlc_parsed_member_parse(
 		rlc_parser_fail(parser, "expected member");
 
 	return NULL;
+}
+
+void rlc_parsed_member_print(
+	struct RlcParsedMember const * this,
+	struct RlcSrcFile const * file,
+	struct RlcPrinter * printer)
+{
+	RLC_DASSERT(this != NULL);
+	RLC_DASSERT(file != NULL);
+	RLC_DASSERT(printer != NULL);
+
+	typedef void (*print_fn_t)(
+		void const *,
+		struct RlcSrcFile const *,
+		struct RlcPrinter const *);
+
+
+#define ENTRY(Type, print) { \
+		(print_fn_t)print, \
+		RLC_DERIVE_OFFSET(RlcParsedMember, struct Type), \
+		k##Type }
+
+	static struct {
+		print_fn_t fPrintFn;
+		size_t fOffset;
+		enum RlcParsedMemberType type;
+	} const k_vtable[] = {
+		ENTRY(RlcParsedMemberFunction, &rlc_parsed_member_function_print),
+		ENTRY(RlcParsedMemberVariable, &rlc_parsed_member_variable_print),
+		{0,0,0},//ENTRY(RlcParsedMemberRawtype, &rlc_parsed_member_rawtype_print),
+		{0,0,0},//ENTRY(RlcParsedMemberUnion, &rlc_parsed_member_union_print),
+		ENTRY(RlcParsedMemberClass, &rlc_parsed_member_class_print),
+		ENTRY(RlcParsedMemberEnum, &rlc_parsed_member_enum_print),
+		{0,0,0},//ENTRY(RlcParsedMemberTypedef, &rlc_parsed_member_typedef_print),
+		ENTRY(RlcParsedConstructor, NULL), // Constructors need special logic.
+		ENTRY(RlcParsedDestructor, NULL) // Destructors need special logic.
+	};
+#undef ENTRY
+
+	static_assert(RLC_COVERS_ENUM(k_vtable, RlcParsedMemberType), "ill-sized parse table.");
+	RLC_DASSERT(k_vtable[RLC_DERIVING_TYPE(this)].type == RLC_DERIVING_TYPE(this));
+
+
+	k_vtable[RLC_DERIVING_TYPE(this)].fPrintFn(
+		((char*)this) + k_vtable[RLC_DERIVING_TYPE(this)].fOffset,
+		file,
+		printer);
 }
 
 void rlc_parsed_member_list_create(
@@ -360,11 +480,21 @@ void rlc_parsed_member_list_destroy(
 	{
 		for(size_t i = 0; i < this->fEntryCount; i++)
 		{
-			rlc_parsed_member_destroy_virtual(this->fEntries[i]);
-			rlc_free((void**)&this->fEntries[i]);
+			rlc_parsed_member_delete_virtual(this->fEntries[i]);
 		}
 		rlc_free((void**)&this->fEntries);
 	}
 
 	this->fEntryCount = 0;
+}
+
+void rlc_parsed_member_list_print(
+	struct RlcParsedMemberList const * this,
+	struct RlcSrcFile const * file,
+	struct RlcPrinter * printer)
+{
+	for(RlcSrcIndex i = 0; i < this->fEntryCount; i++)
+	{
+		rlc_parsed_member_print(this->fEntries[i], file, printer);
+	}
 }

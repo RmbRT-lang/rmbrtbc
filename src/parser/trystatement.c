@@ -96,6 +96,34 @@ int rlc_parsed_try_statement_parse(
 	return 1;
 }
 
+void rlc_parsed_try_statement_print(
+	struct RlcParsedTryStatement const * this,
+	struct RlcSrcFile const * file,
+	FILE * out)
+{
+	fputs("try {", out);
+	rlc_parsed_statement_print(this->fBody, file, out);
+	fputs("}", out);
+
+	for(RlcSrcIndex i = 0; i < this->fCatchCount; i++)
+	{
+		fputs(" catch(", out);
+		if(this->fCatches[i].fIsVoid)
+			fputs("nullthrow_t", out);
+		else
+			rlc_parsed_variable_print_argument(
+				&this->fCatches[i].fException,
+				file,
+				out,
+				1);
+		fputs(") {\n\t", out);
+		rlc_parsed_statement_print(this->fBody, file, out);
+		fputs("}", out);
+	}
+
+	fputc('\n', out);
+}
+
 int rlc_parsed_catch_statement_parse(
 	struct RlcParsedCatchStatement * out,
 	struct RlcParser * parser)

@@ -29,6 +29,8 @@ void rlc_parsed_union_destroy(
 	rlc_parsed_member_list_destroy(
 		&this->fMembers);
 
+	rlc_parsed_template_decl_destroy(&this->fTemplates);
+
 	rlc_parsed_scope_entry_destroy_base(
 		RLC_BASE_CAST(this, RlcParsedScopeEntry));
 }
@@ -91,6 +93,68 @@ int rlc_parsed_union_parse(
 		kRlcTokBraceClose);
 
 	return 1;
+}
+
+
+static void rlc_parsed_union_print_decl(
+	struct RlcParsedUnion const * this,
+	struct RlcSrcFile const * file,
+	FILE * out)
+{
+	rlc_parsed_template_decl_print(&this->fTemplates, file, out);
+	fprintf(out, "union ");
+	rlc_src_string_print(
+		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+		file,
+		out);
+	fputs(";\n", out);
+}
+
+static void rlc_parsed_union_print_impl(
+	struct RlcParsedUnion const * this,
+	struct RlcSrcFile const * file,
+	struct RlcPrinter * printer)
+{
+	struct RlcPrinterCtx ctx;
+	rlc_printer_add_ctx(
+		printer,
+		&ctx,
+		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+		&this->fTemplates);
+	FILE * out = printer->fTypesImpl;
+	rlc_parsed_template_decl_print(&this->fTemplates, file, out);
+	fprintf(out, "union ");
+	rlc_src_string_print(
+		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+		file,
+		out);
+
+	fprintf(out, " { ");
+
+	rlc_parsed_member_list_print(&this->fMembers, file, printer);
+
+	fprintf(out, " };\n");
+	rlc_printer_pop_ctx(printer);
+}
+
+void rlc_parsed_union_print(
+	struct RlcParsedUnion const * this,
+	struct RlcSrcFile const * file,
+	struct RlcPrinter * printer)
+{
+	RLC_DASSERT(this != NULL);
+	RLC_DASSERT(printer != NULL);
+
+
+	rlc_parsed_union_print_decl(
+		this,
+		file,
+		printer->fTypes);
+
+	rlc_parsed_union_print_impl(
+		this,
+		file,
+		printer);
 }
 
 void rlc_parsed_member_union_create(

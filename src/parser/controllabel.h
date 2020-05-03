@@ -35,6 +35,18 @@ void rlc_parsed_control_label_parse(
 	struct RlcParser * parser);
 
 
+void rlc_parsed_control_label_print_name(
+	struct RlcParsedControlLabel const * this,
+	struct RlcSrcFile const * file,
+	FILE * out,
+	char const * suffix);
+
+void rlc_parsed_control_label_print(
+	struct RlcParsedControlLabel const * this,
+	struct RlcSrcFile const * file,
+	FILE * out,
+	char const * suffix);
+
 #ifdef __cplusplus
 }
 #endif

@@ -63,6 +63,11 @@ _Nodiscard int rlc_parsed_rawtype_parse(
 	struct RlcParser * parser,
 	struct RlcParsedTemplateDecl const * templates);
 
+void rlc_parsed_rawtype_print(
+	struct RlcParsedRawtype const * this,
+	struct RlcSrcFile const * file,
+	struct RlcPrinter * printer);
+
 /** A member rawtype as used by the parser.
 @implements RlcParsedMember
 @implements RlcParsedRawtype */

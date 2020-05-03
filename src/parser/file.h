@@ -12,6 +12,8 @@
 extern "C" {
 #endif
 
+struct RlcPrinter;
+
 /** A parsed input file. */
 struct RlcParsedFile
 {
@@ -57,6 +59,10 @@ void rlc_parsed_file_destroy(
 	The file's name. */
 char const * rlc_parsed_file_name(
 	struct RlcParsedFile const * this);
+
+void rlc_parsed_file_print(
+	struct RlcParsedFile * this,
+	struct RlcPrinter const * printer);
 
 #ifdef __cplusplus
 }

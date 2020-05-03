@@ -60,6 +60,7 @@ _Nodiscard int rlc_parsed_enum_constant_parse(
 	struct RlcParser * parser);
 
 
+
 /** Enum type.
 @extends RlcParsedScopeEntry */
 struct RlcParsedEnum
@@ -71,6 +72,11 @@ struct RlcParsedEnum
 	/** The constant count. */
 	size_t fConstantCount;
 };
+
+void rlc_parsed_enum_print(
+	struct RlcParsedEnum const * this,
+	struct RlcSrcFile const * file,
+	struct RlcPrinter * printer);
 
 /** Member enum type.
 @extends RlcParsedMember
@@ -157,6 +163,11 @@ _Nodiscard int rlc_parsed_member_enum_parse(
 	struct RlcParsedMemberEnum * out,
 	struct RlcParser * parser,
 	struct RlcParsedMemberCommon const * member);
+
+void rlc_parsed_member_enum_print(
+	struct RlcParsedMemberEnum const * this,
+	struct RlcSrcFile const * file,
+	struct RlcPrinter * printer);
 
 #ifdef __cplusplus
 }

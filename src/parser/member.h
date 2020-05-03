@@ -9,10 +9,13 @@
 #include "../macros.h"
 
 #include <stddef.h>
+#include <stdio.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+struct RlcPrinter;
 
 /** The protection level of a member. */
 enum RlcVisibility
@@ -26,6 +29,11 @@ enum RlcVisibility
 
 	RLC_ENUM_END(RlcVisibility)
 };
+
+void rlc_visibility_print(
+	enum RlcVisibility this,
+	int printColon,
+	FILE * out);
 
 /** The deriving type of RlcParsedMember. */
 enum RlcParsedMemberType
@@ -134,12 +142,12 @@ void rlc_parsed_member_create(
 	enum RlcParsedMemberType type,
 	struct RlcParsedMemberCommon const * common);
 
-/** Destroys a parsed member.
+/** Destroys and deletes a parsed member.
 @memberof RlcParsedMember
 @param[in] this:
-	The member to destroy.
+	The member to destroy and delete.
 	@dassert @nonnull */
-void rlc_parsed_member_destroy_virtual(
+void rlc_parsed_member_delete_virtual(
 	struct RlcParsedMember * this);
 
 /** Destroys a parsed member.
@@ -160,6 +168,8 @@ void rlc_parsed_member_destroy_base(
 	The member's name. `NULL` if the member has no name (i.e., constructors or destructors). */
 struct RlcSrcString const * rlc_parsed_member_name(
 	struct RlcParsedMember const * this);
+struct RlcParsedTemplateDecl const * rlc_parsed_member_templates(
+	struct RlcParsedMember const * this);
 
 /** Parses a member declaration.
 	Goes through all member types and tries to parse them.
@@ -176,6 +186,11 @@ struct RlcParsedMember * rlc_parsed_member_parse(
 	struct RlcParser * parser,
 	struct RlcParsedMemberCommon * member,
 	int flags);
+
+void rlc_parsed_member_print(
+	struct RlcParsedMember const * this,
+	struct RlcSrcFile const * file,
+	struct RlcPrinter * printer);
 
 /** A list of parsed members. */
 struct RlcParsedMemberList
@@ -212,6 +227,12 @@ void rlc_parsed_member_list_add(
 	The member list to destroy. */
 void rlc_parsed_member_list_destroy(
 	struct RlcParsedMemberList * this);
+
+
+void rlc_parsed_member_list_print(
+	struct RlcParsedMemberList const * this,
+	struct RlcSrcFile const * file,
+	struct RlcPrinter * printer);
 
 #ifdef __cplusplus
 }

@@ -76,6 +76,11 @@ void rlc_parsed_switch_statement_add_case(
 	struct RlcParsedSwitchStatement * this,
 	struct RlcParsedCaseStatement * case_stmt);
 
+void rlc_parsed_switch_statement_print(
+	struct RlcParsedSwitchStatement const * this,
+	struct RlcSrcFile const * file,
+	FILE * out);
+
 #ifdef __cplusplus
 }
 #endif

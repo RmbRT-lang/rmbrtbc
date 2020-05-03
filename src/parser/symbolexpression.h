@@ -52,6 +52,11 @@ _Nodiscard int rlc_parsed_symbol_expression_parse(
 	struct RlcParsedSymbolExpression * out,
 	struct RlcParser * parser);
 
+void rlc_parsed_symbol_expression_print(
+	struct RlcParsedSymbolExpression const * this,
+	struct RlcSrcFile const * file,
+	FILE * out);
+
 #ifdef __cplusplus
 }
 #endif

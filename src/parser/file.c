@@ -1,6 +1,8 @@
 #include "file.h"
 #include "../assert.h"
 #include "../malloc.h"
+#include "../printer.h"
+
 #include <stdio.h>
 
 int rlc_parsed_file_create(
@@ -66,4 +68,11 @@ char const * rlc_parsed_file_name(
 	RLC_DASSERT(this != NULL);
 
 	return this->fSource.fName;
+}
+
+void rlc_parsed_file_print(
+	struct RlcParsedFile * this,
+	struct RlcPrinter const * printer)
+{
+	rlc_parsed_scope_entry_list_print(&this->fScopeEntries, &this->fSource, printer);
 }

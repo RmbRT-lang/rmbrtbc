@@ -42,51 +42,29 @@ void rlc_parsed_statement_destroy_virtual(
 	typedef void (*thiscall_t) (
 		void * this);
 
+#define ENTRY(type, fn) { \
+		(thiscall_t)&fn, \
+		RLC_DERIVE_OFFSET(RlcParsedStatement, struct RlcParsed##type) \
+	}
 	static struct Destructor {
 		thiscall_t fAddress;
 		ptrdiff_t fOffset;
 	} const k_vtable[] = {
-		{
-			(thiscall_t)&rlc_parsed_expression_statement_destroy,
-			RLC_DERIVE_OFFSET(RlcParsedStatement, struct RlcParsedExpressionStatement)
-		}, {
-			(thiscall_t)&rlc_parsed_block_statement_destroy,
-			RLC_DERIVE_OFFSET(RlcParsedStatement, struct RlcParsedBlockStatement)
-		}, {
-			(thiscall_t)&rlc_parsed_if_statement_destroy,
-			RLC_DERIVE_OFFSET(RlcParsedStatement, struct RlcParsedIfStatement)
-		}, {
-			(thiscall_t)&rlc_parsed_loop_statement_destroy,
-			RLC_DERIVE_OFFSET(RlcParsedStatement, struct RlcParsedLoopStatement)
-		}, {
-			(thiscall_t)&rlc_parsed_variable_statement_destroy,
-			RLC_DERIVE_OFFSET(RlcParsedStatement, struct RlcParsedVariableStatement)
-		}, {
-			(thiscall_t)&rlc_parsed_return_statement_destroy,
-			RLC_DERIVE_OFFSET(RlcParsedStatement, struct RlcParsedReturnStatement)
-		}, {
-			(thiscall_t)&rlc_parsed_switch_statement_destroy,
-			RLC_DERIVE_OFFSET(RlcParsedStatement, struct RlcParsedSwitchStatement)
-		}, {
-			(thiscall_t)&rlc_parsed_case_statement_destroy,
-			RLC_DERIVE_OFFSET(RlcParsedStatement, struct RlcParsedCaseStatement)
-		}, {
-			(thiscall_t)&rlc_parsed_break_statement_destroy,
-			RLC_DERIVE_OFFSET(RlcParsedStatement, struct RlcParsedBreakStatement)
-		}, {
-			(thiscall_t)&rlc_parsed_continue_statement_destroy,
-			RLC_DERIVE_OFFSET(RlcParsedStatement, struct RlcParsedContinueStatement)
-		}, {
-			(thiscall_t)&rlc_parsed_try_statement_destroy,
-			RLC_DERIVE_OFFSET(RlcParsedStatement, struct RlcParsedTryStatement)
-		}, {
-			(thiscall_t)&rlc_parsed_throw_statement_destroy,
-			RLC_DERIVE_OFFSET(RlcParsedStatement, struct RlcParsedThrowStatement)
-		}, {
-			(thiscall_t)&rlc_parsed_catch_statement_destroy,
-			RLC_DERIVE_OFFSET(RlcParsedStatement, struct RlcParsedCatchStatement)
-		}
+		ENTRY(ExpressionStatement, rlc_parsed_expression_statement_destroy),
+		ENTRY(BlockStatement, rlc_parsed_block_statement_destroy),
+		ENTRY(IfStatement, rlc_parsed_if_statement_destroy),
+		ENTRY(LoopStatement, rlc_parsed_loop_statement_destroy),
+		ENTRY(VariableStatement, rlc_parsed_variable_statement_destroy),
+		ENTRY(ReturnStatement, rlc_parsed_return_statement_destroy),
+		ENTRY(SwitchStatement, rlc_parsed_switch_statement_destroy),
+		ENTRY(CaseStatement, rlc_parsed_case_statement_destroy),
+		ENTRY(BreakStatement, rlc_parsed_break_statement_destroy),
+		ENTRY(ContinueStatement, rlc_parsed_continue_statement_destroy),
+		ENTRY(TryStatement, rlc_parsed_try_statement_destroy),
+		ENTRY(ThrowStatement, rlc_parsed_throw_statement_destroy),
+		ENTRY(CatchStatement, rlc_parsed_catch_statement_destroy)
 	};
+#undef ENTRY
 
 	static_assert(RLC_COVERS_ENUM(k_vtable, RlcParsedStatementType), "ill-sized vtable.");
 
@@ -225,4 +203,51 @@ void rlc_parsed_statement_list_add(
 		sizeof(struct RlcParsedStatement *) * ++this->fStatementCount);
 
 	this->fStatements[this->fStatementCount-1] = stmt;
+}
+
+void rlc_parsed_statement_print(
+	struct RlcParsedStatement * this,
+	struct RlcSrcFile const * file,
+	FILE * out)
+{
+	RLC_DASSERT(this != NULL);
+
+	typedef void (*print_fn_t) (
+		void const *,
+		struct RlcSrcFile const *,
+		FILE *);
+
+#define ENTRY(type, fn) { \
+		(print_fn_t)fn, \
+		RLC_DERIVE_OFFSET(RlcParsedStatement, struct RlcParsed##type) \
+	}
+
+	static struct Destructor {
+		print_fn_t fAddress;
+		ptrdiff_t fOffset;
+	} const k_vtable[] = {
+		ENTRY(ExpressionStatement, rlc_parsed_expression_statement_print),
+		ENTRY(BlockStatement, rlc_parsed_block_statement_print),
+		ENTRY(IfStatement, rlc_parsed_if_statement_print),
+		ENTRY(LoopStatement, rlc_parsed_loop_statement_print),
+		ENTRY(VariableStatement, rlc_parsed_variable_statement_print),
+		ENTRY(ReturnStatement, rlc_parsed_return_statement_print),
+		ENTRY(SwitchStatement, rlc_parsed_switch_statement_print),
+		ENTRY(CaseStatement, rlc_parsed_case_statement_print),
+		ENTRY(BreakStatement, rlc_parsed_break_statement_print),
+		ENTRY(ContinueStatement, rlc_parsed_continue_statement_print),
+		ENTRY(TryStatement, rlc_parsed_try_statement_print),
+		ENTRY(ThrowStatement, rlc_parsed_throw_statement_print),
+		ENTRY(CatchStatement, NULL) // must not appear globally.
+	};
+#undef ENTRY
+
+	static_assert(RLC_COVERS_ENUM(k_vtable, RlcParsedStatementType), "ill-sized vtable.");
+
+	RLC_DASSERT(RLC_IN_ENUM(RLC_DERIVING_TYPE(this), RlcParsedStatementType));
+	RLC_DASSERT(k_vtable[RLC_DERIVING_TYPE(this)].fAddress);
+	k_vtable[RLC_DERIVING_TYPE(this)].fAddress(
+		(void*)((uintptr_t)this + k_vtable[RLC_DERIVING_TYPE(this)].fOffset),
+		file,
+		out);
 }

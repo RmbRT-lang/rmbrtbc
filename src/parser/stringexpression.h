@@ -62,6 +62,11 @@ _Nodiscard int rlc_parsed_string_expression_parse(
 	struct RlcParsedStringExpression * out,
 	struct RlcParser * parser);
 
+void rlc_parsed_string_expression_print(
+	struct RlcParsedStringExpression const * this,
+	struct RlcSrcFile const * file,
+	FILE * out);
+
 #ifdef __cplusplus
 }
 #endif

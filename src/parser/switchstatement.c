@@ -124,3 +124,39 @@ void rlc_parsed_switch_statement_add_case(
 		sizeof(struct RlcParsedCaseStatement) * ++this->fCaseCount);
 	this->fCases[this->fCaseCount-1] = *statement;
 }
+
+void rlc_parsed_switch_statement_print(
+	struct RlcParsedSwitchStatement const * this,
+	struct RlcSrcFile const * file,
+	FILE * out)
+{
+	if(this->fIsVariableSwitchValue)
+	{
+		fputs("{\n\t", out);
+		rlc_parsed_variable_print_argument(
+			&this->fSwitchValue.fVariable,
+			file,
+			out,
+			1);
+		fputs(";\n\tswitch(", out);
+		rlc_src_string_print(
+			&RLC_BASE_CAST(
+				&this->fSwitchValue.fVariable,
+				RlcParsedScopeEntry)->fName,
+			file,
+			out);
+	} else
+	{
+		fputs("switch(", out);
+		rlc_parsed_expression_print(this->fSwitchValue.fExpression, file, out);
+	}
+	fputs(")\n{", out);
+
+	for(size_t i = 0; i < this->fCaseCount; i++)
+		rlc_parsed_case_statement_print(&this->fCases[i], file, out);
+	fputs("}\n", out);
+
+	if(this->fIsVariableSwitchValue)
+		fputs("}\n", out);
+	rlc_parsed_control_label_print(&this->fLabel, file, out, "_break");
+}

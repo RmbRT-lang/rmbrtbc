@@ -501,3 +501,127 @@ void rlc_parsed_operator_expression_add(
 	this->fExpressions[this->fExpressionCount-1] = expression;
 	RLC_BASE_CAST(this, RlcParsedExpression)->fLast = expression->fLast;
 }
+
+void rlc_parsed_operator_expression_print(
+	struct RlcParsedOperatorExpression const * this,
+	struct RlcSrcFile const * file,
+	FILE * out)
+{
+	static struct {
+		enum RlcOperator op;
+		int position;
+		char const * str;
+		int needsParentheses;
+	} const k_position[] = {
+		{kAdd, 1, "+",1}, {kSub, 1, "-",1}, {kMul, 1, "*",1}, {kDiv, 1, "/",1}, {kMod, 1, "%",1},
+		{kEquals, 1, "==",1}, {kNotEquals, 1, "!=",1}, {kLess, 1, "<",1},
+		{kLessEquals, 1, "<=",1}, {kGreater, 1, ">",1}, {kGreaterEquals, 1, ">=",1},
+
+		{kBitAnd, 1, "&",1}, {kBitOr, 1, "|",1}, {kBitXor, 1, "^",1}, {kBitNot, 0, "~",1},
+		{kLogAnd, 1, "&&",1}, {kLogOr, 1, "||",1}, {kLogNot, 0, "!",1},
+		{kShiftLeft, 1, "<<",1}, {kShiftRight, 1, ">>",1},
+		{kRotateLeft, -1, NULL,1}, {kRotateRight, -1, NULL,1},
+		{kNeg, 0, "-",1}, {kPos, 0, "+",1},
+		{kSubscript, -1, NULL,0}, {kCall, -1, NULL,0}, {kConditional, -1, NULL,1},
+		{kMemberReference, -1, ".",0}, {kMemberPointer, -1, "->",0},
+		{kBindReference, 1, ".*",1}, {kBindPointer, 1, "->*",1},
+		{kDereference, 0, "*",1}, {kAddress, 0, "&",1},
+		{kPreIncrement, 0, "++",1}, {kPreDecrement, 0, "--",1},
+		{kPostIncrement, 2, "++",1}, {kPostDecrement, 2, "--",1},
+
+		{kAsync, -1, NULL,1},
+		{kFullAsync, -1, NULL,1},
+		{kExpectDynamic, -1, NULL,1},
+		{kMaybeDynamic, -1, NULL,1},
+
+		{kAssign, 1, "=",1}
+	};
+
+	RLC_DASSERT(k_position[this->fOperator].op == this->fOperator);
+
+	switch(k_position[this->fOperator].position)
+	{
+	case 0:
+		{
+			RLC_DASSERT(this->fExpressionCount == 1);
+			fprintf(out, " %s", k_position[this->fOperator].str);
+		} break;
+	default:;
+	}
+
+	if(k_position[this->fOperator].needsParentheses)
+		fputc('(', out);
+
+	rlc_parsed_expression_print(
+		this->fExpressions[0],
+		file,
+		out);
+
+	switch(k_position[this->fOperator].position)
+	{
+	case 1:
+		{
+			RLC_DASSERT(this->fExpressionCount == 2);
+			fprintf(out, " %s ", k_position[this->fOperator].str);
+			rlc_parsed_expression_print(
+				this->fExpressions[1],
+				file,
+				out);
+		} break;
+	case 2:
+		{
+			RLC_DASSERT(this->fExpressionCount == 1);
+			fprintf(out, "%s", k_position[this->fOperator].str);
+		} break;
+	case -1:
+		{
+			switch(this->fOperator)
+			{
+			case kSubscript:
+				{
+					RLC_DASSERT(this->fExpressionCount == 2);
+					fputc('[', out);
+					rlc_parsed_expression_print(this->fExpressions[1], file, out);
+					fputc(']', out);
+				} break;
+			case kCall:
+				{
+					fputc('(', out);
+					for(RlcSrcIndex i = 1; i < this->fExpressionCount; i++)
+					{
+						if(i>1)
+							fprintf(out, ", ");
+						rlc_parsed_expression_print(this->fExpressions[i], file, out);
+					}
+					fputc(')', out);
+				} break;
+			case kConditional:
+				{
+					RLC_DASSERT(this->fExpressionCount == 3);
+					fprintf(out, "\n\t? ");
+					rlc_parsed_expression_print(this->fExpressions[1], file, out);
+					fprintf(out, "\n\t: ");
+					rlc_parsed_expression_print(this->fExpressions[2], file, out);
+				} break;
+			case kMemberReference:
+				{
+					RLC_DASSERT(this->fExpressionCount == 2);
+					fprintf(out, ".");
+					rlc_parsed_expression_print(this->fExpressions[1], file, out);
+				} break;
+			case kMemberPointer:
+				{
+					RLC_DASSERT(this->fExpressionCount == 2);
+					fprintf(out, "->");
+					rlc_parsed_expression_print(this->fExpressions[1], file, out);
+				} break;
+			default:
+				RLC_ASSERT(!"not implemented");
+			}
+		} break;
+	default:;
+	}
+
+	if(k_position[this->fOperator].needsParentheses)
+		fputc(')', out);
+}

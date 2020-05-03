@@ -1,5 +1,6 @@
 #include "templatedecl.h"
 
+#include "../printer.h"
 #include "../malloc.h"
 #include "../assert.h"
 
@@ -101,7 +102,8 @@ void rlc_parsed_template_decl_parse(
 			child.fType = kRlcParsedTemplateDeclTypeNumber;
 		} else if(rlc_parsed_type_name_parse(
 			&child.fValueType,
-			parser))
+			parser,
+			0))
 		{
 			child.fType = kRlcParsedTemplateDeclTypeValue;
 		} else
@@ -131,4 +133,40 @@ void rlc_parsed_template_decl_child_destroy(
 		rlc_parsed_type_name_destroy(&this->fValueType);
 		this->fType = kRlcParsedTemplateDeclTypeNumber;
 	}
+}
+
+void rlc_parsed_template_decl_print(
+	struct RlcParsedTemplateDecl const * this,
+	struct RlcSrcFile const * file,
+	FILE * out)
+{
+	if(!this->fChildCount)
+		return;
+
+	fprintf(out, "template<");
+
+	for(RlcSrcIndex i = 0; i < this->fChildCount; i++)
+	{
+		if(i)
+			fprintf(out, ", ");
+
+		switch(this->fChildren[i].fType)
+		{
+		case kRlcParsedTemplateDeclTypeType:
+			{
+				fputs("class ", out);
+				rlc_src_string_print(&this->fChildren[i].fName, file, out);
+			} break;
+		case kRlcParsedTemplateDeclTypeNumber:
+			{
+				fprintf(out, "int ");
+				rlc_src_string_print(&this->fChildren[i].fName, file, out);
+			} break;
+		case kRlcParsedTemplateDeclTypeValue:
+		default:
+			RLC_ASSERT(!"not implemented");
+		}
+	}
+
+	fprintf(out, "> ");
 }

@@ -7,9 +7,6 @@
 #include <string.h>
 #include <stdio.h>
 
-// External declaration.
-char const * realpath(char const * path, char * buffer);
-
 
 char const * to_absolute_path(char const * path)
 {

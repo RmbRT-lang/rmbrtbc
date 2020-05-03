@@ -3,6 +3,7 @@
 
 #include "../malloc.h"
 #include "../assert.h"
+#include "../printer.h"
 
 void rlc_parsed_symbol_child_create(
 	struct RlcParsedSymbolChild * this)
@@ -54,7 +55,8 @@ static int rlc_parsed_symbol_child_template_parse(
 
 			if(!rlc_parsed_type_name_parse(
 				template.fTypeName,
-				parser))
+				parser,
+				0))
 			{
 				rlc_parser_fail(parser, "expected type name");
 			}
@@ -166,6 +168,57 @@ void rlc_parsed_symbol_child_destroy(
 	this->fTemplateCount = 0;
 }
 
+void rlc_parsed_symbol_child_print(
+	struct RlcParsedSymbolChild const * this,
+	struct RlcSrcFile const * file,
+	FILE * out,
+	int templateAllowed)
+{
+	if(this->fTemplateCount && templateAllowed)
+		fprintf(out, "template ");
+	switch(this->fType)
+	{
+	case kRlcParsedSymbolChildTypeIdentifier:
+		{
+			rlc_src_string_print(&this->fName, file, out);
+		} break;
+	case kRlcParsedSymbolChildTypeConstructor:
+		{
+			fprintf(out, " __rl_constructor ");
+		} break;
+	case kRlcParsedSymbolChildTypeDestructor:
+		{
+			fprintf(out, " __rl_destructor ");
+		} break;
+	}
+
+	if(this->fTemplateCount)
+	{
+		fputc('<', out);
+
+		for(RlcSrcIndex i = 0; i < this->fTemplateCount; i++)
+		{
+			if(i)
+				fprintf(out, ", ");
+			if(this->fTemplates[i].fIsExpression)
+			{
+				rlc_parsed_expression_print(
+					this->fTemplates[i].fExpression,
+					file,
+					out);
+			} else
+			{
+				rlc_parsed_type_name_print(
+					this->fTemplates[i].fTypeName,
+					file,
+					out);
+			}
+		}
+
+		fputc('>', out);
+	}
+}
+
 void rlc_parsed_symbol_destroy(
 	struct RlcParsedSymbol * this)
 {
@@ -249,4 +302,26 @@ int rlc_parsed_symbol_parse(
 		kRlcTokDoubleColon));
 
 	return parsed_any;
+}
+
+
+void rlc_parsed_symbol_print(
+	struct RlcParsedSymbol const * this,
+	struct RlcSrcFile const * file,
+	FILE * out)
+{
+	if(this->fIsRoot)
+		fprintf(out, "::");
+
+	for(RlcSrcIndex i = 0; i < this->fChildCount; i++)
+	{
+		if(i)
+			fprintf(out, "::");
+
+		rlc_parsed_symbol_child_print(
+			&this->fChildren[i],
+			file,
+			out,
+			i);
+	}
 }

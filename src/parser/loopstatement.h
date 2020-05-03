@@ -76,6 +76,11 @@ int rlc_parsed_loop_statement_parse(
 	struct RlcParsedLoopStatement * out,
 	struct RlcParser * parser);
 
+void rlc_parsed_loop_statement_print(
+	struct RlcParsedLoopStatement const * this,
+	struct RlcSrcFile const * file,
+	FILE * out);
+
 #ifdef __cplusplus
 }
 #endif

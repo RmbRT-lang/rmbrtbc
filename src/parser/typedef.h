@@ -87,6 +87,11 @@ _Nodiscard int rlc_parsed_member_typedef_parse(
 	struct RlcParser * parser,
 	struct RlcParsedMemberCommon const * common);
 
+void rlc_parsed_typedef_print(
+	struct RlcParsedTypedef const * this,
+	struct RlcSrcFile const * file,
+	struct RlcPrinter const * printer);
+
 #ifdef __cplusplus
 }
 #endif

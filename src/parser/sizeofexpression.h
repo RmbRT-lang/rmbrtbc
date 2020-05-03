@@ -54,6 +54,11 @@ _Nodiscard int rlc_parsed_sizeof_expression_parse(
 	struct RlcParsedSizeofExpression * out,
 	struct RlcParser * parser);
 
+void rlc_parsed_sizeof_expression_print(
+	struct RlcParsedSizeofExpression const * this,
+	struct RlcSrcFile const * file,
+	FILE * out);
+
 #ifdef __cplusplus
 }
 #endif

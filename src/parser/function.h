@@ -101,6 +101,17 @@ _Nodiscard int rlc_parsed_function_parse(
 	struct RlcParsedTemplateDecl const * templates,
 	int allow_body);
 
+void rlc_parsed_function_print(
+	struct RlcParsedFunction const * this,
+	struct RlcSrcFile const * file,
+	struct RlcPrinter const * out);
+
+void rlc_parsed_function_print_head(
+	struct RlcParsedFunction const * this,
+	struct RlcSrcFile const * file,
+	FILE * out,
+	int templates);
+
 enum RlcMemberFunctionAbstractness
 {
 	kRlcMemberFunctionAbstractnessNone,
@@ -143,6 +154,11 @@ _Nodiscard int rlc_parsed_member_function_parse(
 	struct RlcParsedMemberFunction * out,
 	struct RlcParser * parser,
 	struct RlcParsedMemberCommon const * member);
+
+void rlc_parsed_member_function_print(
+	struct RlcParsedMemberFunction const * this,
+	struct RlcSrcFile const * file,
+	struct RlcPrinter const * out);
 
 #ifdef __cplusplus
 }

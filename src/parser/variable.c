@@ -24,7 +24,6 @@ void rlc_parsed_variable_create(
 	this->fHasType = 0;
 	this->fInitArgs = NULL;
 	this->fInitArgCount = 0;
-	this->fReferenceType = kRlcReferenceTypeNone;
 }
 
 void rlc_parsed_variable_destroy(
@@ -199,7 +198,6 @@ int rlc_parsed_variable_parse(
 
 	if(!needs_type)
 	{
-		out->fReferenceType = kRlcReferenceTypeNone;
 		struct RlcParsedExpression * init = rlc_parsed_expression_parse(
 			parser,
 			RLC_ALL_FLAGS(RlcParsedExpressionType));
@@ -210,7 +208,8 @@ int rlc_parsed_variable_parse(
 	{
 		if(!rlc_parsed_type_name_parse(
 			&out->fType,
-			parser))
+			parser,
+			allow_reference))
 		{
 			if(needs_name)
 				rlc_parser_fail(parser, "expected type name");
@@ -222,24 +221,6 @@ int rlc_parsed_variable_parse(
 		}
 
 		out->fHasType = 1;
-
-		out->fReferenceType = kRlcReferenceTypeNone;
-		if(allow_reference)
-		{
-			if(rlc_parser_consume(
-				parser,
-				NULL,
-				kRlcTokAnd))
-			{
-				out->fReferenceType = kRlcReferenceTypeReference;
-			} else if(rlc_parser_consume(
-				parser,
-				NULL,
-				kRlcTokDoubleAnd))
-			{
-				out->fReferenceType = kRlcReferenceTypeTempReference;
-			}
-		}
 
 		if(allow_initialiser)
 		{
@@ -295,6 +276,82 @@ int rlc_parsed_variable_parse(
 	rlc_parser_untrace(parser, &tracer);
 	return 1;
 }
+
+void rlc_parsed_variable_print(
+	struct RlcParsedVariable const * this,
+	struct RlcSrcFile const * file,
+	struct RlcPrinter const * printer)
+{
+	fputs("extern ", printer->fVars);
+	rlc_parsed_variable_print_argument(this, file, printer->fVars, 0);
+	fputs(";\n", printer->fVars);
+
+	rlc_parsed_variable_print_argument(this, file, printer->fVarsImpl, 1);
+	fputs(";\n", printer->fVarsImpl);
+}
+
+static void rlc_parsed_variable_print_argument_1(
+	struct RlcParsedVariable const * this,
+	struct RlcSrcFile const * file,
+	FILE * out)
+{
+	rlc_parsed_template_decl_print(&this->fTemplates, file, out);
+
+	if(this->fHasType)
+		rlc_parsed_type_name_print(
+			&this->fType,
+			file,
+			out);
+	else
+		fprintf(out, "auto");
+}
+
+static void rlc_parsed_variable_print_argument_2(
+	struct RlcParsedVariable const * this,
+	struct RlcSrcFile const * file,
+	FILE * out,
+	int print_initialiser)
+{
+	if(RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName.length)
+	{
+		fputc(' ', out);
+
+		rlc_src_string_print(
+			&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+			file,
+			out);
+	}
+
+	if(!print_initialiser)
+		return;
+
+	if(this->fInitArgCount == 1)
+	{
+		fprintf(out, " = ");
+		rlc_parsed_expression_print(this->fInitArgs[0], file, out);
+	} else if(this->fInitArgCount > 1)
+	{
+		fputc('{', out);
+		for(RlcSrcIndex i = 0; i < this->fInitArgCount; i++)
+		{
+			if(i)
+				fprintf(out, ", ");
+			rlc_parsed_expression_print(this->fInitArgs[i], file, out);
+		}
+		fputc('}', out);
+	}
+}
+
+void rlc_parsed_variable_print_argument(
+	struct RlcParsedVariable const * this,
+	struct RlcSrcFile const * file,
+	FILE * out,
+	int print_initialiser)
+{
+	rlc_parsed_variable_print_argument_1(this, file, out);
+	rlc_parsed_variable_print_argument_2(this, file, out, print_initialiser);
+}
+
 
 void rlc_parsed_member_variable_create(
 	struct RlcParsedMemberVariable * this,
@@ -355,4 +412,53 @@ int rlc_parsed_member_variable_parse(
 		member);
 
 	return 1;
+}
+
+void rlc_parsed_member_variable_print(
+	struct RlcParsedMemberVariable const * this,
+	struct RlcSrcFile const * file,
+	struct RlcPrinter * printer)
+{
+	FILE * out = printer->fTypesImpl;
+	rlc_visibility_print(
+		RLC_BASE_CAST(this, RlcParsedMember)->fVisibility,
+		1,
+		out);
+
+	switch(RLC_BASE_CAST(this, RlcParsedMember)->fAttribute)
+	{
+	case kRlcMemberAttributeStatic:
+		fputs("static ", out);
+		break;
+	case kRlcMemberAttributeIsolated:
+		fputs("mutable ", out);
+		break;
+	default:;
+	}
+
+	rlc_parsed_variable_print_argument(
+		RLC_BASE_CAST(this, RlcParsedVariable),
+		file,
+		out,
+		0);
+	fputs(";\n", out);
+
+	if(RLC_BASE_CAST(this, RlcParsedMember)->fAttribute == kRlcMemberAttributeStatic)
+	{
+		out = printer->fVarsImpl;
+
+		rlc_printer_print_ctx_tpl(printer, file, out);
+		rlc_parsed_variable_print_argument_1(
+			RLC_BASE_CAST(this, RlcParsedVariable),
+			file,
+			out);
+		rlc_printer_print_ctx_symbol(printer, file, out);
+		fputs("::", out);
+		rlc_parsed_variable_print_argument_2(
+			RLC_BASE_CAST(this, RlcParsedVariable),
+			file,
+			out,
+			1);
+		fputs(";\n", out);
+	}
 }

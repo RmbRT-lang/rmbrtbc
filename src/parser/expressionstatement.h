@@ -45,4 +45,10 @@ void rlc_parsed_expression_statement_destroy(
 _Nodiscard int rlc_parsed_expression_statement_parse(
 	struct RlcParsedExpressionStatement * out,
 	struct RlcParser * parser);
+
+void rlc_parsed_expression_statement_print(
+	struct RlcParsedExpressionStatement const * this,
+	struct RlcSrcFile const * file,
+	FILE * out);
+
 #endif

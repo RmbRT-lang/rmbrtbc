@@ -110,7 +110,7 @@ void rlc_parsed_constructor_add_initialiser(
 struct RlcParsedInitialiser
 {
 	/** The member's name. */
-	struct RlcSrcString fMember;
+	struct RlcParsedSymbol fMember;
 	/** The arguments. */
 	struct RlcParsedExpression ** fArguments;
 	/** The argument count. */

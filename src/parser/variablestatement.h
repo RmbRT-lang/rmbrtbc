@@ -15,6 +15,7 @@ struct RlcParsedVariableStatement
 {
 	RLC_DERIVE(struct,RlcParsedStatement);
 	struct RlcParsedVariable fVariable;
+	int fIsStatic;
 };
 
 /** Creates a variable statement.
@@ -46,6 +47,11 @@ void rlc_parsed_variable_statement_destroy(
 int rlc_parsed_variable_statement_parse(
 	struct RlcParsedVariableStatement * out,
 	struct RlcParser * parser);
+
+void rlc_parsed_variable_statement_print(
+	struct RlcParsedVariableStatement const * this,
+	struct RlcSrcFile const * file,
+	FILE * out);
 
 #ifdef __cplusplus
 }

@@ -1,4 +1,5 @@
 #include "class.h"
+#include "constructor.h"
 
 #include "../assert.h"
 #include "../malloc.h"
@@ -23,6 +24,7 @@ void rlc_parsed_class_create(
 	this->fInheritances = NULL;
 	this->fInheritanceCount = 0;
 
+	rlc_parsed_member_list_create(&this->fConstructors);
 	rlc_parsed_member_list_create(&this->fMembers);
 
 	this->fHasDestructor = 0;
@@ -38,6 +40,7 @@ void rlc_parsed_class_destroy(
 	rlc_parsed_template_decl_destroy(&this->fTemplateDecl);
 
 	rlc_parsed_member_list_destroy(&this->fMembers);
+	rlc_parsed_member_list_destroy(&this->fConstructors);
 
 	if(this->fHasDestructor)
 	{
@@ -126,6 +129,11 @@ int rlc_parsed_class_parse(
 				RlcParsedMember,
 				struct RlcParsedDestructor);
 			rlc_free((void**)&member);
+		} else if(RLC_DERIVING_TYPE(member) == kRlcParsedConstructor)
+		{
+			rlc_parsed_member_list_add(
+				&out->fConstructors,
+				member);
 		} else
 		{
 			// add the member to the members list.
@@ -144,6 +152,226 @@ int rlc_parsed_class_parse(
 	rlc_parser_untrace(parser, &tracer);
 
 	return 1;
+}
+
+static void rlc_parsed_inheritance_print(
+	struct RlcParsedInheritance const * this,
+	struct RlcSrcFile const * file,
+	FILE * out)
+{
+	RLC_DASSERT(this != NULL);
+	RLC_DASSERT(file != NULL);
+	RLC_DASSERT(out != NULL);
+
+	rlc_visibility_print(this->fVisibility, 0, out);
+
+	if(this->fVirtual)
+		fprintf(out, " virtual ");
+
+	rlc_parsed_symbol_print(&this->fBase, file, out);
+}
+
+static void rlc_parsed_class_print_decl(
+	struct RlcParsedClass const * this,
+	struct RlcSrcFile const * file,
+	FILE * out)
+{
+	rlc_parsed_template_decl_print(&this->fTemplateDecl, file, out);
+	fputs("class ", out);
+	rlc_src_string_print(
+		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+		file,
+		out);
+	fputs(";\n", out);
+}
+
+static void rlc_parsed_class_print_impl(
+	struct RlcParsedClass const * this,
+	struct RlcSrcFile const * file,
+	struct RlcPrinter * printer)
+{
+	struct RlcPrinterCtx ctx;
+	rlc_printer_add_ctx(
+		printer,
+		&ctx,
+		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+		&this->fTemplateDecl);
+
+	FILE* out = printer->fTypesImpl;
+	rlc_parsed_template_decl_print(&this->fTemplateDecl, file, out);
+	fputs("class ", out);
+	rlc_src_string_print(
+		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+		file,
+		out);
+	if(this->fInheritanceCount)
+	{
+		fputc(':', out);
+		for(RlcSrcIndex i = 0; i < this->fInheritanceCount; i++)
+		{
+			if(i)
+				fputs(", ", out);
+
+			rlc_parsed_inheritance_print(
+				&this->fInheritances[i],
+				file,
+				out);
+		}
+	}
+
+	fprintf(out, " { ");
+
+	rlc_parsed_member_list_print(&this->fMembers, file, printer);
+
+
+
+	if(this->fHasDestructor)
+	{
+		RLC_ASSERT(this->fDestructor.fIsDefinition);
+
+		rlc_visibility_print(
+			RLC_BASE_CAST(&this->fDestructor, RlcParsedMember)->fVisibility,
+			1,
+			out);
+
+		if(this->fDestructor.fIsInline)
+			fputs("inline ", out);
+
+		fputc('~', out);
+		rlc_src_string_print(
+			&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+			file,
+			out);
+		fputs("();\n", out);
+
+		FILE * out = printer->fFuncsImpl;
+		rlc_printer_print_ctx_tpl(printer, file, out);
+		rlc_printer_print_ctx_symbol(printer, file, out);
+		fputs("::~", out);
+		rlc_src_string_print(
+			&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+			file,
+			out);
+		fputs("()\n", out);
+		rlc_parsed_block_statement_print(
+			&this->fDestructor.fBody,
+			file,
+			out);
+	}
+
+	// Print "destructor" member function.
+	if(!this->fHasDestructor)
+		fputs("public:", out);
+	fputs("inline void __rl_destructor() const { this->~", out);
+	rlc_src_string_print(
+		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+		file,
+		out);
+	fputs("(); }", out);
+
+	// Print "constructor" member function.
+	fputs(
+		"public:\n"
+		"template<class ...Args>\n"
+		"inline void __rl_constructor(Args&&...args)\n"
+		"{ ::__rl::placement_new(this, std::forward<Args>(args)...); }\n", out);
+
+	for(RlcSrcIndex i = 0; i < this->fConstructors.fEntryCount; i++)
+	{
+		struct RlcParsedConstructor * ctor = RLC_DERIVE_CAST(
+			this->fConstructors.fEntries[i],
+			RlcParsedMember,
+			struct RlcParsedConstructor);
+
+		rlc_visibility_print(
+			this->fConstructors.fEntries[i]->fVisibility,
+			1,
+			out);
+
+		rlc_parsed_template_decl_print(&ctor->fTemplates, file, out);
+		rlc_src_string_print(
+			&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+			file,
+			out);
+		fputc('(', out);
+
+		for(RlcSrcIndex j = 0; j < ctor->fArgumentCount; j++)
+		{
+			if(j)
+				fputs(", ", out);
+			rlc_parsed_variable_print_argument(
+				&ctor->fArguments[j],
+				file,
+				out,
+				1);
+		}
+		fputs(");\n", out);
+
+		FILE * out = printer->fFuncsImpl;
+		rlc_printer_print_ctx_tpl(printer, file, out);
+		rlc_parsed_template_decl_print(&ctor->fTemplates, file, out);
+		rlc_printer_print_ctx_symbol(printer, file, out);
+		fputs("::", out);
+		rlc_src_string_print(
+			&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+			file,
+			out);
+		fputc('(', out);
+
+		for(RlcSrcIndex j = 0; j < ctor->fArgumentCount; j++)
+		{
+			if(j)
+				fputs(", ", out);
+			rlc_parsed_variable_print_argument(
+				&ctor->fArguments[j],
+				file,
+				out,
+				1);
+		}
+		fputs(")\n", out);
+		for(RlcSrcIndex j = 0; j < ctor->fInitialiserCount; j++)
+		{
+			struct RlcParsedInitialiser * init = &ctor->fInitialisers[j];
+			fputs(j ? ", " : ": ", out);
+			rlc_parsed_symbol_print(&init->fMember, file, out);
+			fputc('(', out);
+			for(RlcSrcIndex k = 0; k < init->fArgumentCount; k++)
+			{
+				if(k)
+					fputs(", ", out);
+				rlc_parsed_expression_print(init->fArguments[k], file, out);
+			}
+			fputs(")\n", out);
+		}
+
+		if(ctor->fIsDefinition)
+		{
+			rlc_parsed_block_statement_print(&ctor->fBody, file, out);
+		} else fputs("{;}\n", out);
+	}
+
+	fprintf(out, " };\n");
+	rlc_printer_pop_ctx(printer);
+}
+
+void rlc_parsed_class_print(
+	struct RlcParsedClass const * this,
+	struct RlcSrcFile const * file,
+	struct RlcPrinter * printer)
+{
+	RLC_DASSERT(this != NULL);
+	RLC_DASSERT(printer != NULL);
+
+
+	rlc_parsed_class_print_decl(
+		this,
+		file,
+		printer->fTypes);
+
+	rlc_parsed_class_print_impl(
+		this,
+		file,
+		printer);
 }
 
 void rlc_parsed_member_class_create(
@@ -192,4 +420,19 @@ int rlc_parsed_member_class_parse(
 		member);
 
 	return 1;
+}
+
+void rlc_parsed_member_class_print(
+	struct RlcParsedMemberClass const * this,
+	struct RlcSrcFile const * file,
+	struct RlcPrinter * printer)
+{
+	rlc_visibility_print(
+		RLC_BASE_CAST(this, RlcParsedMember)->fVisibility,
+		1,
+		printer->fTypesImpl);
+	rlc_parsed_class_print_impl(
+		RLC_BASE_CAST(this, RlcParsedClass),
+		file,
+		printer);
 }

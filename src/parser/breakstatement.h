@@ -53,6 +53,11 @@ int rlc_parsed_break_statement_parse(
 	struct RlcParsedBreakStatement * out,
 	struct RlcParser * parser);
 
+void rlc_parsed_break_statement_print(
+	struct RlcParsedBreakStatement const * this,
+	struct RlcSrcFile const * file,
+	FILE * out);
+
 #ifdef __cplusplus
 }
 #endif

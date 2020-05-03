@@ -78,6 +78,12 @@ int rlc_parsed_symbol_child_parse(
 	struct RlcParser * parser,
 	int allowSpecialIdentifiers);
 
+void rlc_parsed_symbol_child_print(
+	struct RlcParsedSymbolChild const * this,
+	struct RlcSrcFile const * file,
+	FILE * out,
+	int templateAllowed);
+
 
 /** A (possibly) namespace-qualified symbol. */
 struct RlcParsedSymbol
@@ -131,6 +137,11 @@ int rlc_parsed_symbol_parse(
 	struct RlcParsedSymbol * out,
 	struct RlcParser * parser,
 	int allowSpecialIdentifiers);
+
+void rlc_parsed_symbol_print(
+	struct RlcParsedSymbol const * this,
+	struct RlcSrcFile const * file,
+	FILE * out);
 
 #ifdef __cplusplus
 }

@@ -53,6 +53,11 @@ int rlc_parsed_continue_statement_parse(
 	struct RlcParsedContinueStatement * out,
 	struct RlcParser * parser);
 
+void rlc_parsed_continue_statement_print(
+	struct RlcParsedContinueStatement const * this,
+	struct RlcSrcFile const * file,
+	FILE * out);
+
 #ifdef __cplusplus
 }
 #endif

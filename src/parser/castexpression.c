@@ -53,7 +53,8 @@ int rlc_parsed_cast_expression_parse(
 
 	rlc_parsed_type_name_parse(
 		&out->fType,
-		parser);
+		parser,
+		1);
 
 	rlc_parser_expect(
 		parser,
@@ -84,3 +85,14 @@ int rlc_parsed_cast_expression_parse(
 	return 1;
 }
 
+void rlc_parsed_cast_expression_print(
+	struct RlcParsedCastExpression const * this,
+	struct RlcSrcFile const * file,
+	FILE * out)
+{
+	fputs("((", out);
+	rlc_parsed_type_name_print(&this->fType, file, out);
+	fputs(")(", out);
+	rlc_parsed_expression_print(this->fValue, file, out);
+	fputs("))", out);
+}

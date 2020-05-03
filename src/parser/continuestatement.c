@@ -48,3 +48,19 @@ int rlc_parsed_continue_statement_parse(
 
 	return 1;
 }
+
+void rlc_parsed_continue_statement_print(
+	struct RlcParsedContinueStatement const * this,
+	struct RlcSrcFile const * file,
+	FILE * out)
+{
+	if(this->fLabel.fExists)
+	{
+		fputs("goto ", out);
+		rlc_parsed_control_label_print_name(&this->fLabel, file, out, "_continue");
+		fputs(";\n", out);
+	} else
+	{
+		fputs("continue;\n", out);
+	}
+}

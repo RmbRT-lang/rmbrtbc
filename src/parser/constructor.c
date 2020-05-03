@@ -15,7 +15,7 @@ void rlc_parsed_constructor_create(
 		kRlcParsedConstructor,
 		member);
 
-	rlc_parsed_template_decl_create(&this->fTemplates);
+	this->fTemplates = member->templates;
 
 	this->fArguments = NULL;
 	this->fArgumentCount = 0;
@@ -72,10 +72,6 @@ int rlc_parsed_constructor_parse(
 	rlc_parsed_constructor_create(
 		out,
 		member);
-
-	rlc_parsed_template_decl_parse(
-		&out->fTemplates,
-		parser);
 
 	rlc_parser_expect(
 		parser,
@@ -225,6 +221,8 @@ void rlc_parsed_initialiser_destroy(
 {
 	RLC_DASSERT(this != NULL);
 
+	rlc_parsed_symbol_destroy(&this->fMember);
+
 	if(this->fArguments)
 	{
 		while(this->fArgumentCount--)
@@ -246,13 +244,8 @@ void rlc_parsed_initialiser_parse(
 
 	rlc_parsed_initialiser_create(out);
 
-	struct RlcToken name;
-	rlc_parser_expect(
-		parser,
-		&name,
-		1,
-		kRlcTokIdentifier);
-	out->fMember = name.content;
+	if(!rlc_parsed_symbol_parse(&out->fMember, parser, 0))
+		rlc_parser_fail(parser, "expected symbol");
 
 	if(rlc_parser_consume(
 		parser,

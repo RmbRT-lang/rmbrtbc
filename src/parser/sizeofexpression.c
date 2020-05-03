@@ -50,7 +50,8 @@ int rlc_parsed_sizeof_expression_parse(
 
 	if(!rlc_parsed_type_name_parse(
 		&out->fType,
-		parser))
+		parser,
+		0))
 	{
 		rlc_parser_fail(parser, "expected type name");
 	}
@@ -64,4 +65,14 @@ int rlc_parsed_sizeof_expression_parse(
 
 	rlc_parsed_sizeof_expression_create(out, start, rlc_src_string_end(&end.content));
 	return 1;
+}
+
+void rlc_parsed_sizeof_expression_print(
+	struct RlcParsedSizeofExpression const * this,
+	struct RlcSrcFile const * file,
+	FILE * out)
+{
+	fprintf(out, "sizeof(");
+	rlc_parsed_type_name_print(&this->fType, file, out);
+	fputc(')', out);
 }

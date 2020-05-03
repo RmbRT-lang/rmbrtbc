@@ -59,6 +59,11 @@ _Nodiscard int rlc_parsed_throw_statement_parse(
 	struct RlcParsedThrowStatement * out,
 	struct RlcParser * parser);
 
+void rlc_parsed_throw_statement_print(
+	struct RlcParsedThrowStatement const * this,
+	struct RlcSrcFile const * file,
+	FILE * out);
+
 #ifdef __cplusplus
 }
 #endif

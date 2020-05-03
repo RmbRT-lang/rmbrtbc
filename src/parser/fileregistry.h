@@ -51,7 +51,7 @@ void rlc_parsed_file_registry_destroy(
 	Whether the file was found, but an error occurred.
 @return
 	The requested file, or, if it does not exist or contained errors, null. */
-struct RlcParsedFile const * rlc_parsed_file_registry_get(
+struct RlcParsedFile * rlc_parsed_file_registry_get(
 	struct RlcParsedFileRegistry * this,
 	char const * file);
 

@@ -98,3 +98,12 @@ int rlc_parsed_string_expression_parse(
 
 	return 1;
 }
+
+void rlc_parsed_string_expression_print(
+	struct RlcParsedStringExpression const * this,
+	struct RlcSrcFile const * file,
+	FILE * out)
+{
+	for(RlcSrcIndex i = 0; i < this->fTokenCount; i++)
+		rlc_src_string_print(&this->fTokens[i].content, file, out);
+}

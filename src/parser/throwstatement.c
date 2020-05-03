@@ -81,3 +81,19 @@ int rlc_parsed_throw_statement_parse(
 		kRlcTokSemicolon);
 	return 1;
 }
+
+void rlc_parsed_throw_statement_print(
+	struct RlcParsedThrowStatement const * this,
+	struct RlcSrcFile const * file,
+	FILE * out)
+{
+	fputs("throw ", out);
+	if(this->fType == kRlcThrowTypeValue)
+	{
+		rlc_parsed_expression_print(this->fValue, file, out);
+	} else if(this->fType == kRlcThrowTypeVoid)
+	{
+		fputs("::__rl::voidthrow_t{}", out);
+	}
+	fputs(";\n", out);
+}

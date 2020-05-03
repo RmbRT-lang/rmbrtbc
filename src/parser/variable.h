@@ -17,17 +17,6 @@
 extern "C" {
 #endif
 
-/** Reference types. */
-enum RlcReferenceType
-{
-	/** Not a reference. */
-	kRlcReferenceTypeNone,
-	/** A normal const reference. */
-	kRlcReferenceTypeReference,
-	/** A temporary object reference. */
-	kRlcReferenceTypeTempReference
-};
-
 /** Variables as used in the parser.
 @extends RlcParsedScopeEntry */
 struct RlcParsedVariable
@@ -44,8 +33,6 @@ struct RlcParsedVariable
 		/** The type qualifier, if no explicit type. */
 		enum RlcTypeQualifier fTypeQualifier;
 	};
-	/** The variable's reference type. */
-	enum RlcReferenceType fReferenceType;
 	/** The initialising arguments, or null. */
 	struct RlcParsedExpression ** fInitArgs;
 	/** The initialising argument count. */
@@ -104,6 +91,17 @@ _Nodiscard int rlc_parsed_variable_parse(
 	int allow_templates,
 	int allow_reference);
 
+void rlc_parsed_variable_print(
+	struct RlcParsedVariable const * this,
+	struct RlcSrcFile const * file,
+	struct RlcPrinter const * printer);
+
+void rlc_parsed_variable_print_argument(
+	struct RlcParsedVariable const * this,
+	struct RlcSrcFile const * file,
+	FILE * out,
+	int print_initialiser);
+
 /** Member variable type.
 @extends RlcParsedMember
 @extends RlcParsedVariable */
@@ -141,6 +139,11 @@ int rlc_parsed_member_variable_parse(
 	struct RlcParsedMemberVariable * out,
 	struct RlcParser * parser,
 	struct RlcParsedMemberCommon const * member);
+
+void rlc_parsed_member_variable_print(
+	struct RlcParsedMemberVariable const * this,
+	struct RlcSrcFile const * file,
+	struct RlcPrinter * printer);
 
 #ifdef __cplusplus
 }

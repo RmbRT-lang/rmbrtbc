@@ -91,7 +91,7 @@ static int dummy_rlc_parsed_variable_parse(
 	RLC_DASSERT(variable != NULL);
 	RLC_DASSERT(parser != NULL);
 
-	if(rlc_parsed_variable_parse(variable, parser, templates, 1, 0, 0, 1, 0))
+	if(rlc_parsed_variable_parse(variable, parser, templates, 1, 1, 0, 1, 0))
 	{
 		struct RlcParserTracer tracer;
 		rlc_parser_trace(parser, "variable statement", &tracer);
@@ -137,6 +137,7 @@ struct RlcParsedScopeEntry * rlc_parsed_scope_entry_parse(
 		struct RlcParsedTypedef fTypedef;
 		struct RlcParsedNamespace fNamespace;
 		struct RlcParsedEnum fEnum;
+		struct RlcParsedExternalSymbol fExternalSymbol;
 	} pack;
 
 	typedef int (*parse_fn_t)(
@@ -166,6 +167,7 @@ struct RlcParsedScopeEntry * rlc_parsed_scope_entry_parse(
 		ENTRY(RlcParsedEnumConstant, NULL), // Must not be called.
 		ENTRY(RlcParsedExternalSymbol, &rlc_parsed_external_symbol_parse)
 	};
+#undef ENTRY
 
 	static_assert(RLC_COVERS_ENUM(k_parse_lookup, RlcParsedScopeEntryType), "ill-sized parse table.");
 
@@ -194,6 +196,54 @@ struct RlcParsedScopeEntry * rlc_parsed_scope_entry_parse(
 	}
 
 	return NULL;
+}
+
+void rlc_parsed_scope_entry_print(
+	struct RlcParsedScopeEntry const * this,
+	struct RlcSrcFile const * file,
+	struct RlcPrinter const * printer)
+{
+	RLC_DASSERT(this != NULL);
+	RLC_DASSERT(file != NULL);
+	RLC_DASSERT(printer != NULL);
+
+	typedef void (*print_fn_t)(
+		void const *,
+		struct RlcSrcFile const *,
+		struct RlcPrinter const *);
+
+
+#define ENTRY(Type, print) { \
+		(print_fn_t)print, \
+		RLC_DERIVE_OFFSET(RlcParsedScopeEntry, struct Type), \
+		k##Type }
+
+	static struct {
+		print_fn_t fPrintFn;
+		size_t fOffset;
+		enum RlcParsedScopeEntryType type;
+	} const k_vtable[] = {
+		ENTRY(RlcParsedClass, &rlc_parsed_class_print),
+		ENTRY(RlcParsedRawtype, &rlc_parsed_rawtype_print),
+		ENTRY(RlcParsedUnion, &rlc_parsed_union_print),
+		ENTRY(RlcParsedNamespace, &rlc_parsed_namespace_print),
+		ENTRY(RlcParsedFunction, &rlc_parsed_function_print),
+		ENTRY(RlcParsedVariable, &rlc_parsed_variable_print),
+		ENTRY(RlcParsedEnum, &rlc_parsed_enum_print),
+		ENTRY(RlcParsedEnumConstant, NULL), // Must not be called.
+		ENTRY(RlcParsedTypedef, &rlc_parsed_typedef_print),
+		ENTRY(RlcParsedExternalSymbol, &rlc_parsed_external_symbol_print)
+	};
+#undef ENTRY
+
+	static_assert(RLC_COVERS_ENUM(k_vtable, RlcParsedScopeEntryType), "ill-sized parse table.");
+	RLC_DASSERT(k_vtable[RLC_DERIVING_TYPE(this)].type == RLC_DERIVING_TYPE(this));
+
+
+	k_vtable[RLC_DERIVING_TYPE(this)].fPrintFn(
+		((char*)this) + k_vtable[RLC_DERIVING_TYPE(this)].fOffset,
+		file,
+		printer);
 }
 
 void rlc_parsed_scope_entry_list_create(
@@ -229,4 +279,21 @@ void rlc_parsed_scope_entry_list_destroy(
 	this->fEntryCount = 0;
 	if(this->fEntries)
 		rlc_free((void**)&this->fEntries);
+}
+
+void rlc_parsed_scope_entry_list_print(
+	struct RlcParsedScopeEntryList const * this,
+	struct RlcSrcFile const * file,
+	struct RlcPrinter const * printer)
+{
+	RLC_DASSERT(this != NULL);
+	RLC_DASSERT(printer != NULL);
+
+	for(RlcSrcIndex i = 0; i < this->fEntryCount; i++)
+	{
+		rlc_parsed_scope_entry_print(
+			this->fEntries[i],
+			file,
+			printer);
+	}
 }

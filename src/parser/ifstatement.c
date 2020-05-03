@@ -125,3 +125,32 @@ int rlc_parsed_if_statement_parse(
 
 	return 1;
 }
+
+void rlc_parsed_if_statement_print(
+	struct RlcParsedIfStatement const * this,
+	struct RlcSrcFile const * file,
+	FILE * out)
+{
+	fputs("if(", out);
+	if(this->fCondition.fIsVariable)
+	{
+		rlc_parsed_variable_print_argument(
+			&this->fCondition.fVariable,
+			file,
+			out,
+			1);
+	} else
+	{
+		rlc_parsed_expression_print(this->fCondition.fExpression, file, out);
+	}
+	fputs(")\n\t", out);
+
+	rlc_parsed_statement_print(this->fIf, file, out);
+	if(this->fElse)
+	{
+		fputs("else\n\t", out);
+		rlc_parsed_statement_print(this->fElse, file, out);
+	}
+
+	rlc_parsed_control_label_print(&this->fIfLabel, file, out, "_break");
+}

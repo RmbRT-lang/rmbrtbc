@@ -187,6 +187,157 @@ int rlc_parsed_enum_parse(
 	return 1;
 }
 
+static void rlc_parsed_enum_print_to_file(
+	struct RlcParsedEnum const * this,
+	struct RlcSrcFile const * file,
+	FILE * out,
+	struct RlcPrinter * printer)
+{
+	fputs("enum class __rl_enum_", out);
+	rlc_src_string_print(
+		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+		file,
+		out);
+	fputs(" {\n", out);
+
+	for(RlcSrcIndex i = 0; i < this->fConstantCount; i++)
+	{
+		if(i)
+			fprintf(out, ",\n");
+
+		rlc_src_string_print(
+			&RLC_BASE_CAST(&this->fConstants[i], RlcParsedScopeEntry)->fName,
+			file,
+			out);
+
+		for(RlcSrcIndex j = 1; j < this->fConstants[i].fAliasCount; j++)
+		{
+			fprintf(out, ", ");
+			rlc_src_string_print(
+				&this->fConstants[i].fAliasTokens[j],
+				file,
+				out);
+			fprintf(out, " = ");
+			rlc_src_string_print(
+				&RLC_BASE_CAST(&this->fConstants[i], RlcParsedScopeEntry)->fName,
+				file,
+				out);
+		}
+	}
+
+	fputs("\n};\n", out);
+
+	fputs("struct ", out);
+	rlc_src_string_print(
+		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+		file,
+		out);
+	fputs(": public ::__rl::EnumWrapper<", out);
+	rlc_src_string_print(
+		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+		file,
+		out);
+	fputs(", __rl_enum_", out);
+	rlc_src_string_print(
+		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+		file,
+		out);
+	fprintf(out, ", %zu>\n", (size_t)this->fConstantCount);
+	fputs("{\n\t"
+		"using ::__rl::EnumWrapper<", out);
+	rlc_src_string_print(
+		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+		file,
+		out);
+	fputs(", __rl_enum_", out);
+	rlc_src_string_print(
+		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+		file,
+		out);
+	fprintf(out, ", %zu>::EnumWrapper;\n\n"
+		"constexpr ::__rl_char const * name() const\n"
+		"{\n\t"
+		"::__rl_char const * const names[] = {\n",
+		(size_t)this->fConstantCount);
+	for(RlcSrcIndex i = 0; i < this->fConstantCount; i++)
+	{
+		if(i)
+			fprintf(out, ",\n");
+
+		fputs("\t\"", out);
+		rlc_src_string_print(
+			&RLC_BASE_CAST(&this->fConstants[i], RlcParsedScopeEntry)->fName,
+			file,
+			out);
+		fputs("\"", out);
+	}
+	fputs("\n};\n"
+		"if(this->valid())\n\t"
+			"return names[(int_t)this->value];\n"
+		"else\n\t"
+			"return \"<unknown ", out);
+	rlc_src_string_print(
+		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+		file,
+		out);
+	fputs(">\";\n"
+		"}\n\n", out);
+	for(RlcSrcIndex i = 0; i < this->fConstantCount; i++)
+	{
+		fputs("\t"
+			"static ", out);
+		rlc_src_string_print(
+			&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+			file,
+			out);
+		fputs(" const ", out);
+		rlc_src_string_print(
+			&RLC_BASE_CAST(&this->fConstants[i], RlcParsedScopeEntry)->fName,
+			file,
+			out);
+		fputs(";\n", out);
+	}
+	fputs("};\n", out);
+
+	out = printer->fVarsImpl;
+	for(RlcSrcIndex i = 0; i < this->fConstantCount; i++)
+	{
+		rlc_src_string_print(
+			&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+			file,
+			out);
+		fputs(" const ", out);
+		rlc_src_string_print(
+			&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+			file,
+			out);
+		fputs("::", out);
+		rlc_src_string_print(
+			&RLC_BASE_CAST(&this->fConstants[i], RlcParsedScopeEntry)->fName,
+			file,
+			out);
+		fputs("{__rl_enum_", out);
+		rlc_src_string_print(
+			&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+			file,
+			out);
+		fputs("::", out);
+		rlc_src_string_print(
+			&RLC_BASE_CAST(&this->fConstants[i], RlcParsedScopeEntry)->fName,
+			file,
+			out);
+		fputs("};\n", out);
+	}
+}
+
+void rlc_parsed_enum_print(
+	struct RlcParsedEnum const * this,
+	struct RlcSrcFile const * file,
+	struct RlcPrinter * printer)
+{
+	rlc_parsed_enum_print_to_file(this, file, printer->fTypes, printer);
+}
+
 void rlc_parsed_member_enum_create(
 	struct RlcParsedMemberEnum * this,
 	struct RlcParsedMemberCommon const * member)
@@ -231,4 +382,20 @@ int rlc_parsed_member_enum_parse(
 		member);
 
 	return 1;
+}
+
+void rlc_parsed_member_enum_print(
+	struct RlcParsedMemberEnum const * this,
+	struct RlcSrcFile const * file,
+	struct RlcPrinter * printer)
+{
+	rlc_visibility_print(
+		RLC_BASE_CAST(this, RlcParsedMember)->fVisibility,
+		1,
+		printer->fTypesImpl);
+	rlc_parsed_enum_print_to_file(
+		RLC_BASE_CAST(this, RlcParsedEnum),
+		file,
+		printer->fTypesImpl,
+		printer);
 }

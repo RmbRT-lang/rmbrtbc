@@ -6,6 +6,7 @@
 #include "scopeentry.h"
 #include "typename.h"
 #include "templatedecl.h"
+#include "function.h"
 
 #include "../macros.h"
 
@@ -23,8 +24,12 @@ struct RlcParsedExternalSymbol
 	int fHasCustomLinkName;
 	/** The symbol's custom link name. */
 	struct RlcToken fCustomLinkName;
-	/** The symbol's type. */
-	struct RlcParsedTypeName fType;
+	int fIsFunction;
+	union {
+		/** The symbol's type. */
+		struct RlcParsedTypeName fType;
+		struct RlcParsedFunction fFunction;
+	};
 };
 
 /** Creates an external symbol.
@@ -64,6 +69,11 @@ _Nodiscard int rlc_parsed_external_symbol_parse(
 	struct RlcParsedExternalSymbol * out,
 	struct RlcParser * parser,
 	struct RlcParsedTemplateDecl const * templates);
+
+void rlc_parsed_external_symbol_print(
+	struct RlcParsedExternalSymbol const * this,
+	struct RlcSrcFile const * file,
+	struct RlcPrinter const * printer);
 
 #ifdef __cplusplus
 }
