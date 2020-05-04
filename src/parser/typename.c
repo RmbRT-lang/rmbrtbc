@@ -352,13 +352,16 @@ void rlc_parsed_type_name_print(
 		} break;
 	case kRlcParsedTypeNameValueName:
 		{
-			if(!this->fNoDecay)
+			int decay = !this->fNoDecay
+				&& this->fName->fChildCount == 1
+				&& !this->fName->fChildren[0].fTemplateCount;
+			if(decay)
 				fputs("::std::decay_t<", out);
 			rlc_parsed_symbol_print(
 				this->fName,
 				file,
 				out);
-			if(!this->fNoDecay)
+			if(decay)
 				fputs(">", out);
 		} break;
 	case kRlcParsedTypeNameValueFunction:
