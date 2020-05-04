@@ -124,10 +124,10 @@ typedef float __rl_float;
 typedef double __rl_double;
 #define double __rl_double
 
-#define null ::__rl::null
-#define nullptr __rl_nullptr
-typedef nullptr_t null_t;
-#define nullptr_t __rl_nullptr_t
+#define TRUE true
+#define FALSE false
+
+typedef ::nullptr_t NULL_t;
 
 #define __rl_unnamed __rl_unnamed_impl(__COUNTER__)
 #define __rl_unnamed_impl(x) __rl_unnamed_ ## x
