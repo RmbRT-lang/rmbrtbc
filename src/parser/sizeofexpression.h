@@ -17,7 +17,11 @@ struct RlcParsedSizeofExpression
 {
 	RLC_DERIVE(struct,RlcParsedExpression);
 
-	struct RlcParsedTypeName fType;
+	int fIsType;
+	union {
+		struct RlcParsedTypeName fType;
+		struct RlcParsedExpression * fExpression;
+	};
 };
 
 /** Creates a sizeof expression.

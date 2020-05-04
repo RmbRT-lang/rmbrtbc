@@ -1,5 +1,6 @@
 #include "sizeofexpression.h"
 #include "../assert.h"
+#include "../malloc.h"
 
 void rlc_parsed_sizeof_expression_create(
 	struct RlcParsedSizeofExpression * this,
@@ -20,10 +21,16 @@ void rlc_parsed_sizeof_expression_destroy(
 {
 	RLC_DASSERT(this != NULL);
 
-	rlc_parsed_type_name_destroy(&this->fType);
-
 	rlc_parsed_expression_destroy_base(
 		RLC_BASE_CAST(this, RlcParsedExpression));
+
+	if(this->fIsType)
+		rlc_parsed_type_name_destroy(&this->fType);
+	else if(this->fExpression)
+	{
+		rlc_parsed_expression_destroy_virtual(this->fExpression);
+		rlc_free((void**)&this->fExpression);
+	}
 }
 
 int rlc_parsed_sizeof_expression_parse(
@@ -48,12 +55,26 @@ int rlc_parsed_sizeof_expression_parse(
 		1,
 		kRlcTokParentheseOpen);
 
-	if(!rlc_parsed_type_name_parse(
-		&out->fType,
+	if((out->fIsType = !rlc_parser_consume(
 		parser,
-		0))
+		NULL,
+		kRlcTokHash)))
 	{
-		rlc_parser_fail(parser, "expected type name");
+		if(!rlc_parsed_type_name_parse(
+			&out->fType,
+			parser,
+			0))
+		{
+			rlc_parser_fail(parser, "expected type name");
+		}
+	} else
+	{
+		if(!(out->fExpression = rlc_parsed_expression_parse(
+			parser,
+			RLC_ALL_FLAGS(RlcParsedExpressionType))))
+		{
+			rlc_parser_fail(parser, "expected expression");
+		}
 	}
 
 	struct RlcToken end;
@@ -73,6 +94,9 @@ void rlc_parsed_sizeof_expression_print(
 	FILE * out)
 {
 	fprintf(out, "sizeof(");
-	rlc_parsed_type_name_print(&this->fType, file, out);
+	if(this->fIsType)
+		rlc_parsed_type_name_print(&this->fType, file, out);
+	else
+		rlc_parsed_expression_print(this->fExpression, file, out);
 	fputc(')', out);
 }
