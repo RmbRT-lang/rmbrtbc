@@ -301,32 +301,49 @@ void rlc_parsed_loop_statement_print(
 
 	if(this->fIsPostCondition)
 	{
-		fputs("for(;;", out);
+		/*
+		goto skip_first;
+		while(condition)
+		{
+			f();
+		skip_first:
+			... body
+		} */
+		fputs("__rl_do_while_loop(", out);
 		if(this->fPostLoop)
+		{
+			RLC_DASSERT(!this->fIsVariableCondition);
 			rlc_parsed_expression_print(this->fPostLoop, file, out);
-		fputs(")\n{\n", out);
-		rlc_parsed_statement_print(this->fBody, file, out);
-		fputs("if(!(", out);
-		if(this->fIsVariableCondition)
-		{
-			rlc_src_string_print(
-				&RLC_BASE_CAST(
-					&this->fCondition.fVariable,
-					RlcParsedScopeEntry)->fName,
-				file,
-				out);
-		} else
-		{
-			rlc_parsed_expression_print(this->fCondition.fExpression, file, out);
 		}
+		fputs(")", out);
 
-		fputs(")) break;\n}\n", out);
+		rlc_parsed_statement_print(this->fBody, file, out);
+
+		fputs("} while(", out);
+		if(this->fIsVariableCondition)
+			rlc_parsed_variable_print_argument(
+				&this->fCondition.fVariable,
+				file,
+				out,
+				1);
+		else if(this->fCondition.fExpression)
+			rlc_parsed_expression_print(this->fCondition.fExpression, file, out);
+		else
+			fputs("true", out);
+
+		fputs(");\n", out);
 	} else
 	{
-		RLC_DASSERT(!this->fIsVariableCondition);
-
 		fputs("for(;", out);
-		rlc_parsed_expression_print(this->fCondition.fExpression, file, out);
+		if(this->fIsVariableCondition)
+			rlc_parsed_variable_print_argument(
+				&this->fCondition.fVariable,
+				file,
+				out,
+				1);
+		else if(this->fCondition.fExpression)
+			rlc_parsed_expression_print(this->fCondition.fExpression, file, out);
+
 		fputs("; ", out);
 
 		if(this->fPostLoop)

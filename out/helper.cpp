@@ -132,6 +132,16 @@ typedef ::nullptr_t NULL_t;
 #define __rl_unnamed __rl_unnamed_impl(__COUNTER__)
 #define __rl_unnamed_impl(x) __rl_unnamed_ ## x
 
+#define __rl_do_while_loop(postloopstmt) \
+	__rl_do_while_loop_impl(postloopstmt, __COUNTER__)
+
+#define __rl_do_while_loop_impl(postloopstmt, counter) \
+	goto __rlc_skip_##counter; \
+	do { \
+		postloopstmt; \
+	__rlc_skip_##counter:
+
+
 #define __cpp_std std
 
 // Generated code starts here.
