@@ -87,7 +87,7 @@ namespace __rl
 // Helpers for new/delete.
 
 template<class T, class ...Args>
-inline T * __rl_new(
+inline T * __rlc_new(
 	Args&&... args)
 {
 	return new T(
@@ -95,7 +95,7 @@ inline T * __rl_new(
 }
 
 template<class T>
-inline void __rl_delete(T * p)
+inline void __rlc_delete(T * p)
 {
 	delete p;
 }
