@@ -113,6 +113,7 @@ void rlc_src_string_print(
 		"template",
 		"typedef",
 		"typename",
+		"namespace",
 		"using"
 		"volatile",
 		"std", // avoid having c++ std stuff appear in rl std.
