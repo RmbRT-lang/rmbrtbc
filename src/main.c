@@ -211,7 +211,7 @@ int main(
 	shutdown(pipefd, SHUT_WR);
 
 	char command[PATH_MAX+128];
-	snprintf(command, sizeof(command), "c++ -std=gnu++2a -x c++ -Werror %s -o a.out",
+	snprintf(command, sizeof(command), "c++ -std=gnu++2a -x c++ -Werror %s -o a.out -g",
 		pipename);
 	if(!system(command))
 		puts("compiled!");
