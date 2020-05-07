@@ -123,6 +123,8 @@ typedef float __rl_float;
 #define float __rl_float
 typedef double __rl_double;
 #define double __rl_double
+typedef bool __rl_bool;
+#define bool __rl_bool
 
 #define TRUE true
 #define FALSE false
