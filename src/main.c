@@ -95,7 +95,7 @@ int main(
 	if(argc == 2 && !strcmp(argv[1], "--license"))
 	{
 		puts(
-			"github.com/RmbRT/rlc - RmbRT language compiler (C bootstrap ver.)\n"
+			"github.com/RmbRT-lang/rmbrtbc - RmbRT language compiler (C bootstrap ver.)\n"
 			"Copyright (C) 2020 Steffen \"RmbRT\" Rattay <steffen@sm2.network>\n"
 			"\n"
 			"This program is free software: you can redistribute it and/or modify\n"
