@@ -129,6 +129,8 @@ typedef bool __rl_bool;
 #define TRUE true
 #define FALSE false
 
+#define ASSIGN operator=
+
 typedef ::nullptr_t NULL_t;
 
 #define __rl_unnamed __rl_unnamed_impl(__COUNTER__)
