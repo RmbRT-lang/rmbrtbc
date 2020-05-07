@@ -302,11 +302,22 @@ static void rlc_parsed_enum_print_to_file(
 	out = printer->fVarsImpl;
 	for(RlcSrcIndex i = 0; i < this->fConstantCount; i++)
 	{
+		if(printer->outerCtx)
+		{
+			rlc_printer_print_ctx_symbol(printer, file, out);
+			fputs("::", out);
+		}
 		rlc_src_string_print(
 			&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
 			file,
 			out);
 		fputs(" const ", out);
+
+		if(printer->outerCtx)
+		{
+			rlc_printer_print_ctx_symbol(printer, file, out);
+			fputs("::", out);
+		}
 		rlc_src_string_print(
 			&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
 			file,
@@ -316,7 +327,13 @@ static void rlc_parsed_enum_print_to_file(
 			&RLC_BASE_CAST(&this->fConstants[i], RlcParsedScopeEntry)->fName,
 			file,
 			out);
-		fputs("{__rl_enum_", out);
+		fputs("{", out);
+		if(printer->outerCtx)
+		{
+			rlc_printer_print_ctx_symbol(printer, file, out);
+			fputs("::", out);
+		}
+		fputs("__rl_enum_", out);
 		rlc_src_string_print(
 			&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
 			file,
