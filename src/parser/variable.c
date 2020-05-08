@@ -452,6 +452,7 @@ void rlc_parsed_member_variable_print(
 			RLC_BASE_CAST(this, RlcParsedVariable),
 			file,
 			out);
+		fputc(' ', out);
 		rlc_printer_print_ctx_symbol(printer, file, out);
 		fputs("::", out);
 		rlc_parsed_variable_print_argument_2(
