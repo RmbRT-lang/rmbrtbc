@@ -51,6 +51,7 @@ void rlc_parsed_control_label_print_name(
 			fputc(hex[*byte & 0xf], out);
 			fputc(hex[(*byte >> 4) & 0xf], out);
 		}
+		rlc_scoped_text_destroy(&text);
 	} else
 	{
 		rlc_src_string_print(&this->fLabel.content, file, out);
