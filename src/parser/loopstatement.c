@@ -319,6 +319,11 @@ void rlc_parsed_loop_statement_print(
 
 		rlc_parsed_statement_print(this->fBody, file, out);
 
+		rlc_parsed_control_label_print(
+			&this->fLabel,
+			file,
+			out,
+			"_continue");
 		fputs("} while(", out);
 		if(this->fIsVariableCondition)
 			rlc_parsed_variable_print_argument(
@@ -332,6 +337,11 @@ void rlc_parsed_loop_statement_print(
 			fputs("true", out);
 
 		fputs(");\n", out);
+		rlc_parsed_control_label_print(
+			&this->fLabel,
+			file,
+			out,
+			"_break");
 	} else
 	{
 		fputs("for(;", out);
@@ -348,8 +358,14 @@ void rlc_parsed_loop_statement_print(
 
 		if(this->fPostLoop)
 			rlc_parsed_expression_print(this->fPostLoop, file, out);
-		fputs(")\n\t", out);
+		fputs(")\n{\n\t", out);
 		rlc_parsed_statement_print(this->fBody, file, out);
+		rlc_parsed_control_label_print(
+			&this->fLabel,
+			file,
+			out,
+			"_continue");
+		fputs("{;}\n}\n", out);
 	}
 
 	rlc_parsed_control_label_print(&this->fLabel, file, out, "_break");

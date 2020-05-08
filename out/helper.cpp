@@ -139,11 +139,13 @@ typedef ::nullptr_t NULL_t;
 #define __rl_do_while_loop(postloopstmt) \
 	__rl_do_while_loop_impl(postloopstmt, __COUNTER__)
 
+#define __rl_do_while_loop_impl_paste(a, b) a##b
+
 #define __rl_do_while_loop_impl(postloopstmt, counter) \
-	goto __rlc_skip_##counter; \
+	goto __rl_do_while_loop_impl_paste(__rlc_skip_,counter); \
 	do { \
 		postloopstmt; \
-	__rlc_skip_##counter:
+	__rl_do_while_loop_impl_paste(__rlc_skip_,counter):
 
 
 #define __cpp_std std
