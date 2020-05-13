@@ -115,6 +115,7 @@ static size_t const k_binary_groups[] = {
 	6, // < <= > >= == !=
 	1, // &&
 	1, // ||
+	0, // ?:
 	1 // :=
 };
 
@@ -412,6 +413,42 @@ static struct RlcParsedExpression * parse_binary(
 	if(!lhs)
 		return NULL;
 
+	// Special ?: group?
+	if(k_binary_groups[group] == 0)
+	{
+		if(rlc_parser_consume(
+			parser,
+			NULL,
+			kRlcTokQuestionMark))
+		{
+			struct RlcParsedExpression * then = rlc_parsed_operator_expression_parse(parser);
+			if(!then)
+			{
+				rlc_parser_fail(parser, "expected expression");
+			}
+
+			rlc_parser_expect(
+				parser,
+				NULL,
+				1,
+				kRlcTokColon);
+
+			struct RlcParsedExpression * other = rlc_parsed_operator_expression_parse(parser);
+			if(!other)
+			{
+				rlc_parser_fail(parser, "expected expression");
+			}
+
+			struct RlcParsedOperatorExpression * cond = make_binary_expression(
+				kConditional,
+				lhs,
+				then);
+			rlc_parsed_operator_expression_add(cond, other);
+
+			return RLC_BASE_CAST(cond, RlcParsedExpression);
+		}
+	}
+
 	size_t start = 0;
 	for(size_t i = 0; i < group; i++)
 		start += k_binary_groups[i];
@@ -450,38 +487,6 @@ struct RlcParsedExpression * rlc_parsed_operator_expression_parse(
 	if(!left)
 	{
 		return NULL;
-	}
-
-	if(rlc_parser_consume(
-		parser,
-		NULL,
-		kRlcTokQuestionMark))
-	{
-		struct RlcParsedExpression * then = rlc_parsed_operator_expression_parse(parser);
-		if(!then)
-		{
-			rlc_parser_fail(parser, "expected expression");
-		}
-
-		rlc_parser_expect(
-			parser,
-			NULL,
-			1,
-			kRlcTokColon);
-
-		struct RlcParsedExpression * other = rlc_parsed_operator_expression_parse(parser);
-		if(!other)
-		{
-			rlc_parser_fail(parser, "expected expression");
-		}
-
-		struct RlcParsedOperatorExpression * cond = make_binary_expression(
-			kConditional,
-			left,
-			then);
-		rlc_parsed_operator_expression_add(cond, other);
-
-		return RLC_BASE_CAST(cond, RlcParsedExpression);
 	}
 
 	return left;
