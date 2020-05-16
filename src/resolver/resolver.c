@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <unistd.h>
 
 static _Noreturn void va_fail(
 	struct RlcSrcString const * string,
@@ -14,6 +15,10 @@ static _Noreturn void va_fail(
 	RLC_DASSERT(string != NULL);
 	RLC_DASSERT(file != NULL);
 	RLC_DASSERT(msg != NULL);
+
+	fflush(stdout);
+	usleep(125 * 1000);
+
 
 	struct RlcSrcPosition pos;
 	rlc_src_file_position(
