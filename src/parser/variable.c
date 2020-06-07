@@ -441,6 +441,10 @@ void rlc_parsed_member_variable_print(
 		file,
 		out,
 		0);
+
+	if(RLC_BASE_CAST2(this, RlcParsedVariable, RlcParsedScopeEntry)->fName.length == 0)
+		fputs(" __rl_unnamed", out);
+
 	fputs(";\n", out);
 
 	if(RLC_BASE_CAST(this, RlcParsedMember)->fAttribute == kRlcMemberAttributeStatic)
