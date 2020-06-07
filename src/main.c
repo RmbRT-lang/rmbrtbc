@@ -109,7 +109,7 @@ int main(
 			"\nGNU Affero General Public License for more details.\n"
 			"\n"
 			"\nYou should have received a copy of the GNU Affero General Public License\n"
-			"along with this program.  If not, see <https://www.gnu.org/licenses/>.n");
+			"along with this program.  If not, see <https://www.gnu.org/licenses/>.");
 		return 0;
 	}
 	if(argc >= 2 && !strcmp(argv[1], "--find"))
