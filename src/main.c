@@ -210,10 +210,12 @@ int main(
 	read_into_pipe_and_close(printer.fVarsImpl, &varsImplBuf, &varsImplLen, pipefd);
 	shutdown(pipefd, SHUT_WR);
 
+	fflush(stdout);
+
 	char command[PATH_MAX+128];
 	snprintf(command, sizeof(command), "c++ -std=gnu++2a -x c++ -Werror %s -o a.out -g",
 		pipename);
-	if(!system(command))
+	if((status = !system(command)))
 		puts("compiled!");
 	close(pipefd);
 
