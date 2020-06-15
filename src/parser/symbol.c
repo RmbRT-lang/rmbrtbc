@@ -325,3 +325,24 @@ void rlc_parsed_symbol_print(
 			i);
 	}
 }
+
+void rlc_parsed_symbol_print_no_template(
+	struct RlcParsedSymbol const * this,
+	struct RlcSrcFile const * file,
+	FILE * out)
+{
+	if(this->fIsRoot)
+		fprintf(out, "::");
+
+	for(RlcSrcIndex i = 0; i < this->fChildCount; i++)
+	{
+		if(i)
+			fprintf(out, "::");
+
+		rlc_parsed_symbol_child_print(
+			&this->fChildren[i],
+			file,
+			out,
+			0);
+	}
+}

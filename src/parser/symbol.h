@@ -143,6 +143,11 @@ void rlc_parsed_symbol_print(
 	struct RlcSrcFile const * file,
 	FILE * out);
 
+void rlc_parsed_symbol_print_no_template(
+	struct RlcParsedSymbol const * this,
+	struct RlcSrcFile const * file,
+	FILE * out);
+
 #ifdef __cplusplus
 }
 #endif

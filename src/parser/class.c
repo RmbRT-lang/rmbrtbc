@@ -168,7 +168,7 @@ static void rlc_parsed_inheritance_print(
 	if(this->fVirtual)
 		fprintf(out, " virtual ");
 
-	rlc_parsed_symbol_print(&this->fBase, file, out);
+	rlc_parsed_symbol_print_no_template(&this->fBase, file, out);
 }
 
 static void rlc_parsed_class_print_decl(
