@@ -203,3 +203,23 @@ int rlc_parsed_member_union_parse(
 
 	return 1;
 }
+
+
+void rlc_parsed_member_union_print(
+	struct RlcParsedMemberUnion const * this,
+	struct RlcSrcFile const * file,
+	struct RlcPrinter * printer)
+{
+	RLC_DASSERT(this != NULL);
+	RLC_DASSERT(printer != NULL);
+
+
+	rlc_visibility_print(
+		RLC_BASE_CAST(this, RlcParsedMember)->fVisibility,
+		1,
+		printer->fTypesImpl);
+	rlc_parsed_union_print(
+		RLC_BASE_CAST(this, RlcParsedUnion),
+		file,
+		printer);
+}

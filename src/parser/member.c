@@ -429,7 +429,7 @@ void rlc_parsed_member_print(
 		ENTRY(RlcParsedMemberFunction, &rlc_parsed_member_function_print),
 		ENTRY(RlcParsedMemberVariable, &rlc_parsed_member_variable_print),
 		{0,0,0},//ENTRY(RlcParsedMemberRawtype, &rlc_parsed_member_rawtype_print),
-		{0,0,0},//ENTRY(RlcParsedMemberUnion, &rlc_parsed_member_union_print),
+		ENTRY(RlcParsedMemberUnion, &rlc_parsed_member_union_print),
 		ENTRY(RlcParsedMemberClass, &rlc_parsed_member_class_print),
 		ENTRY(RlcParsedMemberEnum, &rlc_parsed_member_enum_print),
 		{0,0,0},//ENTRY(RlcParsedMemberTypedef, &rlc_parsed_member_typedef_print),
