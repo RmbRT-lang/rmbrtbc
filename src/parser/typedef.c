@@ -137,18 +137,41 @@ int rlc_parsed_member_typedef_parse(
 	return 1;
 }
 
+static void rlc_parsed_typedef_print_impl(
+	struct RlcParsedTypedef const * this,
+	struct RlcSrcFile const * file,
+	FILE * out)
+{
+	rlc_parsed_template_decl_print(&this->fTemplates, file, out);
+	fputs("using ", out);
+	rlc_src_string_print(
+		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+		file,
+		out);
+	fputs(" = ", out);
+	rlc_parsed_type_name_print(&this->fType, file, out);
+	fputs(";\n", out);
+}
+
 void rlc_parsed_typedef_print(
 	struct RlcParsedTypedef const * this,
 	struct RlcSrcFile const * file,
 	struct RlcPrinter const * printer)
 {
-	rlc_parsed_template_decl_print(&this->fTemplates, file, printer->fTypes);
-	fputs("using ", printer->fTypes);
-	rlc_src_string_print(
-		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+	rlc_parsed_typedef_print_impl(this, file, printer->fTypes);
+}
+
+void rlc_parsed_member_typedef_print(
+	struct RlcParsedMemberTypedef const * this,
+	struct RlcSrcFile const * file,
+	struct RlcPrinter const * printer)
+{
+	rlc_visibility_print(
+		RLC_BASE_CAST(this, RlcParsedMember)->fVisibility,
+		1,
+		printer->fTypesImpl);
+	rlc_parsed_typedef_print_impl(
+		RLC_BASE_CAST(this, RlcParsedTypedef),
 		file,
-		printer->fTypes);
-	fputs(" = ", printer->fTypes);
-	rlc_parsed_type_name_print(&this->fType, file, printer->fTypes);
-	fputs(";\n", printer->fTypes);
+		printer->fTypesImpl);
 }

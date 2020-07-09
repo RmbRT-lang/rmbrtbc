@@ -92,6 +92,11 @@ void rlc_parsed_typedef_print(
 	struct RlcSrcFile const * file,
 	struct RlcPrinter const * printer);
 
+void rlc_parsed_member_typedef_print(
+	struct RlcParsedMemberTypedef const * this,
+	struct RlcSrcFile const * file,
+	struct RlcPrinter const * printer);
+
 #ifdef __cplusplus
 }
 #endif
