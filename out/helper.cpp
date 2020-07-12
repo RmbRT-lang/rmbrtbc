@@ -22,10 +22,10 @@ namespace __rl
 
 	template<class T, class ...Args>
 	inline void __rl_constructor(
-		T * self,
+		T &self,
 		Args&&...args)
 	{
-		new (self) T(std::forward<Args>(args)...);
+		new (&self) T(std::forward<Args>(args)...);
 	}
 
 	template<class T>
