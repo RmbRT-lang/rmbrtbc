@@ -21,11 +21,17 @@ namespace __rl
 	nullptr_t const null {};
 
 	template<class T, class ...Args>
-	inline void placement_new(
+	inline void __rl_constructor(
 		T * self,
 		Args&&...args)
 	{
 		new (self) T(std::forward<Args>(args)...);
+	}
+
+	template<class T>
+	inline void __rl_destructor(T &v)
+	{
+		v.~T();
 	}
 
 	template<class Type, class Enum, size_t count>
