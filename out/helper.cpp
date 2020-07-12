@@ -33,6 +33,11 @@ namespace __rl
 	{
 		v.~T();
 	}
+	template<class T>
+	inline void __rl_destructor(T const& v)
+	{
+		v.~T();
+	}
 
 	template<class Type, class Enum, size_t count>
 	class EnumWrapper
