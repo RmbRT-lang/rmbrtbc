@@ -101,7 +101,8 @@ int rlc_parsed_variable_parse(
 			{ kRlcTokDoubleColon, 0 },
 			{ kRlcTokSemicolon, 0 },
 			{ kRlcTokComma, 0 },
-			{ kRlcTokParentheseClose, 0 }
+			{ kRlcTokParentheseClose, 0 },
+			{ kRlcTokExclamationMark, 0 }
 		};
 		int found = 0;
 		for(size_t i = 0; i < _countof(k_needed_ahead); i++)
