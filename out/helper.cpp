@@ -141,6 +141,9 @@ typedef bool __rl_bool;
 #define FALSE false
 
 #define ASSIGN operator=
+#define LOG_NOT operator!
+#define NOTYPE
+#define CONVERT(...) operator __VA_ARGS__ ()
 
 typedef ::nullptr_t NULL_t;
 
