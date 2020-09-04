@@ -192,15 +192,22 @@ int main(
 		return 1;
 	}
 	char out_file[PATH_MAX];
-	char rlc_dir[PATH_MAX];
-	ssize_t rlc_dir_len;
-	if((rlc_dir_len = readlink("/proc/self/exe", rlc_dir, sizeof(rlc_dir))) == -1)
+	char *rlc_actual;
+	ssize_t rlc_which_len;
+	if((rlc_which_len = readlink("/proc/self/exe", out_file, sizeof(out_file))) == -1)
 	{
 		perror("readlink");
 		return 1;
 	}
-	rlc_dir[rlc_dir_len] = '\0';
-	snprintf(out_file, sizeof(out_file), "%.*s/out/helper.cpp", parent_dir(rlc_dir), rlc_dir);
+	out_file[rlc_which_len] = '\0';
+	if(!(rlc_actual = realpath(out_file, NULL)))
+	{
+		perror("realpath");
+		return 1;
+	}
+
+	snprintf(out_file, sizeof(out_file), "%.*s/out/helper.cpp", parent_dir(rlc_actual), rlc_actual);
+	free(rlc_actual);
 	pipe_file(out_file, pipefd);
 	read_into_pipe_and_close(printer.fTypes, &typesBuf, &typesLen, pipefd);
 	read_into_pipe_and_close(printer.fFuncs, &funcsBuf, &funcsLen, pipefd);
