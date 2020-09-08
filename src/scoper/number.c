@@ -73,7 +73,7 @@ static char const * atoi_n(
 	case 'x':
 	case 'X':
 		{
-			if(length-2 > 8)
+			if(length-2 > 16)
 				return "hexadecimal number too large";
 
 			for(size_t i = 0; i < length-2; i++)
@@ -81,7 +81,7 @@ static char const * atoi_n(
 				char c = number[length-1-i];
 				RLC_DASSERT(is_hexadecimal(c));
 
-				out->value |= hexdigit(c) << (4 * (i&1));
+				out->value |= (int64_t)hexdigit(c) << (4 * i);
 			}
 		} break;
 	// Binary number.
