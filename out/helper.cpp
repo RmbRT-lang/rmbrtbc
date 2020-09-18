@@ -117,6 +117,10 @@ constexpr size_t  size(T (&)[kSize]) { return kSize; }
 extern "C" int fprintf(void * file, char const * fmt, ...);
 extern "C" int printf(char const * fmt, ...);
 
+// Declare special size types.
+typedef unsigned long int UM;
+typedef signed long int SM;
+
 // Allow some C++ keywords to be used as identifiers.
 typedef unsigned long ulong;
 typedef unsigned int uint;
