@@ -142,6 +142,7 @@ typedef bool __rl_bool;
 
 #define ASSIGN operator=
 #define LOG_NOT operator!
+#define SUBSCRIPT operator[]
 #define NOTYPE
 #define CONVERT(...) operator __VA_ARGS__ ()
 
