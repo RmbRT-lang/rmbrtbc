@@ -32,7 +32,10 @@ enum RlcOperator
 	kExpectDynamic,
 	kMaybeDynamic,
 
-	kAssign
+	kAssign,
+	kAddAssign, kSubAssign, kMulAssign, kDivAssign, kModAssign,
+	kBitAndAssign, kBitOrAssign, kBitXorAssign,
+	kShiftLeftAssign, kShiftRightAssign
 };
 
 

@@ -101,7 +101,17 @@ k_binary[] = {
 	{ kRlcTokDoublePipe, kLogOr },
 
 	// assignments.
-	{ kRlcTokColonEqual, kAssign }
+	{ kRlcTokColonEqual, kAssign },
+	{ kRlcTokPlusEqual, kAddAssign },
+	{ kRlcTokMinusEqual, kSubAssign },
+	{ kRlcTokAsteriskEqual, kMulAssign },
+	{ kRlcTokForwardSlashEqual, kDivAssign },
+	{ kRlcTokPercentEqual, kModAssign },
+	{ kRlcTokAndEqual, kBitAndAssign },
+	{ kRlcTokPipeEqual, kBitOrAssign },
+	{ kRlcTokCircumflexEqual, kBitXorAssign },
+	{ kRlcTokDoubleLessEqual, kShiftLeftAssign },
+	{ kRlcTokDoubleGreaterEqual, kShiftRightAssign }
 };
 
 static size_t const k_binary_groups[] = {
@@ -116,7 +126,7 @@ static size_t const k_binary_groups[] = {
 	1, // &&
 	1, // ||
 	0, // ?:
-	1 // :=
+	11 // :=
 };
 
 static struct RlcParsedOperatorExpression * make_operator_expression(
@@ -539,7 +549,15 @@ void rlc_parsed_operator_expression_print(
 		{kExpectDynamic, -1, NULL,1},
 		{kMaybeDynamic, -1, NULL,1},
 
-		{kAssign, 1, "=",1}
+		{kAssign, 1, "=", 1},
+		{kAddAssign, 1, NULL, 1}, {kSubAssign, 1, NULL, 1},
+		{kMulAssign, 1, NULL, 1}, {kDivAssign, 1, NULL, 1},
+		{kModAssign, 1, NULL, 1},
+
+		{kBitAndAssign, 1, NULL, 1}, {kBitOrAssign, 1, NULL, 1},
+		{kBitXorAssign, 1, NULL, 1},
+
+		{kShiftLeftAssign, 1, NULL, 1}, {kShiftRightAssign, 1, NULL, 1}
 	};
 
 	RLC_DASSERT(k_position[this->fOperator].op == this->fOperator);
