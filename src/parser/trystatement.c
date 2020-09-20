@@ -109,7 +109,7 @@ void rlc_parsed_try_statement_print(
 	{
 		fputs(" catch(", out);
 		if(this->fCatches[i].fIsVoid)
-			fputs("nullthrow_t", out);
+			fputs("::__rl::voidthrow_t", out);
 		else
 			rlc_parsed_variable_print_argument(
 				&this->fCatches[i].fException,
