@@ -27,6 +27,7 @@ enum RlcTokenType
 	kRlcTokBreak,
 	kRlcTokCase,
 	kRlcTokCatch,
+	kRlcTokConcept,
 	kRlcTokConstructor,
 	kRlcTokContinue,
 	kRlcTokDefault,

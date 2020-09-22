@@ -150,23 +150,32 @@ void rlc_parsed_template_decl_print(
 		if(i)
 			fprintf(out, ", ");
 
-		switch(this->fChildren[i].fType)
-		{
-		case kRlcParsedTemplateDeclTypeType:
-			{
-				fputs("class ", out);
-				rlc_src_string_print(&this->fChildren[i].fName, file, out);
-			} break;
-		case kRlcParsedTemplateDeclTypeNumber:
-			{
-				fprintf(out, "int ");
-				rlc_src_string_print(&this->fChildren[i].fName, file, out);
-			} break;
-		case kRlcParsedTemplateDeclTypeValue:
-		default:
-			RLC_ASSERT(!"not implemented");
-		}
+		rlc_parsed_template_decl_child_print(
+			&this->fChildren[i], file, out);
 	}
 
 	fprintf(out, "> ");
+}
+
+void rlc_parsed_template_decl_child_print(
+	struct RlcParsedTemplateDeclChild const * this,
+	struct RlcSrcFile const * file,
+	FILE * out)
+{
+	switch(this->fType)
+	{
+	case kRlcParsedTemplateDeclTypeType:
+		{
+			fputs("class ", out);
+			rlc_src_string_print(&this->fName, file, out);
+		} break;
+	case kRlcParsedTemplateDeclTypeNumber:
+		{
+			fprintf(out, "int ");
+			rlc_src_string_print(&this->fName, file, out);
+		} break;
+	case kRlcParsedTemplateDeclTypeValue:
+	default:
+		RLC_ASSERT(!"not implemented");
+	}
 }

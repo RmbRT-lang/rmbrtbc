@@ -16,6 +16,7 @@ char const * rlc_token_type_name(
 		"'BREAK'",
 		"'CASE'",
 		"'CATCH'",
+		"'CONCEPT'",
 		"'CONSTRUCTOR'",
 		"'CONTINUE'",
 		"'DEFAULT'",

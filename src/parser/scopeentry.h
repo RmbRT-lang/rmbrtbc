@@ -20,6 +20,8 @@ enum RlcParsedScopeEntryType
 {
 	/** RlcParsedClass */
 	kRlcParsedClass,
+	/** RlcParsedConcept */
+	kRlcParsedConcept,
 	/** RlcParsedRawtype */
 	kRlcParsedRawtype,
 	/** RlcParsedUnion */

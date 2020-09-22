@@ -99,6 +99,11 @@ void rlc_parsed_template_decl_print(
 	struct RlcSrcFile const * file,
 	FILE * out);
 
+void rlc_parsed_template_decl_child_print(
+	struct RlcParsedTemplateDeclChild const * this,
+	struct RlcSrcFile const * file,
+	FILE * out);
+
 #include "templatedecl.inl"
 
 

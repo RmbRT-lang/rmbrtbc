@@ -1,6 +1,7 @@
 #include "scopeentry.h"
 
 #include "class.h"
+#include "concept.h"
 #include "rawtype.h"
 #include "union.h"
 #include "namespace.h"
@@ -36,6 +37,7 @@ void rlc_parsed_scope_entry_destroy_virtual(
 		void * this);
 	static destructor_t const k_vtable[] = {
 		(destructor_t)&rlc_parsed_class_destroy,
+		(destructor_t)&rlc_parsed_concept_destroy,
 		(destructor_t)&rlc_parsed_rawtype_destroy,
 		(destructor_t)&rlc_parsed_union_destroy,
 		(destructor_t)&rlc_parsed_namespace_destroy,
@@ -51,6 +53,7 @@ void rlc_parsed_scope_entry_destroy_virtual(
 
 	static intptr_t const k_offsets[] = {
 		RLC_DERIVE_OFFSET(RlcParsedScopeEntry, struct RlcParsedClass),
+		RLC_DERIVE_OFFSET(RlcParsedScopeEntry, struct RlcParsedConcept),
 		RLC_DERIVE_OFFSET(RlcParsedScopeEntry, struct RlcParsedRawtype),
 		RLC_DERIVE_OFFSET(RlcParsedScopeEntry, struct RlcParsedUnion),
 		RLC_DERIVE_OFFSET(RlcParsedScopeEntry, struct RlcParsedNamespace),
@@ -159,6 +162,7 @@ struct RlcParsedScopeEntry * rlc_parsed_scope_entry_parse(
 		ENTRY(RlcParsedVariable, &dummy_rlc_parsed_variable_parse),
 		ENTRY(RlcParsedFunction, &dummy_rlc_parsed_function_parse),
 		ENTRY(RlcParsedClass, &rlc_parsed_class_parse),
+		ENTRY(RlcParsedConcept, &rlc_parsed_concept_parse),
 		ENTRY(RlcParsedUnion, &rlc_parsed_union_parse),
 		ENTRY(RlcParsedRawtype, &rlc_parsed_rawtype_parse),
 		ENTRY(RlcParsedTypedef, &rlc_parsed_typedef_parse),
@@ -224,6 +228,7 @@ void rlc_parsed_scope_entry_print(
 		enum RlcParsedScopeEntryType type;
 	} const k_vtable[] = {
 		ENTRY(RlcParsedClass, &rlc_parsed_class_print),
+		ENTRY(RlcParsedConcept, &rlc_parsed_concept_print),
 		ENTRY(RlcParsedRawtype, &rlc_parsed_rawtype_print),
 		ENTRY(RlcParsedUnion, &rlc_parsed_union_print),
 		ENTRY(RlcParsedNamespace, &rlc_parsed_namespace_print),
