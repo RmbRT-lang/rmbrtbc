@@ -550,14 +550,14 @@ void rlc_parsed_operator_expression_print(
 		{kMaybeDynamic, -1, NULL,1},
 
 		{kAssign, 1, "=", 1},
-		{kAddAssign, 1, NULL, 1}, {kSubAssign, 1, NULL, 1},
-		{kMulAssign, 1, NULL, 1}, {kDivAssign, 1, NULL, 1},
-		{kModAssign, 1, NULL, 1},
+		{kAddAssign, 1, "+=", 1}, {kSubAssign, 1, "-=", 1},
+		{kMulAssign, 1, "*=", 1}, {kDivAssign, 1, "/=", 1},
+		{kModAssign, 1, "%=", 1},
 
-		{kBitAndAssign, 1, NULL, 1}, {kBitOrAssign, 1, NULL, 1},
-		{kBitXorAssign, 1, NULL, 1},
+		{kBitAndAssign, 1, "&=", 1}, {kBitOrAssign, 1, "|=", 1},
+		{kBitXorAssign, 1, "^=", 1},
 
-		{kShiftLeftAssign, 1, NULL, 1}, {kShiftRightAssign, 1, NULL, 1}
+		{kShiftLeftAssign, 1, "<<=", 1}, {kShiftRightAssign, 1, ">>=", 1}
 	};
 
 	RLC_DASSERT(k_position[this->fOperator].op == this->fOperator);
