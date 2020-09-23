@@ -39,6 +39,19 @@ namespace __rl
 		v.~T();
 	}
 
+	template<class T>
+	inline T & deref(T &v) { return v; }
+	template<class T>
+	inline T const& deref(T const& v) { return v; }
+	template<class T>
+	inline T && deref(T &&v) { return (T&&)v; }
+	template<class T>
+	inline T const&& deref(T const&& v) { return (T const&&)v; }
+	template<class T>
+	inline auto deref(T * v) -> decltype(deref(*v)) { return deref(*v); }
+	template<class T>
+	inline auto deref(T const * v) -> decltype(deref(*v)) { return deref(*v); }
+
 	template<class Type, class Enum, size_t count>
 	class EnumWrapper
 	{

@@ -174,7 +174,7 @@ static void rlc_parsed_concept_print_impl(
 			file,
 			out);
 	}
-	fputs("> FROM(__rl_concept_type * v);\n", out);
+	fputs("> FROM(__rl_concept_type &&v);\n", out);
 
 	rlc_printer_print_ctx_tpl(printer, file, printer->fFuncsImpl);
 	fputs("template<class __rl_concept_type> ", printer->fFuncsImpl);
@@ -193,7 +193,7 @@ static void rlc_parsed_concept_print_impl(
 	}
 	fputs("> ", printer->fFuncsImpl);
 	rlc_printer_print_ctx_symbol(printer, file, printer->fFuncsImpl);
-	fputs("::FROM(__rl_concept_type * v) { return v; }\n", printer->fFuncsImpl);
+	fputs("::FROM(__rl_concept_type &&v) { return (__rl_concept_type &&)(v); }\n", printer->fFuncsImpl);
 
 
 	for(RlcSrcSize i = 0; i < this->fFunctionCount; i++)
@@ -242,13 +242,13 @@ static void rlc_parsed_concept_print_impl(
 		fputs(">", out);
 	}
 
-	fputs("{ public:\n\t__rl_concept_type * __rl_concept_ptr;\n", out);
+	fputs("{\n\tstd::decay_t<__rl_concept_type> __rl_concept_ptr;\n\tpublic:\n", out);
 
 	rlc_src_string_print(
 		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
 		file,
 		out);
-	fputs("_wrapper(__rl_concept_type * p): __rl_concept_ptr(p) {}\n", out);
+	fputs("_wrapper(__rl_concept_type p): __rl_concept_ptr(std::move(p)) {}\n", out);
 
 	for(RlcSrcSize i = 0; i < this->fFunctionCount; i++)
 	{
@@ -281,7 +281,7 @@ static void rlc_parsed_concept_print_impl(
 			if(fn->fReturnType.fValue != kRlcParsedTypeNameValueVoid
 			|| fn->fReturnType.fTypeModifierCount)
 				fputs("return ", out);
-			fputs("__rl_concept_ptr->", out);
+			fputs("__rl::deref(__rl_concept_ptr).", out);
 			rlc_src_string_print(
 				&RLC_BASE_CAST(fn, RlcParsedScopeEntry)->fName,
 				file,
