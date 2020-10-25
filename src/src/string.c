@@ -145,7 +145,8 @@ void rlc_src_string_print(
 		"compl",
 		"not",
 		"or",
-		"xor"
+		"xor",
+		"NULL"
 	};
 
 	for(size_t i = 0; i < _countof(s_special_identifiers); i++)

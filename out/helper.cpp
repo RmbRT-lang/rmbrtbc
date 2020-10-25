@@ -213,6 +213,7 @@ typedef bool __rl_bool;
 #define CONVERT(...) operator __VA_ARGS__ ()
 
 typedef ::nullptr_t NULL_t;
+const NULL_t __rlc_NULL{};
 
 #define __rl_unnamed __rl_unnamed_impl(__COUNTER__)
 #define __rl_unnamed_impl(x) __rl_unnamed_paste(x)
