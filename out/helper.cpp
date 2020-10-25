@@ -108,6 +108,58 @@ namespace __rl
 	};
 }
 
+// Helpers for TEST.
+
+#define __RL_TEST(name) __RL_TEST_IMPL(name, __COUNTER__)
+#define __RL_TEST_IMPL_PASTE(a,b) a##b
+#define __RL_TEST_IMPL(name, counter) \
+void __RL_TEST_IMPL_PASTE(__rl_test_, counter)(); \
+	int __RL_TEST_IMPL_PASTE(_, counter) = \
+		::__rl::test::detail::test(name, &__RL_TEST_IMPL_PASTE(__rl_test_, counter)); \
+	void __RL_TEST_IMPL_PASTE(__rl_test_, counter)()
+
+extern void * stdout;
+extern void * stderr;
+
+
+extern "C" int fprintf(void * file, char const * fmt, ...);
+extern "C" int printf(char const * fmt, ...);
+
+
+namespace __rl::test
+{
+	namespace detail {
+		int successes = 0;
+		int failures = 0;
+	}
+
+	void status(int &successes, int &failures)
+	{
+		successes = detail::successes;
+		failures = detail::failures;
+	}
+
+	namespace detail
+	{
+		int test(char const * name, void (*test_fn)())
+		{
+			try {
+				test_fn();
+				fprintf(stdout, "SUCCESS \"%s\"\n", name);
+				++detail::successes;
+				return 1;
+			} catch(...)
+			{
+				fprintf(stderr, "FAILURE \"%s\"\n", name);
+			}
+			++detail::failures;
+			return 0;
+		}
+	}
+}
+
+
+
 // Helpers for new/delete.
 
 template<class T, class ...Args>
@@ -126,9 +178,6 @@ inline void __rlc_delete(T * p)
 
 template<class T, ::size_t kSize>
 constexpr size_t  size(T (&)[kSize]) { return kSize; }
-
-extern "C" int fprintf(void * file, char const * fmt, ...);
-extern "C" int printf(char const * fmt, ...);
 
 // Declare special size types.
 typedef unsigned long int UM;

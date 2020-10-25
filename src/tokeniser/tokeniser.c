@@ -200,6 +200,7 @@ struct {
 	{"SIZEOF", kRlcTokSizeof },
 	{"STATIC", kRlcTokStatic },
 	{"SWITCH", kRlcTokSwitch },
+	{"TEST", kRlcTokTest },
 	{"THIS", kRlcTokThis },
 	{"THROW", kRlcTokThrow },
 	{"TRY", kRlcTokTry },

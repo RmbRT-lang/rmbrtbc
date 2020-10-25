@@ -53,6 +53,7 @@ enum RlcTokenType
 	kRlcTokSizeof,
 	kRlcTokStatic,
 	kRlcTokSwitch,
+	kRlcTokTest,
 	kRlcTokThis,
 	kRlcTokThrow,
 	kRlcTokTry,

@@ -42,6 +42,7 @@ char const * rlc_token_type_name(
 		"'SIZEOF'",
 		"'STATIC'",
 		"'SWITCH'",
+		"'TEST'",
 		"'THIS'",
 		"'THROW'",
 		"'TRY'",
