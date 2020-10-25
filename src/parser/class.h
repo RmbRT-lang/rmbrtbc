@@ -41,6 +41,8 @@ struct RlcParsedClass
 	struct RlcParsedMemberList fMembers;
 
 	struct RlcParsedMemberList fConstructors;
+	/** Whether the class needs a virtual destructor. */
+	int fIsVirtual;
 	/** Whether the class has a destructor. */
 	int fHasDestructor;
 	/** The class' destructor. */

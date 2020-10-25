@@ -68,7 +68,8 @@ int rlc_parsed_class_parse(
 
 	struct RlcToken name;
 	if((!rlc_parser_is_ahead(parser, kRlcTokBraceOpen)
-		&& !rlc_parser_is_ahead(parser, kRlcTokMinusGreater))
+		&& !rlc_parser_is_ahead(parser, kRlcTokMinusGreater)
+		&& !rlc_parser_is_ahead(parser, kRlcTokVirtual))
 	|| !rlc_parser_consume(parser, &name, kRlcTokIdentifier))
 	{
 		return 0;
@@ -78,6 +79,11 @@ int rlc_parsed_class_parse(
 	rlc_parser_trace(parser, "class", &tracer);
 
 	rlc_parsed_class_create(out, &name.content, templates);
+
+	out->fIsVirtual = rlc_parser_consume(
+		parser,
+		NULL,
+		kRlcTokVirtual);
 
 	if(kRlcTokMinusGreater == rlc_parser_expect(
 		parser,
@@ -237,6 +243,8 @@ static void rlc_parsed_class_print_impl(
 		if(this->fDestructor.fIsInline)
 			fputs("inline ", out);
 
+		if(this->fIsVirtual)
+			fputs("virtual ", out);
 		fputc('~', out);
 		rlc_src_string_print(
 			&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
@@ -258,10 +266,20 @@ static void rlc_parsed_class_print_impl(
 			file,
 			out);
 	}
-
-	// Print "destructor" member function.
-	if(!this->fHasDestructor)
+	else
+	{
 		fputs("public:", out);
+		if(this->fIsVirtual)
+		{
+			fputs("virtual ",out);
+			fputs(" ~", out);
+				rlc_src_string_print(
+					&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+					file,
+					out);
+				fputs("() = default;\n", out);
+		}
+	}
 	fputs("inline void __rl_destructor() const { this->~", out);
 	rlc_src_string_print(
 		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
