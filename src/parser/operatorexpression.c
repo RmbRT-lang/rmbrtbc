@@ -562,6 +562,9 @@ void rlc_parsed_operator_expression_print(
 
 	RLC_DASSERT(k_position[this->fOperator].op == this->fOperator);
 
+	if(k_position[this->fOperator].needsParentheses)
+		fputc('(', out);
+
 	switch(k_position[this->fOperator].position)
 	{
 	case 0:
@@ -572,8 +575,6 @@ void rlc_parsed_operator_expression_print(
 	default:;
 	}
 
-	if(k_position[this->fOperator].needsParentheses)
-		fputc('(', out);
 
 	rlc_parsed_expression_print(
 		this->fExpressions[0],
