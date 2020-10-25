@@ -157,3 +157,11 @@ void rlc_src_string_print(
 
 	fprintf(out, "%.*s", (int)this->length, &file->fContents[this->start]);
 }
+
+void rlc_src_string_print_noreplace(
+	struct RlcSrcString const * this,
+	struct RlcSrcFile const * file,
+	FILE * out)
+{
+	fprintf(out, "%.*s", (int)this->length, &file->fContents[this->start]);
+}

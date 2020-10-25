@@ -265,7 +265,7 @@ static void rlc_parsed_enum_print_to_file(
 			fprintf(out, ",\n");
 
 		fputs("\t\"", out);
-		rlc_src_string_print(
+		rlc_src_string_print_noreplace(
 			&RLC_BASE_CAST(&this->fConstants[i], RlcParsedScopeEntry)->fName,
 			file,
 			out);
