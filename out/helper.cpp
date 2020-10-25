@@ -207,6 +207,8 @@ typedef bool __rl_bool;
 #define FALSE false
 
 #define ASSIGN operator=
+#define DEREF operator*
+#define PTRACCESS operator->
 #define LOG_NOT operator!
 #define SUBSCRIPT operator[]
 #define NOTYPE
