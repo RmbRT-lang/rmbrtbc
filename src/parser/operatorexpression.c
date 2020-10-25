@@ -5,8 +5,8 @@
 
 void rlc_parsed_operator_expression_create(
 	struct RlcParsedOperatorExpression * this,
-	RlcSrcIndex first,
-	RlcSrcIndex last)
+	struct RlcToken first,
+	struct RlcToken last)
 {
 	RLC_DASSERT(this != NULL);
 
@@ -131,8 +131,8 @@ static size_t const k_binary_groups[] = {
 
 static struct RlcParsedOperatorExpression * make_operator_expression(
 	enum RlcOperator type,
-	RlcSrcIndex first,
-	RlcSrcIndex last)
+	struct RlcToken first,
+	struct RlcToken last)
 {
 	struct RlcParsedOperatorExpression * out = NULL;
 	rlc_malloc(
@@ -172,8 +172,8 @@ static struct RlcParsedOperatorExpression * make_binary_expression(
 
 	struct RlcParsedOperatorExpression * out = make_operator_expression(
 		type,
-		lhs->fFirst,
-		rhs->fLast);
+		lhs->fStart,
+		rhs->fEnd);
 	rlc_parsed_operator_expression_add(out, lhs);
 	rlc_parsed_operator_expression_add(out, rhs);
 
@@ -183,8 +183,8 @@ static struct RlcParsedOperatorExpression * make_binary_expression(
 static struct RlcParsedOperatorExpression * make_unary_expression(
 	enum RlcOperator type,
 	struct RlcParsedExpression * operand,
-	size_t first,
-	size_t last)
+	struct RlcToken first,
+	struct RlcToken last)
 {
 	if(!operand)
 		return NULL;
@@ -235,8 +235,8 @@ static _Nodiscard struct RlcParsedExpression * parse_postfix(
 						make_unary_expression(
 							k_unary_postfix[i].fOp,
 							out,
-							out->fFirst,
-							rlc_src_string_end(&token.content));
+							out->fStart,
+							token);
 					out = RLC_BASE_CAST(
 						temp,
 						RlcParsedExpression);
@@ -290,16 +290,15 @@ static _Nodiscard struct RlcParsedExpression * parse_postfix(
 				make_unary_expression(
 					kCall,
 					out,
-					out->fFirst,
-					0);
+					out->fStart,
+					out->fStart);
 
 			out = RLC_BASE_CAST(temp, RlcParsedExpression);
 
-			struct RlcToken parenthese;
 			int arguments = 0;
 			while(!rlc_parser_consume(
 				parser,
-				&parenthese,
+				&out->fEnd,
 				kRlcTokParentheseClose))
 			{
 				// parse comma, if necessary.
@@ -325,8 +324,6 @@ static _Nodiscard struct RlcParsedExpression * parse_postfix(
 						struct RlcParsedOperatorExpression),
 					arg);
 			}
-
-			out->fLast = rlc_src_string_end(&parenthese.content);
 
 			++postfix;
 			continue;
@@ -378,14 +375,12 @@ static struct RlcParsedExpression * parse_prefix(
 {
 	RLC_DASSERT(parser != NULL);
 
-	// track the beginning index of the expression.
-	size_t const first = rlc_parser_index(parser);
-
+	struct RlcToken start;
 	for(size_t i = _countof(k_unary); i--;)
 	{
 		if(rlc_parser_consume(
 			parser,
-			NULL,
+			&start,
 			k_unary[i].fTok))
 		{
 			struct RlcParsedExpression * operand = parse_prefix(parser);
@@ -393,16 +388,13 @@ static struct RlcParsedExpression * parse_prefix(
 			if(!(unary = make_unary_expression(
 					k_unary[i].fOp,
 					operand,
-					first,
-					0)))
+					start,
+					operand->fEnd)))
 			{
 				rlc_parser_fail(parser, "expected expression");
 			}
 
-			struct RlcParsedExpression * out = RLC_BASE_CAST(unary, RlcParsedExpression);
-			out->fLast = operand->fLast;
-
-			return out;
+			return RLC_BASE_CAST(unary, RlcParsedExpression);
 		}
 	}
 
@@ -514,7 +506,7 @@ void rlc_parsed_operator_expression_add(
 		sizeof(struct RlcParsedExpression*) * ++this->fExpressionCount);
 
 	this->fExpressions[this->fExpressionCount-1] = expression;
-	RLC_BASE_CAST(this, RlcParsedExpression)->fLast = expression->fLast;
+	RLC_BASE_CAST(this, RlcParsedExpression)->fEnd = expression->fEnd;
 }
 
 void rlc_parsed_operator_expression_print(

@@ -14,8 +14,8 @@ void rlc_parsed_number_expression_create(
 	rlc_parsed_expression_create(
 		RLC_BASE_CAST(this, RlcParsedExpression),
 		kRlcParsedNumberExpression,
-		token->content.start,
-		rlc_src_string_end(&token->content));
+		*token,
+		*token);
 
 	this->fNumberToken = *token;
 }

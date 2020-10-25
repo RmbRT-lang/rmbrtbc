@@ -4,15 +4,15 @@
 
 void rlc_parsed_this_expression_create(
 	struct RlcParsedThisExpression * this,
-	struct RlcSrcString const * string)
+	struct RlcToken token)
 {
 	RLC_DASSERT(this != NULL);
 
 	rlc_parsed_expression_create(
 		RLC_BASE_CAST(this, RlcParsedExpression),
 		kRlcParsedThisExpression,
-		string->start,
-		rlc_src_string_end(string));
+		token,
+		token);
 }
 
 void rlc_parsed_this_expression_destroy(
@@ -37,7 +37,7 @@ int rlc_parsed_this_expression_parse(
 	{
 		rlc_parsed_this_expression_create(
 			out,
-			&token.content);
+			token);
 	}
 	return result;
 }

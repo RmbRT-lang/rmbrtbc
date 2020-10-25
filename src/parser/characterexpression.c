@@ -11,8 +11,8 @@ void rlc_parsed_character_expression_create(
 	rlc_parsed_expression_create(
 		RLC_BASE_CAST(this, RlcParsedExpression),
 		kRlcParsedCharacterExpression,
-		token->content.start,
-		rlc_src_string_end(&this->fToken.content));
+		*token,
+		*token);
 	this->fToken = *token;
 }
 

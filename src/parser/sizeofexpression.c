@@ -4,8 +4,8 @@
 
 void rlc_parsed_sizeof_expression_create(
 	struct RlcParsedSizeofExpression * this,
-	RlcSrcIndex start,
-	RlcSrcIndex end)
+	struct RlcToken start,
+	struct RlcToken end)
 {
 	RLC_DASSERT(this != NULL);
 
@@ -40,11 +40,11 @@ int rlc_parsed_sizeof_expression_parse(
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
 
-	size_t const start = rlc_parser_index(parser);
+	struct RlcToken start;
 
 	if(!rlc_parser_consume(
 		parser,
-		NULL,
+		&start,
 		kRlcTokSizeof))
 		return 0;
 
@@ -84,7 +84,7 @@ int rlc_parsed_sizeof_expression_parse(
 		1,
 		kRlcTokParentheseClose);
 
-	rlc_parsed_sizeof_expression_create(out, start, rlc_src_string_end(&end.content));
+	rlc_parsed_sizeof_expression_create(out, start, end);
 	return 1;
 }
 

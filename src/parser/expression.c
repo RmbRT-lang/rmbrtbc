@@ -17,15 +17,15 @@
 void rlc_parsed_expression_create(
 	struct RlcParsedExpression * this,
 	enum RlcParsedExpressionType type,
-	RlcSrcIndex first,
-	RlcSrcIndex last)
+	struct RlcToken first,
+	struct RlcToken last)
 {
 	RLC_DASSERT(this != NULL);
 	RLC_DASSERT(RLC_IN_ENUM(type, RlcParsedExpressionType));
 
 	RLC_DERIVING_TYPE(this) = type;
-	this->fFirst = first;
-	this->fLast = last;
+	this->fStart = first;
+	this->fEnd = last;
 }
 
 void rlc_parsed_expression_destroy_virtual(

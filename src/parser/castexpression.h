@@ -35,8 +35,8 @@ struct RlcParsedCastExpression
 	The expression's first token. */
 void rlc_parsed_cast_expression_create(
 	struct RlcParsedCastExpression * this,
-	RlcSrcIndex first,
-	RlcSrcIndex last);
+	struct RlcToken first,
+	struct RlcToken last);
 
 /** Destroys a cast expression.
 @memberof RlcParsedCastExpression
