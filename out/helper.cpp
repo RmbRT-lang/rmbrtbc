@@ -150,7 +150,6 @@ namespace __rl::test
 		{
 			try {
 				test_fn();
-				fprintf(stdout, "SUCCESS \"%s\"\n", name);
 				++detail::successes;
 				return 1;
 			} catch(char const * e)
