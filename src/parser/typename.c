@@ -357,6 +357,12 @@ void rlc_parsed_type_name_print(
 				&& !this->fName->fChildren[0].fTemplateCount;
 			if(decay)
 				fputs("::std::decay_t<", out);
+			for(RlcSrcIndex i = 0; (RlcSrcIndex)(i+1) < this->fName->fChildCount; i++)
+				if(this->fName->fChildren[i].fTemplateCount)
+				{
+					fputs(" typename ", out);
+					break;
+				}
 			rlc_parsed_symbol_print(
 				this->fName,
 				file,
