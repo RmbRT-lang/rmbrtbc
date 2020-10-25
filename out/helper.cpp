@@ -108,6 +108,11 @@ namespace __rl
 	};
 }
 
+#define __rl_assert(expr, code, file, line, col) do { \
+	if(!(expr)) \
+		throw file ":" #line ":" #col ": assertion failed: '" #code "'"; \
+} while(0)
+
 // Helpers for TEST.
 
 #define __RL_TEST(name) __RL_TEST_IMPL(name, __COUNTER__)
@@ -148,6 +153,9 @@ namespace __rl::test
 				fprintf(stdout, "SUCCESS \"%s\"\n", name);
 				++detail::successes;
 				return 1;
+			} catch(char const * e)
+			{
+				fprintf(stderr, "FAILURE \"%s\":\n%s\n", name, e);
 			} catch(...)
 			{
 				fprintf(stderr, "FAILURE \"%s\"\n", name);

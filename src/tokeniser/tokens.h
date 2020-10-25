@@ -24,6 +24,7 @@ enum RlcTokenType
 
 	// Keywords.
 	kRlcTokAbstract,
+	kRlcTokAssert,
 	kRlcTokBreak,
 	kRlcTokCase,
 	kRlcTokCatch,

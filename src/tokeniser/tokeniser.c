@@ -172,6 +172,7 @@ struct {
 } const s_keywords [] = {
 	// keywords.
 	{"ABSTRACT", kRlcTokAbstract },
+	{"ASSERT", kRlcTokAssert },
 	{"BREAK", kRlcTokBreak },
 	{"CASE", kRlcTokCase },
 	{"CATCH", kRlcTokCatch },

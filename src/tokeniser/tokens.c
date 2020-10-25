@@ -13,6 +13,7 @@ char const * rlc_token_type_name(
 		"string",
 
 		"'ABSTRACT'",
+		"'ASSERT'",
 		"'BREAK'",
 		"'CASE'",
 		"'CATCH'",

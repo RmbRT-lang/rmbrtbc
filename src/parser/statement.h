@@ -14,6 +14,7 @@ extern "C" {
 /** Deriving statement types. */
 enum RlcParsedStatementType
 {
+	kRlcParsedAssertStatement,
 	kRlcParsedExpressionStatement,
 	kRlcParsedBlockStatement,
 	kRlcParsedIfStatement,
