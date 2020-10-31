@@ -207,10 +207,9 @@ void rlc_parsed_type_name_create(
 	this->fTypeModifierCount = 0;
 }
 
-int rlc_parsed_type_name_parse(
+static int rlc_parsed_type_name_parse_impl(
 	struct RlcParsedTypeName * out,
-	struct RlcParser * parser,
-	int allow_reference)
+	struct RlcParser * parser)
 {
 	RLC_DASSERT(parser != NULL);
 	RLC_DASSERT(out != NULL);
@@ -292,7 +291,20 @@ int rlc_parsed_type_name_parse(
 			&modifier);
 	}
 
-	if(allow_reference)
+	return 1;
+}
+
+int rlc_parsed_type_name_parse(
+	struct RlcParsedTypeName * out,
+	struct RlcParser * parser,
+	int allow_reference)
+{
+	if(!rlc_parsed_type_name_parse_impl(out, parser))
+		return 0;
+
+after_type_name:
+	if(rlc_parser_is_ahead(parser, kRlcTokMinus)
+	|| allow_reference)
 	{
 		if(rlc_parser_consume(
 			parser,
@@ -308,6 +320,43 @@ int rlc_parsed_type_name_parse(
 			out->fReferenceType = kRlcReferenceTypeTempReference;
 		} else
 			out->fReferenceType = kRlcReferenceTypeNone;
+	}
+
+	if(rlc_parser_consume(
+		parser,
+		NULL,
+		kRlcTokMinus))
+	{
+		// Expect starting token of symbol.
+		static enum RlcTokenType const expect[] = {
+			kRlcTokDoubleColon,
+			kRlcTokBracketOpen,
+			kRlcTokIdentifier
+		};
+		int found = 0;
+		for(size_t i = 0; i < _countof(expect); i++)
+			found |= rlc_parser_is_current(parser, expect[i]);
+		if(!found)
+			rlc_parser_fail(parser, "expected symbol");
+
+		// Parse next type (symbol type).
+		struct RlcParsedTypeName * temp = NULL;
+		rlc_malloc((void**)&temp, sizeof(struct RlcParsedTypeName));
+		*temp = *out;
+		if(!rlc_parsed_type_name_parse_impl(out, parser))
+			rlc_parser_fail(parser, "expected type name");
+		RLC_ASSERT(out->fValue == kRlcParsedTypeNameValueName);
+
+		// Insert previous type as last template argument to next type.
+		struct RlcParsedSymbol * symbol = out->fName;
+		struct RlcParsedSymbolChild * child = &symbol->fChildren[symbol->fChildCount-1];
+		rlc_realloc(
+			(void**)&child->fTemplates,
+			++child->fTemplateCount * sizeof(struct RlcParsedSymbolChildTemplate));
+		child->fTemplates[child->fTemplateCount-1].fIsExpression = 0;
+		child->fTemplates[child->fTemplateCount-1].fTypeName = temp;
+
+		goto after_type_name;
 	}
 
 	return 1;
