@@ -273,7 +273,7 @@ static _Nodiscard struct RlcParsedExpression * parse_postfix(
 
 			rlc_parser_expect(
 				parser,
-				NULL,
+				&out->fEnd,
 				1,
 				kRlcTokBracketClose);
 
@@ -339,12 +339,11 @@ static _Nodiscard struct RlcParsedExpression * parse_postfix(
 				{ kRlcTokMinusGreater, kMemberPointer }
 			};
 
-			struct RlcToken token;
 			for(size_t i = _countof(k_ops); i--;)
 			{
 				if(rlc_parser_consume(
 					parser,
-					&token,
+					NULL,
 					k_ops[i].fToken))
 				{
 					struct RlcParsedOperatorExpression * temp =
