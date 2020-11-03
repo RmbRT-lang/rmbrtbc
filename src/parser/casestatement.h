@@ -13,6 +13,8 @@
 extern "C" {
 #endif
 
+struct RlcParsedSwitchStatement;
+
 /** A switch case statement.
 @implements RlcParsedStatement */
 struct RlcParsedCaseStatement
@@ -64,7 +66,9 @@ _Nodiscard int rlc_parsed_case_statement_parse(
 void rlc_parsed_case_statement_print(
 	struct RlcParsedCaseStatement const * this,
 	struct RlcSrcFile const * file,
-	FILE * out);
+	FILE * out,
+	size_t i,
+	struct RlcParsedSwitchStatement const * parent);
 
 #ifdef __cplusplus
 }

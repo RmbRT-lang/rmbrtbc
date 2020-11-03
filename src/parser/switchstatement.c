@@ -93,6 +93,8 @@ int rlc_parsed_switch_statement_parse(
 		1,
 		kRlcTokBraceOpen);
 
+	int hasDefault = 0;
+
 	do {
 		struct RlcParsedCaseStatement case_stmt;
 		if(!rlc_parsed_case_statement_parse(
@@ -101,6 +103,14 @@ int rlc_parsed_switch_statement_parse(
 		{
 			rlc_parser_fail(parser, "expected 'case' statement");
 		}
+
+		if(case_stmt.fIsDefault)
+		{
+			if(hasDefault)
+				rlc_parser_fail(parser, "duplicate default case");
+			hasDefault = 1;
+		}
+
 		rlc_parsed_switch_statement_add_case(
 			out,
 			&case_stmt);
@@ -132,28 +142,39 @@ void rlc_parsed_switch_statement_print(
 {
 	if(this->fIsVariableSwitchValue)
 	{
-		fputs("{\n\t", out);
+		fputs("switch(0){default:\n\t", out);
 		rlc_parsed_variable_print_argument(
 			&this->fSwitchValue.fVariable,
 			file,
 			out,
 			1);
-		fputs(";\n\tswitch(", out);
+		fputs(";\n\tauto const& __rl_switch_value = ", out);
 		rlc_src_string_print(
 			&RLC_BASE_CAST(
 				&this->fSwitchValue.fVariable,
 				RlcParsedScopeEntry)->fName,
 			file,
 			out);
+		fputs(";if(0){;}\n", out);
 	} else
 	{
-		fputs("switch(", out);
+		fputs("switch(0){default: auto const __rl_switch_value = ", out);
 		rlc_parsed_expression_print(this->fSwitchValue.fExpression, file, out);
+		fputs(";if(0){;}\n", out);
 	}
-	fputs(")\n{", out);
 
+	size_t default_i = this->fCaseCount;
 	for(size_t i = 0; i < this->fCaseCount; i++)
-		rlc_parsed_case_statement_print(&this->fCases[i], file, out);
+	{
+		if(this->fCases[i].fIsDefault)
+			default_i = i;
+		else
+			rlc_parsed_case_statement_print(&this->fCases[i], file, out, i, this);
+	}
+
+	if(default_i != this->fCaseCount)
+		rlc_parsed_case_statement_print(&this->fCases[default_i], file, out, default_i, this);
+
 	fputs("}\n", out);
 
 	if(this->fIsVariableSwitchValue)

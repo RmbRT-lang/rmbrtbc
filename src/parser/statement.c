@@ -127,7 +127,7 @@ struct RlcParsedStatement * rlc_parsed_statement_parse(
 		ENTRY(RlcParsedLoopStatement, &rlc_parsed_loop_statement_parse),
 		ENTRY(RlcParsedVariableStatement, &rlc_parsed_variable_statement_parse),
 		ENTRY(RlcParsedSwitchStatement, &rlc_parsed_switch_statement_parse),
-		ENTRY(RlcParsedCaseStatement, &rlc_parsed_case_statement_parse),
+		NOENTRY(RlcParsedCaseStatement),
 		ENTRY(RlcParsedBreakStatement, &rlc_parsed_break_statement_parse),
 		ENTRY(RlcParsedContinueStatement, &rlc_parsed_continue_statement_parse),
 		ENTRY(RlcParsedTryStatement, &rlc_parsed_try_statement_parse),
@@ -238,7 +238,7 @@ void rlc_parsed_statement_print(
 		ENTRY(VariableStatement, rlc_parsed_variable_statement_print),
 		ENTRY(ReturnStatement, rlc_parsed_return_statement_print),
 		ENTRY(SwitchStatement, rlc_parsed_switch_statement_print),
-		ENTRY(CaseStatement, rlc_parsed_case_statement_print),
+		ENTRY(CaseStatement, NULL), // non-standard signature.
 		ENTRY(BreakStatement, rlc_parsed_break_statement_print),
 		ENTRY(ContinueStatement, rlc_parsed_continue_statement_print),
 		ENTRY(TryStatement, rlc_parsed_try_statement_print),

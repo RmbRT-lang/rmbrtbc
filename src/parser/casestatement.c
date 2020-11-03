@@ -1,4 +1,5 @@
 #include "casestatement.h"
+#include "switchstatement.h"
 
 #include "../assert.h"
 #include "../malloc.h"
@@ -95,21 +96,31 @@ int rlc_parsed_case_statement_parse(
 void rlc_parsed_case_statement_print(
 	struct RlcParsedCaseStatement const * this,
 	struct RlcSrcFile const * file,
-	FILE * out)
+	FILE * out,
+	size_t i,
+	struct RlcParsedSwitchStatement const * parent)
 {
 	RLC_ASSERT(!this->fControlLabel.fExists);
 
 	if(this->fIsDefault)
-		fputs("default:\n", out);
+		fputs("else", out);
 	else
 	{
+		fputs("else if(", out);
 		for(size_t i = 0; i < this->fValues.fCount; i++)
 		{
-			fputs("case ", out);
+			if(i) fputs("|| ", out);
+			fputs("__rl_switch_value == (", out);
 			rlc_parsed_expression_print(this->fValues.fValues[i], file, out);
-			fputs(":\n", out);
+			fputs(")\n", out);
 		}
+		fputs(")\n", out);
 	}
-
+	fprintf(out, "{__rl_switch_case_%p_%zu:\n", parent, i);
 	rlc_parsed_statement_print(this->fBody, file, out);
+	if(i != parent->fCaseCount-1)
+	{
+		fprintf(out, "goto __rl_switch_case_%p_%zu;\n", parent, i+1);
+	}
+	fputs("}", out);
 }
