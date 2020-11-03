@@ -213,8 +213,8 @@ int main(
 	read_into_pipe_and_close(printer.fFuncs, &funcsBuf, &funcsLen, pipefd);
 	read_into_pipe_and_close(printer.fTypesImpl, &typesImplBuf, &typesImplLen, pipefd);
 	read_into_pipe_and_close(printer.fVars, &varsBuf, &varsLen, pipefd);
-	read_into_pipe_and_close(printer.fFuncsImpl, &funcsImplBuf, &funcsImplLen, pipefd);
 	read_into_pipe_and_close(printer.fVarsImpl, &varsImplBuf, &varsImplLen, pipefd);
+	read_into_pipe_and_close(printer.fFuncsImpl, &funcsImplBuf, &funcsImplLen, pipefd);
 	shutdown(pipefd, SHUT_WR);
 
 	fflush(stdout);
