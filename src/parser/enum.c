@@ -210,7 +210,7 @@ static void rlc_parsed_enum_print_to_file(
 			file,
 			out);
 
-		for(RlcSrcIndex j = 1; j < this->fConstants[i].fAliasCount; j++)
+		for(RlcSrcIndex j = 0; j < this->fConstants[i].fAliasCount; j++)
 		{
 			fprintf(out, ", ");
 			rlc_src_string_print(
@@ -296,6 +296,20 @@ static void rlc_parsed_enum_print_to_file(
 			file,
 			out);
 		fputs(";\n", out);
+		for(RlcSrcIndex j = 0; j < this->fConstants[i].fAliasCount; j++)
+		{
+			fprintf(out, "static ");
+			rlc_src_string_print(
+				&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+				file,
+				out);
+			fputs(" const ", out);
+			rlc_src_string_print(
+				&this->fConstants[i].fAliasTokens[j],
+				file,
+				out);
+			fputs(";\n", out);
+		}
 	}
 	fputs("};\n", out);
 
@@ -344,6 +358,52 @@ static void rlc_parsed_enum_print_to_file(
 			file,
 			out);
 		fputs("};\n", out);
+
+		for(RlcSrcIndex j = 0; j < this->fConstants[i].fAliasCount; j++)
+		{
+			if(printer->outerCtx)
+			{
+				rlc_printer_print_ctx_symbol(printer, file, out);
+				fputs("::", out);
+			}
+			rlc_src_string_print(
+				&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+				file,
+				out);
+			fputs(" const ", out);
+
+			if(printer->outerCtx)
+			{
+				rlc_printer_print_ctx_symbol(printer, file, out);
+				fputs("::", out);
+			}
+			rlc_src_string_print(
+				&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+				file,
+				out);
+			fputs("::", out);
+			rlc_src_string_print(
+				&this->fConstants[i].fAliasTokens[j],
+				file,
+				out);
+			fputs("{", out);
+			if(printer->outerCtx)
+			{
+				rlc_printer_print_ctx_symbol(printer, file, out);
+				fputs("::", out);
+			}
+			fputs("__rl_enum_", out);
+			rlc_src_string_print(
+				&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+				file,
+				out);
+			fputs("::", out);
+			rlc_src_string_print(
+				&RLC_BASE_CAST(&this->fConstants[i], RlcParsedScopeEntry)->fName,
+				file,
+				out);
+			fputs("};\n", out);
+		}
 	}
 }
 
