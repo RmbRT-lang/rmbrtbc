@@ -56,6 +56,9 @@ int rlc_parsed_switch_statement_parse(
 		kRlcTokSwitch))
 		return 0;
 
+	struct RlcParserTracer tracer;
+	rlc_parser_trace(parser, "switch statement", &tracer);
+
 	rlc_parsed_switch_statement_create(out);
 	rlc_parsed_control_label_parse(&out->fLabel, parser);
 
@@ -95,8 +98,8 @@ int rlc_parsed_switch_statement_parse(
 
 	int hasDefault = 0;
 
+	struct RlcParsedCaseStatement case_stmt;
 	do {
-		struct RlcParsedCaseStatement case_stmt;
 		if(!rlc_parsed_case_statement_parse(
 			&case_stmt,
 			parser))
@@ -114,10 +117,11 @@ int rlc_parsed_switch_statement_parse(
 		rlc_parsed_switch_statement_add_case(
 			out,
 			&case_stmt);
-	} while(!rlc_parser_consume(
-		parser,
-		NULL,
-		kRlcTokBraceClose));
+	} while(case_stmt.fIsFallthrough
+		|| !rlc_parser_consume(parser, NULL, kRlcTokBraceClose));
+
+
+	rlc_parser_untrace(parser, &tracer);
 
 	return 1;
 }

@@ -21,6 +21,8 @@ struct RlcParsedCaseStatement
 {
 	RLC_DERIVE(struct, RlcParsedStatement);
 
+	/** Whether it should fall through to the next case. */
+	int fIsFallthrough;
 	/** Whether it is the default case. */
 	int fIsDefault;
 	/** The case's control label. */

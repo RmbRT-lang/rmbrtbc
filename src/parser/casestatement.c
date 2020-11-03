@@ -90,6 +90,8 @@ int rlc_parsed_case_statement_parse(
 		&~RLC_FLAG(kRlcParsedCaseStatement)
 		&~RLC_FLAG(kRlcParsedVariableStatement));
 
+	out->fIsFallthrough = rlc_parser_consume(parser, NULL, kRlcTokMinusGreater);
+
 	return 1;
 }
 
@@ -118,7 +120,8 @@ void rlc_parsed_case_statement_print(
 	}
 	fprintf(out, "{__rl_switch_case_%p_%zu:\n", parent, i);
 	rlc_parsed_statement_print(this->fBody, file, out);
-	if(i != parent->fCaseCount-1)
+	if(!this->fIsFallthrough
+	&& i != parent->fCaseCount-1)
 	{
 		fprintf(out, "goto __rl_switch_case_%p_%zu;\n", parent, i+1);
 	}
