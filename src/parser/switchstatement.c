@@ -180,8 +180,5 @@ void rlc_parsed_switch_statement_print(
 		rlc_parsed_case_statement_print(&this->fCases[default_i], file, out, default_i, this);
 
 	fputs("}\n", out);
-
-	if(this->fIsVariableSwitchValue)
-		fputs("}\n", out);
 	rlc_parsed_control_label_print(&this->fLabel, file, out, "_break");
 }
