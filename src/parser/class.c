@@ -323,7 +323,16 @@ static void rlc_parsed_class_print_impl(
 				out,
 				1);
 		}
-		fputs(");\n", out);
+		fputc(')', out);
+		if(!ctor->fIsDefinition
+		&& !ctor->fArgumentCount
+		&& !ctor->fInitialiserCount)
+		{
+			fputs(" = default;\n", out);
+			continue;
+		}
+
+		fputs(";\n", out);
 
 		FILE * out = printer->fFuncsImpl;
 		rlc_printer_print_ctx_tpl(printer, file, out);
