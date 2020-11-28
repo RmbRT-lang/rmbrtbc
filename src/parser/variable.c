@@ -329,7 +329,11 @@ static void rlc_parsed_variable_print_argument_2(
 	if(this->fInitArgCount == 1)
 	{
 		fprintf(out, " = ");
+		if(!this->fHasType)
+			fputs("__rl::mk_auto(", out);
 		rlc_parsed_expression_print(this->fInitArgs[0], file, out);
+		if(!this->fHasType)
+			fputs(")", out);
 	} else if(this->fInitArgCount > 1)
 	{
 		fputc('{', out);

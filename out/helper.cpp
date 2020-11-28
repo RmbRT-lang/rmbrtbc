@@ -11,6 +11,37 @@ namespace __rl
 	template<class Ret, class ...Args>
 	using function_t = Ret(Args...);
 
+	template<class PEnum, class IEnum>
+	class EnumConstant {
+	public:
+		IEnum __rl_v;
+		typedef ::std::underlying_type_t<IEnum> int_t;
+		constexpr EnumConstant(IEnum v): __rl_v(v)
+		{}
+		constexpr operator IEnum() const { return __rl_v; }
+		constexpr operator int_t() const { return (int_t) __rl_v; }
+	};
+
+	template<class T>
+	struct auto_type_wrapper { typedef T type; };
+	template<class PEnum, class IEnum>
+	struct auto_type_wrapper<EnumConstant<PEnum, IEnum>> {
+		typedef std::remove_pointer_t<PEnum> type;
+	};
+	template<class PEnum, class IEnum>
+	struct auto_type_wrapper<EnumConstant<PEnum, IEnum> &&> {
+		typedef std::remove_pointer_t<PEnum> type;
+	};
+	template<class PEnum, class IEnum>
+	struct auto_type_wrapper<EnumConstant<PEnum, IEnum> const &> {
+		typedef std::remove_pointer_t<PEnum> type;
+	};
+
+	template<class T>
+	using auto_t = auto_type_wrapper<T>::type;
+	template<class T>
+	auto_t<T> mk_auto(T &&v) { return auto_t<T>(v); }
+
 	template<class Ret, size_t kSize>
 	using array = Ret[kSize];
 	template<class Ret>
@@ -61,6 +92,8 @@ namespace __rl
 
 		Enum value;
 	public:
+		constexpr EnumWrapper(EnumConstant<Type *, Enum> v):
+			value(v.__rl_v) { }
 		constexpr EnumWrapper(Enum v):
 			value(v) { }
 		explicit constexpr EnumWrapper(int_t v):

@@ -190,8 +190,7 @@ int rlc_parsed_enum_parse(
 static void rlc_parsed_enum_print_to_file(
 	struct RlcParsedEnum const * this,
 	struct RlcSrcFile const * file,
-	FILE * out,
-	struct RlcPrinter * printer)
+	FILE * out)
 {
 	fputs("enum class __rl_enum_", out);
 	rlc_src_string_print(
@@ -285,69 +284,22 @@ static void rlc_parsed_enum_print_to_file(
 	for(RlcSrcIndex i = 0; i < this->fConstantCount; i++)
 	{
 		fputs("\t"
-			"static ", out);
+			"static constexpr __rl::EnumConstant<", out);
 		rlc_src_string_print(
 			&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
 			file,
 			out);
-		fputs(" const ", out);
+		fputs(" *, __rl_enum_", out);
+		rlc_src_string_print(
+			&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+			file,
+			out);
+		fputs("> const ", out);
 		rlc_src_string_print(
 			&RLC_BASE_CAST(&this->fConstants[i], RlcParsedScopeEntry)->fName,
 			file,
 			out);
-		fputs(";\n", out);
-		for(RlcSrcIndex j = 0; j < this->fConstants[i].fAliasCount; j++)
-		{
-			fprintf(out, "static ");
-			rlc_src_string_print(
-				&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
-				file,
-				out);
-			fputs(" const ", out);
-			rlc_src_string_print(
-				&this->fConstants[i].fAliasTokens[j],
-				file,
-				out);
-			fputs(";\n", out);
-		}
-	}
-	fputs("};\n", out);
-
-	out = printer->fVarsImpl;
-	for(RlcSrcIndex i = 0; i < this->fConstantCount; i++)
-	{
-		if(printer->outerCtx)
-		{
-			rlc_printer_print_ctx_symbol(printer, file, out);
-			fputs("::", out);
-		}
-		rlc_src_string_print(
-			&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
-			file,
-			out);
-		fputs(" const ", out);
-
-		if(printer->outerCtx)
-		{
-			rlc_printer_print_ctx_symbol(printer, file, out);
-			fputs("::", out);
-		}
-		rlc_src_string_print(
-			&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
-			file,
-			out);
-		fputs("::", out);
-		rlc_src_string_print(
-			&RLC_BASE_CAST(&this->fConstants[i], RlcParsedScopeEntry)->fName,
-			file,
-			out);
-		fputs("{", out);
-		if(printer->outerCtx)
-		{
-			rlc_printer_print_ctx_symbol(printer, file, out);
-			fputs("::", out);
-		}
-		fputs("__rl_enum_", out);
+		fputs("{__rl_enum_", out);
 		rlc_src_string_print(
 			&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
 			file,
@@ -358,41 +310,25 @@ static void rlc_parsed_enum_print_to_file(
 			file,
 			out);
 		fputs("};\n", out);
-
 		for(RlcSrcIndex j = 0; j < this->fConstants[i].fAliasCount; j++)
 		{
-			if(printer->outerCtx)
-			{
-				rlc_printer_print_ctx_symbol(printer, file, out);
-				fputs("::", out);
-			}
+			fputs("\t"
+				"static constexpr __rl::EnumConstant<", out);
 			rlc_src_string_print(
 				&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
 				file,
 				out);
-			fputs(" const ", out);
-
-			if(printer->outerCtx)
-			{
-				rlc_printer_print_ctx_symbol(printer, file, out);
-				fputs("::", out);
-			}
+			fputs(" *, __rl_enum_", out);
 			rlc_src_string_print(
 				&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
 				file,
 				out);
-			fputs("::", out);
+			fputs("> const ", out);
 			rlc_src_string_print(
 				&this->fConstants[i].fAliasTokens[j],
 				file,
 				out);
-			fputs("{", out);
-			if(printer->outerCtx)
-			{
-				rlc_printer_print_ctx_symbol(printer, file, out);
-				fputs("::", out);
-			}
-			fputs("__rl_enum_", out);
+			fputs("{__rl_enum_", out);
 			rlc_src_string_print(
 				&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
 				file,
@@ -405,6 +341,7 @@ static void rlc_parsed_enum_print_to_file(
 			fputs("};\n", out);
 		}
 	}
+	fputs("};\n", out);
 }
 
 void rlc_parsed_enum_print(
@@ -412,7 +349,7 @@ void rlc_parsed_enum_print(
 	struct RlcSrcFile const * file,
 	struct RlcPrinter * printer)
 {
-	rlc_parsed_enum_print_to_file(this, file, printer->fTypes, printer);
+	rlc_parsed_enum_print_to_file(this, file, printer->fTypes);
 }
 
 void rlc_parsed_member_enum_create(
@@ -473,6 +410,5 @@ void rlc_parsed_member_enum_print(
 	rlc_parsed_enum_print_to_file(
 		RLC_BASE_CAST(this, RlcParsedEnum),
 		file,
-		printer->fTypesImpl,
-		printer);
+		printer->fTypesImpl);
 }

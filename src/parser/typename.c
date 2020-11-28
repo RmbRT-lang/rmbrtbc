@@ -428,9 +428,9 @@ void rlc_parsed_type_name_print(
 		} break;
 	case kRlcParsedTypeNameValueExpression:
 		{
-			fputs("decltype(", out);
+			fputs("__rl::auto_t<decltype(", out);
 			rlc_parsed_expression_print(this->fExpression, file, out);
-			fputs(")", out);
+			fputs(")>", out);
 		} break;
 	}
 
