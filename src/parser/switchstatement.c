@@ -146,39 +146,32 @@ void rlc_parsed_switch_statement_print(
 {
 	if(this->fIsVariableSwitchValue)
 	{
-		fputs("switch(0){default:\n\t", out);
+		fputs("{\n\t", out);
 		rlc_parsed_variable_print_argument(
 			&this->fSwitchValue.fVariable,
 			file,
 			out,
 			1);
-		fputs(";\n\tauto const& __rl_switch_value = ", out);
+		fputs(";\n\tswitch(", out);
 		rlc_src_string_print(
 			&RLC_BASE_CAST(
 				&this->fSwitchValue.fVariable,
 				RlcParsedScopeEntry)->fName,
 			file,
 			out);
-		fputs(";if(0){;}\n", out);
+		fputs("){\n", out);
 	} else
 	{
-		fputs("switch(0){default: auto const __rl_switch_value = ", out);
+		fputs("switch(", out);
 		rlc_parsed_expression_print(this->fSwitchValue.fExpression, file, out);
-		fputs(";if(0){;}\n", out);
+		fputs("){\n", out);
 	}
 
-	size_t default_i = this->fCaseCount;
 	for(size_t i = 0; i < this->fCaseCount; i++)
-	{
-		if(this->fCases[i].fIsDefault)
-			default_i = i;
-		else
-			rlc_parsed_case_statement_print(&this->fCases[i], file, out, i, this);
-	}
-
-	if(default_i != this->fCaseCount)
-		rlc_parsed_case_statement_print(&this->fCases[default_i], file, out, default_i, this);
+		rlc_parsed_case_statement_print(&this->fCases[i], file, out);
 
 	fputs("}\n", out);
+	if(this->fIsVariableSwitchValue)
+		fputs("}\n", out);
 	rlc_parsed_control_label_print(&this->fLabel, file, out, "_break");
 }

@@ -68,9 +68,7 @@ _Nodiscard int rlc_parsed_case_statement_parse(
 void rlc_parsed_case_statement_print(
 	struct RlcParsedCaseStatement const * this,
 	struct RlcSrcFile const * file,
-	FILE * out,
-	size_t i,
-	struct RlcParsedSwitchStatement const * parent);
+	FILE * out);
 
 #ifdef __cplusplus
 }
