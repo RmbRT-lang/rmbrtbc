@@ -254,9 +254,9 @@ static void rlc_parsed_enum_print_to_file(
 		file,
 		out);
 	fprintf(out, ", %zu>::EnumWrapper;\n\n"
-		"constexpr ::__rl_char const * NAME() const\n"
+		"constexpr char const * NAME() const\n"
 		"{\n\t"
-		"::__rl_char const * const names[] = {\n",
+		"char const * const names[] = {\n",
 		(size_t)this->fConstantCount);
 	for(RlcSrcIndex i = 0; i < this->fConstantCount; i++)
 	{

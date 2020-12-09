@@ -228,20 +228,13 @@ typedef unsigned long ulong;
 typedef unsigned int uint;
 typedef unsigned short ushort;
 typedef unsigned char uchar;
-typedef char __rl_char;
-#define char __rl_char
-typedef int __rl_int;
-#define int __rl_int
-typedef short __rl_short;
-#define short __rl_short
-typedef long __rl_long;
-#define long __rl_long
-typedef float __rl_float;
-#define float __rl_float
-typedef double __rl_double;
-#define double __rl_double
-typedef bool __rl_bool;
-#define bool __rl_bool
+typedef char __rlc_char;
+typedef int __rlc_int;
+typedef short __rlc_short;
+typedef long __rlc_long;
+typedef float __rlc_float;
+typedef double __rlc_double;
+typedef bool __rlc_bool;
 
 #define TRUE true
 #define FALSE false
