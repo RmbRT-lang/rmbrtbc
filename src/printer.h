@@ -23,6 +23,7 @@ struct RlcPrinter
 {
 	/** The number of the current compilation unit. */
 	unsigned fCompilationUnit;
+	int fIsTest;
 	FILE * fTypes;
 	FILE * fVars;
 	FILE * fFuncs;

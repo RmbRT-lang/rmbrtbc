@@ -72,10 +72,13 @@ void rlc_parsed_test_print(
 	RLC_DASSERT(this != NULL);
 	RLC_DASSERT(printer != NULL);
 
-	FILE * out = printer->fFuncsImpl;
-	fputs("__RL_TEST(", out);
-	rlc_src_string_print(&this->fName, file, out);
-	fputs(")", out);
+	if(printer->fIsTest)
+	{
+		FILE * out = printer->fFuncsImpl;
+		fputs("__RL_TEST(", out);
+		rlc_src_string_print(&this->fName, file, out);
+		fputs(")", out);
 
-	rlc_parsed_block_statement_print(&this->fBody, file, out);
+		rlc_parsed_block_statement_print(&this->fBody, file, out);
+	}
 }

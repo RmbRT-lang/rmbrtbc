@@ -79,12 +79,15 @@ int main(
 			"usage:\n"
 			"\t%s f1 f2 ... fN\n"
 			"\t\tcompiles f1...fN into executable 'a.out'.\n"
+			"\t%s --test f1 f2 ... fN\n"
+			"\t\tcompiles tests in f1...fN into executable 'a.out'.\n"
 			"\t%s --help\n"
 				"\t\tprints this message.\n"
 			"\t%s --license\n"
 				"\t\tprints the license information.\n"
 			"\t%s --find path\n"
 				"\t\tresolves the requested include path.\n",
+			argv[0],
 			argv[0],
 			argv[0],
 			argv[0],
@@ -137,6 +140,8 @@ int main(
 		return 0;
 	}
 
+	int isTest = !strcmp(argv[1], "--test");
+
 	struct RlcScopedFileRegistry scoped_registry;
 	rlc_scoped_file_registry_create(&scoped_registry);
 
@@ -150,6 +155,7 @@ int main(
 
 	struct RlcPrinter printer = {
 		0,
+		isTest,
 		open_memstream(&typesBuf, &typesLen),
 		open_memstream(&varsBuf, &varsLen),
 		open_memstream(&funcsBuf, &funcsLen),
@@ -161,7 +167,7 @@ int main(
 	};
 
 	int status = 1;
-	for(int i = 1; i < argc; i++)
+	for(int i = 1 + isTest; i < argc; i++)
 	{
 		char const * abs = to_absolute_path(argv[i]);
 		struct RlcScopedFile * file;
@@ -180,6 +186,8 @@ int main(
 				argv[i]);
 			status = 0;
 		}
+
+		++printer.fCompilationUnit;
 	}
 
 	rlc_scoped_file_registry_destroy(&scoped_registry);
@@ -207,7 +215,6 @@ int main(
 	}
 
 	snprintf(out_file, sizeof(out_file), "%.*s/out/helper.cpp", parent_dir(rlc_actual), rlc_actual);
-	free(rlc_actual);
 	pipe_file(out_file, pipefd);
 	read_into_pipe_and_close(printer.fTypes, &typesBuf, &typesLen, pipefd);
 	read_into_pipe_and_close(printer.fFuncs, &funcsBuf, &funcsLen, pipefd);
@@ -215,6 +222,9 @@ int main(
 	read_into_pipe_and_close(printer.fVars, &varsBuf, &varsLen, pipefd);
 	read_into_pipe_and_close(printer.fVarsImpl, &varsImplBuf, &varsImplLen, pipefd);
 	read_into_pipe_and_close(printer.fFuncsImpl, &funcsImplBuf, &funcsImplLen, pipefd);
+	snprintf(out_file, sizeof(out_file), "%.*s/out/%s", parent_dir(rlc_actual), rlc_actual, isTest ? "testmain.cpp" : "exemain.cpp");
+	pipe_file(out_file, pipefd);
+	free(rlc_actual);
 	shutdown(pipefd, SHUT_WR);
 
 	fflush(stdout);
