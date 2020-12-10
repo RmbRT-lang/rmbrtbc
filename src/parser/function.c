@@ -17,7 +17,7 @@ void rlc_parsed_function_create(
 
 	this->fTemplates = *templates;
 
-	this->fHasReturnType = 0;
+	this->fHasReturnType = kRlcFunctionReturnTypeNone;
 
 	this->fArguments = NULL;
 	this->fArgumentCount = 0;
@@ -160,11 +160,12 @@ int rlc_parsed_function_parse(
 		NULL,
 		kRlcTokInline);
 
-	if((out->fHasReturnType = rlc_parsed_type_name_parse(
+	if(rlc_parsed_type_name_parse(
 		&out->fReturnType,
 		parser,
-		1)))
+		1))
 	{
+		out->fHasReturnType = kRlcFunctionReturnTypeType;
 		if(rlc_parser_consume(
 			parser,
 			NULL,
@@ -179,18 +180,29 @@ int rlc_parsed_function_parse(
 		rlc_parser_fail(parser, "expected return type");
 
 	out->fHasBody = 1;
-
-	if((out->fIsShortHandBody = (!out->fHasReturnType || !rlc_parsed_block_statement_parse(
+	out->fIsShortHandBody = !rlc_parsed_block_statement_parse(
 		&out->fBodyStatement,
-		parser))))
+		parser);
+
+	if(out->fIsShortHandBody)
 	{
-		rlc_parser_expect(
-			parser,
-			NULL,
-			1,
-			(out->fHasReturnType)
-				? kRlcTokColonEqual
-				: kRlcTokDoubleColonEqual);
+		enum RlcTokenType tok;
+		if(out->fHasReturnType == kRlcFunctionReturnTypeType)
+			tok = rlc_parser_expect(
+				parser,
+				NULL,
+				1,
+				kRlcTokColonEqual);
+		else
+			tok = rlc_parser_expect(
+				parser,
+				NULL,
+				2,
+				kRlcTokColonEqual,
+				kRlcTokDoubleColonEqual);
+
+		if(tok == kRlcTokDoubleColonEqual)
+			out->fHasReturnType = kRlcFunctionReturnTypeAuto;
 
 		if(!(out->fReturnValue = rlc_parsed_expression_parse(
 			parser,
@@ -220,12 +232,8 @@ static void rlc_parsed_function_print_head_1(
 		rlc_parsed_template_decl_print(&this->fTemplates, file, out);
 
 
-	if(this->fHasReturnType)
-		rlc_parsed_type_name_print(&this->fReturnType, file, out);
-	else
-		fputs("auto", out);
-
-	fputc(' ', out);
+	if(this->fHasReturnType != kRlcFunctionReturnTypeNone)
+		fputs("auto ", out);
 }
 
 static void rlc_parsed_function_print_head_2(
@@ -258,12 +266,26 @@ static void rlc_parsed_function_print_head_3(
 	struct RlcSrcFile const * file,
 	FILE * out)
 {
-	if(!this->fHasReturnType)
+	switch(this->fHasReturnType)
 	{
-		RLC_ASSERT(this->fIsShortHandBody);
-		fputs(" -> decltype(", out);
-		rlc_parsed_expression_print(this->fReturnValue, file, out);
-		fputs(")\n", out);
+	case kRlcFunctionReturnTypeAuto:
+		{
+			if(this->fIsShortHandBody)
+			{
+				fputs(" -> decltype(", out);
+				rlc_parsed_expression_print(this->fReturnValue, file, out);
+				fputs(")\n", out);
+			} else
+			{
+				;
+			}
+		} break;
+	case kRlcFunctionReturnTypeType:
+		{
+			fputs(" -> ", out);
+			rlc_parsed_type_name_print(&this->fReturnType, file, out);
+		} break;
+	case kRlcFunctionReturnTypeNone: break;
 	}
 }
 

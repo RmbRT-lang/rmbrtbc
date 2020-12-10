@@ -17,6 +17,13 @@
 extern "C" {
 #endif
 
+enum RlcFunctionReturnType
+{
+	kRlcFunctionReturnTypeNone,
+	kRlcFunctionReturnTypeAuto,
+	kRlcFunctionReturnTypeType
+};
+
 /** A function as used in the parser.
 @extends RlcParsedScopeEntry */
 struct RlcParsedFunction
@@ -24,7 +31,7 @@ struct RlcParsedFunction
 	RLC_DERIVE(struct,RlcParsedScopeEntry);
 
 	/** Whether the function has an explicit return type. */
-	int fHasReturnType;
+	enum RlcFunctionReturnType fHasReturnType;
 	/** The return type of the function. */
 	struct RlcParsedTypeName fReturnType;
 
