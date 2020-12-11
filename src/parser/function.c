@@ -272,9 +272,14 @@ static void rlc_parsed_function_print_head_3(
 		{
 			if(this->fIsShortHandBody)
 			{
-				fputs(" -> decltype(", out);
+				fputs(" -> ", out);
+				if(this->fIsAsync)
+					fputs("::std::future<", out);
+				fputs("decltype(", out);
 				rlc_parsed_expression_print(this->fReturnValue, file, out);
 				fputs(")\n", out);
+				if(this->fIsAsync)
+					fputc('>', out);
 			} else
 			{
 				;
@@ -283,7 +288,11 @@ static void rlc_parsed_function_print_head_3(
 	case kRlcFunctionReturnTypeType:
 		{
 			fputs(" -> ", out);
+			if(this->fIsAsync)
+				fputs("::std::future<", out);
 			rlc_parsed_type_name_print(&this->fReturnType, file, out);
+			if(this->fIsAsync)
+				fputc('>', out);
 		} break;
 	case kRlcFunctionReturnTypeNone: break;
 	}
@@ -311,15 +320,22 @@ static void rlc_parsed_function_print_body(
 		return;
 	}
 
+	if(this->fIsAsync)
+		fputs("\n#define _return co_return\n", out);
+	else
+		fputs("\n#define _return return\n", out);
+
 	if(this->fIsShortHandBody)
 	{
-		fprintf(out, "\n{ return ");
+		fprintf(out, "\n{ _return ");
 		rlc_parsed_expression_print(this->fReturnValue, file, out);
 		fprintf(out, "; }\n");
 	} else
 	{
 		rlc_parsed_block_statement_print(&this->fBodyStatement, file, out);
 	}
+
+	fputs("\n#undef _return\n", out);
 }
 
 void rlc_parsed_function_print(

@@ -31,6 +31,7 @@ enum RlcOperator
 	kFullAsync,
 	kExpectDynamic,
 	kMaybeDynamic,
+	kAwait,
 
 	kAssign,
 	kAddAssign, kSubAssign, kMulAssign, kDivAssign, kModAssign,

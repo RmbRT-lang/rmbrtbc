@@ -60,7 +60,8 @@ const k_unary[] = {
 	{ kRlcTokDoubleDotExclamationMark, kExpectDynamic },
 	{ kRlcTokDoubleDotQuestionMark, kMaybeDynamic },
 	{ kRlcTokAt, kAsync },
-	{ kRlcTokDoubleAt, kFullAsync }
+	{ kRlcTokDoubleAt, kFullAsync },
+	{ kRlcTokLessMinus, kAwait }
 },
 // binary operators.
 k_binary[] = {
@@ -382,7 +383,26 @@ static struct RlcParsedExpression * parse_prefix(
 			&start,
 			k_unary[i].fTok))
 		{
+			int isAsync = k_unary[i].fOp == kAsync || k_unary[i].fOp == kFullAsync;
+			struct RlcParserTracer trace;
+			if(isAsync)
+				rlc_parser_trace(parser, "asynchronous call", &trace);
+
 			struct RlcParsedExpression * operand = parse_prefix(parser);
+
+			if(k_unary[i].fOp == kAsync || k_unary[i].fOp == kFullAsync)
+			{
+				struct RlcParsedOperatorExpression * op;
+				if((op = RLC_DYNAMIC_CAST(operand, RlcParsedExpression, RlcParsedOperatorExpression)))
+				{
+					if(op->fOperator != kCall)
+						rlc_parser_fail(parser, "expected call expression");
+					rlc_parser_untrace(parser, &trace);
+					op->fOperator = k_unary[i].fOp;
+					return operand;
+				}
+			}
+
 			struct RlcParsedOperatorExpression * unary = NULL;
 			if(!(unary = make_unary_expression(
 					k_unary[i].fOp,
@@ -539,6 +559,7 @@ void rlc_parsed_operator_expression_print(
 		{kFullAsync, -1, NULL,1},
 		{kExpectDynamic, -1, NULL,1},
 		{kMaybeDynamic, -1, NULL,1},
+		{kAwait, 0, " co_await ", 1},
 
 		{kAssign, 1, "=", 1},
 		{kAddAssign, 1, "+=", 1}, {kSubAssign, 1, "-=", 1},
@@ -566,6 +587,8 @@ void rlc_parsed_operator_expression_print(
 	default:;
 	}
 
+	if(this->fOperator == kAsync || this->fOperator == kFullAsync)
+		fputs("::std::async([&]{ return ", out);
 
 	rlc_parsed_expression_print(
 		this->fExpressions[0],
@@ -600,6 +623,8 @@ void rlc_parsed_operator_expression_print(
 					fputc(']', out);
 				} break;
 			case kCall:
+			case kAsync:
+			case kFullAsync:
 				{
 					fputc('(', out);
 					for(RlcSrcIndex i = 1; i < this->fExpressionCount; i++)
@@ -609,6 +634,8 @@ void rlc_parsed_operator_expression_print(
 						rlc_parsed_expression_print(this->fExpressions[i], file, out);
 					}
 					fputc(')', out);
+					if(this->fOperator != kCall)
+						fputs("; })", out);
 				} break;
 			case kConditional:
 				{

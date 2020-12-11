@@ -230,7 +230,7 @@ int main(
 	fflush(stdout);
 
 	char command[PATH_MAX+128];
-	snprintf(command, sizeof(command), "c++ -std=gnu++2a -x c++ -Werror %s -o a.out -g",
+	snprintf(command, sizeof(command), "c++ -std=c++2a -fcoroutines -pthread -x c++ -Wfatal-errors -Werror %s -o a.out -g",
 		pipename);
 	if((status = !system(command)))
 		puts("compiled!");

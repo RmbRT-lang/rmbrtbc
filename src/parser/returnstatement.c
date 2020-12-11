@@ -59,7 +59,7 @@ void rlc_parsed_return_statement_print(
 	struct RlcSrcFile const * file,
 	FILE * out)
 {
-	fputs("return ", out);
+	fputs("_return ", out);
 	if(this->fExpression)
 		rlc_parsed_expression_print(this->fExpression, file, out);
 	fputs(";\n", out);

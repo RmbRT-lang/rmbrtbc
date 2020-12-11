@@ -136,6 +136,7 @@ enum RlcTokenType
 	kRlcTokDoubleLessEqual,
 	kRlcTokDoubleLess,
 	kRlcTokLessEqual,
+	kRlcTokLessMinus,
 	kRlcTokLess,
 
 	kRlcTokTripleGreaterEqual,

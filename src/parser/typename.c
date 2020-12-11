@@ -385,6 +385,7 @@ void rlc_parsed_type_name_print(
 {
 	// Arrays are printed as "typename ::__rl::template array<..., size>".
 	for(RlcSrcIndex i = this->fTypeModifierCount; i--;)
+	{
 		if(this->fTypeModifiers[i].fIsArray)
 		{
 			if(this->fTypeModifiers[i].fArraySize != NULL)
@@ -392,6 +393,9 @@ void rlc_parsed_type_name_print(
 			else
 				fputs("typename ::__rl::template unsized_array<", out);
 		}
+		if(this->fTypeModifiers[i].fTypeIndirection == kRlcTypeIndirectionFuture)
+			fputs("::std::future<", out);
+	}
 
 	switch(this->fValue)
 	{
@@ -444,6 +448,7 @@ void rlc_parsed_type_name_print(
 			{
 				fprintf(out, " *");
 			} break;
+		case kRlcTypeIndirectionFuture: break;
 		default:
 			RLC_ASSERT(!"not implemented");
 		}
@@ -465,6 +470,8 @@ void rlc_parsed_type_name_print(
 			}
 			fputs(">", out);
 		}
+		if(this->fTypeModifiers[i].fTypeIndirection == kRlcTypeIndirectionFuture)
+			fputs(">", out);
 	}
 
 	if(this->fReferenceType == kRlcReferenceTypeReference)
@@ -621,10 +628,13 @@ void rlc_parsed_function_signature_print(
 	FILE * out)
 {
 	RLC_ASSERT(!this->fIsClosure);
-	RLC_ASSERT(!this->fIsAsync);
 
 	fprintf(out, "::__rl::function_t<");
+	if(this->fIsAsync)
+		fputs("::std::future<", out);
 	rlc_parsed_type_name_print(&this->fResult, file, out);
+	if(this->fIsAsync)
+		fputs(">", out);
 	for(RlcSrcIndex i=0; i < this->fArgumentCount; i++)
 	{
 		fprintf(out, ", ");
