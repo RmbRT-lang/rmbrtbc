@@ -97,6 +97,7 @@ int rlc_parsed_case_statement_parse(
 
 void rlc_parsed_case_statement_print(
 	struct RlcParsedCaseStatement const * this,
+	struct RlcParsedSwitchStatement const * parent,
 	struct RlcSrcFile const * file,
 	FILE * out)
 {
@@ -108,9 +109,18 @@ void rlc_parsed_case_statement_print(
 	{
 		for(size_t i = 0; i < this->fValues.fCount; i++)
 		{
-			fputs("case ", out);
+			fputs("case static_cast<decltype(", out);
+			if(parent->fIsVariableSwitchValue)
+				rlc_src_string_print(
+					&RLC_BASE_CAST(
+						&parent->fSwitchValue.fVariable, RlcParsedScopeEntry)->fName,
+					file,
+					out);
+			else
+				rlc_parsed_expression_print(parent->fSwitchValue.fExpression, file, out);
+			fputs(")>(", out);
 			rlc_parsed_expression_print(this->fValues.fValues[i], file, out);
-			fputs(":\n", out);
+			fputs("):\n", out);
 		}
 	}
 	fputs("{", out);

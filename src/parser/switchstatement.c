@@ -168,7 +168,7 @@ void rlc_parsed_switch_statement_print(
 	}
 
 	for(size_t i = 0; i < this->fCaseCount; i++)
-		rlc_parsed_case_statement_print(&this->fCases[i], file, out);
+		rlc_parsed_case_statement_print(&this->fCases[i], this, file, out);
 
 	fputs("}\n", out);
 	if(this->fIsVariableSwitchValue)
