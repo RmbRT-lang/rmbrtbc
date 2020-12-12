@@ -1,4 +1,5 @@
 #include "enum.h"
+#include "symbolconstantexpression.h"
 
 #include "../tokeniser/tokens.h"
 
@@ -63,6 +64,7 @@ int rlc_parsed_enum_constant_parse(
 		return 0;
 
 	rlc_parsed_enum_constant_create(out, &name.content);
+	rlc_parsed_symbol_constant_register(rlc_parser_file(parser), &name.content);
 
 	while(rlc_parser_consume(
 		parser,
@@ -78,6 +80,7 @@ int rlc_parsed_enum_constant_parse(
 		rlc_parsed_enum_constant_add_name(
 			out,
 			&name.content);
+		rlc_parsed_symbol_constant_register(rlc_parser_file(parser), &name.content);
 	}
 
 	return 1;
@@ -187,6 +190,37 @@ int rlc_parsed_enum_parse(
 	return 1;
 }
 
+static void rlc_parsed_enum_print_symbol_ctor(
+	struct RlcParsedEnum const * this,
+	struct RlcSrcString const * name,
+	struct RlcSrcFile const * file,
+	RlcSrcIndex value,
+	FILE * out)
+{
+	fputs("constexpr ", out);
+	rlc_src_string_print(
+		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+		file,
+		out);
+	fputc('(', out);
+	fputs("::__rl::constant::_t_", out);
+	rlc_src_string_print_noreplace(name, file, out);
+	fputs("): ", out);
+	fputs("::__rl::EnumWrapper<", out);
+	rlc_src_string_print(
+		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+		file,
+		out);
+	fputs(", __rl_enum_", out);
+	rlc_src_string_print(
+		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+		file,
+		out);
+	fprintf(out, ", %zu>(%zu) {}\n",
+		(size_t)this->fConstantCount,
+		(size_t)value);
+}
+
 static void rlc_parsed_enum_print_to_file(
 	struct RlcParsedEnum const * this,
 	struct RlcSrcFile const * file,
@@ -283,6 +317,13 @@ static void rlc_parsed_enum_print_to_file(
 		"}\n\n", out);
 	for(RlcSrcIndex i = 0; i < this->fConstantCount; i++)
 	{
+		rlc_parsed_enum_print_symbol_ctor(
+			this,
+			&RLC_BASE_CAST(&this->fConstants[i], RlcParsedScopeEntry)->fName,
+			file,
+			i,
+			out);
+
 		fputs("\t"
 			"static constexpr __rl::EnumConstant<", out);
 		rlc_src_string_print(
@@ -312,6 +353,13 @@ static void rlc_parsed_enum_print_to_file(
 		fputs("};\n", out);
 		for(RlcSrcIndex j = 0; j < this->fConstants[i].fAliasCount; j++)
 		{
+			rlc_parsed_enum_print_symbol_ctor(
+				this,
+				&this->fConstants[i].fAliasTokens[j],
+				file,
+				i,
+				out);
+
 			fputs("\t"
 				"static constexpr __rl::EnumConstant<", out);
 			rlc_src_string_print(
