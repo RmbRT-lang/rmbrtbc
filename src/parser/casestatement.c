@@ -109,7 +109,7 @@ void rlc_parsed_case_statement_print(
 	{
 		for(size_t i = 0; i < this->fValues.fCount; i++)
 		{
-			fputs("case static_cast<decltype(", out);
+			fputs("case static_cast<::std::decay_t<decltype(::__rl::mk_auto(", out);
 			if(parent->fIsVariableSwitchValue)
 				rlc_src_string_print(
 					&RLC_BASE_CAST(
@@ -118,7 +118,7 @@ void rlc_parsed_case_statement_print(
 					out);
 			else
 				rlc_parsed_expression_print(parent->fSwitchValue.fExpression, file, out);
-			fputs(")>(", out);
+			fputs("))>>(", out);
 			rlc_parsed_expression_print(this->fValues.fValues[i], file, out);
 			fputs("):\n", out);
 		}

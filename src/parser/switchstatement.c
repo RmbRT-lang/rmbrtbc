@@ -162,9 +162,9 @@ void rlc_parsed_switch_statement_print(
 		fputs("){\n", out);
 	} else
 	{
-		fputs("switch(", out);
+		fputs("switch(__rl::mk_auto(", out);
 		rlc_parsed_expression_print(this->fSwitchValue.fExpression, file, out);
-		fputs("){\n", out);
+		fputs(")){\n", out);
 	}
 
 	for(size_t i = 0; i < this->fCaseCount; i++)
