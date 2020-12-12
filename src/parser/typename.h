@@ -121,6 +121,8 @@ enum RlcParsedTypeNameValue
 	kRlcParsedTypeNameValueVoid,
 	/** The type name is a name. */
 	kRlcParsedTypeNameValueName,
+	/** Symbol constant type. */
+	kRlcParsedTypeNameValueSymbolConstant,
 	/** The type name is a function signature. */
 	kRlcParsedTypeNameValueFunction,
 	/** The type name is the type of an expression. */
@@ -135,6 +137,8 @@ struct RlcParsedTypeName
 	union {
 		/** The name of the type. */
 		struct RlcParsedSymbol * fName;
+		/** The symbol constant name. */
+		struct RlcSrcString fSymbolConstant;
 		/** The function signature type. */
 		struct RlcParsedFunctionSignature * fFunction;
 		/** The expression (for type-of). */

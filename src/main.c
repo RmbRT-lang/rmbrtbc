@@ -1,5 +1,6 @@
 #include "scoper/fileregistry.h"
 #include "printer.h"
+#include "parser/symbolconstantexpression.h"
 #include "unicode.h"
 #include "malloc.h"
 #include "fs.h"
@@ -146,6 +147,8 @@ int main(
 	rlc_scoped_file_registry_create(&scoped_registry);
 
 
+	char * symbolConstantsBuf;
+	size_t symbolConstantsLen;
 	char * typesBuf, * typesImplBuf;
 	size_t typesLen, typesImplLen;
 	char * funcsBuf, * funcsImplBuf;
@@ -156,6 +159,7 @@ int main(
 	struct RlcPrinter printer = {
 		0,
 		isTest,
+		open_memstream(&symbolConstantsBuf, &symbolConstantsLen),
 		open_memstream(&typesBuf, &typesLen),
 		open_memstream(&varsBuf, &varsLen),
 		open_memstream(&funcsBuf, &funcsLen),
@@ -190,6 +194,9 @@ int main(
 		++printer.fCompilationUnit;
 	}
 
+	rlc_parsed_symbol_constant_print(printer.fSymbolConstants);
+	rlc_parsed_symbol_constant_free();
+
 	rlc_scoped_file_registry_destroy(&scoped_registry);
 
 	int pipefd;
@@ -216,6 +223,7 @@ int main(
 
 	snprintf(out_file, sizeof(out_file), "%.*s/out/helper.cpp", parent_dir(rlc_actual), rlc_actual);
 	pipe_file(out_file, pipefd);
+	read_into_pipe_and_close(printer.fSymbolConstants, &symbolConstantsBuf, &symbolConstantsLen, pipefd);
 	read_into_pipe_and_close(printer.fTypes, &typesBuf, &typesLen, pipefd);
 	read_into_pipe_and_close(printer.fFuncs, &funcsBuf, &funcsLen, pipefd);
 	read_into_pipe_and_close(printer.fTypesImpl, &typesImplBuf, &typesImplLen, pipefd);

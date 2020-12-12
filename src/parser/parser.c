@@ -33,6 +33,12 @@ void rlc_parser_create(
 	}
 }
 
+struct RlcSrcFile const * rlc_parser_file(
+	struct RlcParser * this)
+{
+	return this->fTokeniser.fSource;
+}
+
 void rlc_parser_destroy(
 	struct RlcParser * this)
 {

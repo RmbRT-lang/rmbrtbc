@@ -49,6 +49,9 @@ void rlc_parser_create(
 	struct RlcParser * this,
 	struct RlcSrcFile const * file);
 
+struct RlcSrcFile const * rlc_parser_file(
+	struct RlcParser * this);
+
 /** Destroys parser data.
 @memberof RlcParser
 @param[in] this:

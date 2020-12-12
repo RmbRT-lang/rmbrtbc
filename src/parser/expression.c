@@ -8,6 +8,7 @@
 #include "thisexpression.h"
 #include "castexpression.h"
 #include "sizeofexpression.h"
+#include "symbolconstantexpression.h"
 
 #include "../assert.h"
 #include "../malloc.h"
@@ -45,7 +46,8 @@ void rlc_parsed_expression_destroy_virtual(
 		(destructor_t)&rlc_parsed_operator_expression_destroy,
 		(destructor_t)&rlc_parsed_this_expression_destroy,
 		(destructor_t)&rlc_parsed_cast_expression_destroy,
-		(destructor_t)&rlc_parsed_sizeof_expression_destroy
+		(destructor_t)&rlc_parsed_sizeof_expression_destroy,
+		(destructor_t)&rlc_parsed_symbol_constant_expression_destroy
 	};
 
 	static_assert(RLC_COVERS_ENUM(k_vtable, RlcParsedExpressionType), "ill sized vtable.");
@@ -60,6 +62,7 @@ void rlc_parsed_expression_destroy_virtual(
 		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcParsedThisExpression),
 		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcParsedCastExpression),
 		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcParsedSizeofExpression),
+		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcParsedSymbolConstantExpression),
 	};
 
 	static_assert(RLC_COVERS_ENUM(k_offsets, RlcParsedExpressionType), "ill sized offset table.");
@@ -83,6 +86,7 @@ union RlcExpressionStorage
 	struct RlcParsedThisExpression fRlcParsedThisExpression;
 	struct RlcParsedCastExpression fRlcParsedCastExpression;
 	struct RlcParsedSizeofExpression fRlcParsedSizeofExpression;
+	struct RlcParsedSymbolConstantExpression fRlcParsedSymbolConstantExpression;
 };
 
 _Nodiscard static int dummy_rlc_parsed_operator_expression_parse(
@@ -129,7 +133,8 @@ struct RlcParsedExpression * rlc_parsed_expression_parse(
 		ENTRY(RlcParsedSymbolChildExpression, &rlc_parsed_symbol_child_expression_parse, 0),
 		ENTRY(RlcParsedThisExpression, &rlc_parsed_this_expression_parse, 0),
 		ENTRY(RlcParsedCastExpression, &rlc_parsed_cast_expression_parse, 0),
-		ENTRY(RlcParsedSizeofExpression, &rlc_parsed_sizeof_expression_parse, 0)
+		ENTRY(RlcParsedSizeofExpression, &rlc_parsed_sizeof_expression_parse, 0),
+		ENTRY(RlcParsedSymbolConstantExpression, &rlc_parsed_symbol_constant_expression_parse, 0)
 	};
 
 	static_assert(RLC_COVERS_ENUM(k_parse_lookup, RlcParsedExpressionType), "ill-sized parse table.");
@@ -206,7 +211,8 @@ void rlc_parsed_expression_print(
 		(print_fn_t)&rlc_parsed_operator_expression_print,
 		(print_fn_t)&rlc_parsed_this_expression_print,
 		(print_fn_t)&rlc_parsed_cast_expression_print,
-		(print_fn_t)&rlc_parsed_sizeof_expression_print
+		(print_fn_t)&rlc_parsed_sizeof_expression_print,
+		(print_fn_t)&rlc_parsed_symbol_constant_expression_print,
 	};
 
 	static_assert(RLC_COVERS_ENUM(k_vtable, RlcParsedExpressionType), "ill sized vtable.");
@@ -221,6 +227,7 @@ void rlc_parsed_expression_print(
 		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcParsedThisExpression),
 		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcParsedCastExpression),
 		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcParsedSizeofExpression),
+		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcParsedSymbolConstantExpression),
 	};
 
 	static_assert(RLC_COVERS_ENUM(k_offsets, RlcParsedExpressionType), "ill sized offset table.");

@@ -1,5 +1,6 @@
 #include "typename.h"
 #include "expression.h"
+#include "symbolconstantexpression.h"
 #include "../malloc.h"
 #include "../assert.h"
 #include "../printer.h"
@@ -153,29 +154,35 @@ void rlc_parsed_type_name_destroy(
 		this->fTypeModifierCount = 0;
 	}
 
-	if(this->fValue == kRlcParsedTypeNameValueName)
+	switch(this->fValue)
 	{
-		if(this->fName)
+	case kRlcParsedTypeNameValueName:
 		{
-			rlc_parsed_symbol_destroy(this->fName);
-			rlc_free((void**)&this->fName);
-		}
+			if(this->fName)
+			{
+				rlc_parsed_symbol_destroy(this->fName);
+				rlc_free((void**)&this->fName);
+			}
+		} break;
+	case kRlcParsedTypeNameValueFunction:
+		{
+			if(this->fFunction)
+			{
+				rlc_parsed_function_signature_destroy(this->fFunction);
+				rlc_free((void**)&this->fFunction);
+			}
+		} break;
+	case kRlcParsedTypeNameValueExpression:
+		{
+			if(this->fExpression)
+			{
+				rlc_parsed_expression_destroy_virtual(this->fExpression);
+				rlc_free((void**)&this->fExpression);
+			}
+		} break;
+	case kRlcParsedTypeNameValueVoid:
+	case kRlcParsedTypeNameValueSymbolConstant: { ; }
 	}
-	else if(this->fValue == kRlcParsedTypeNameValueFunction)
-	{
-		if(this->fFunction)
-		{
-			rlc_parsed_function_signature_destroy(this->fFunction);
-			rlc_free((void**)&this->fFunction);
-		}
-	} else if(this->fValue == kRlcParsedTypeNameValueExpression)
-	{
-		if(this->fExpression)
-		{
-			rlc_parsed_expression_destroy_virtual(this->fExpression);
-			rlc_free((void**)&this->fExpression);
-		}
-	} else RLC_DASSERT(this->fValue == kRlcParsedTypeNameValueVoid);
 }
 
 
@@ -273,6 +280,16 @@ static int rlc_parsed_type_name_parse_impl(
 		out->fValue = kRlcParsedTypeNameValueFunction;
 		rlc_malloc((void**)&out->fFunction, sizeof(struct RlcParsedFunctionSignature));
 		*out->fFunction = parse.fFunction;
+	} else if(rlc_parser_consume(
+		parser,
+		NULL,
+		kRlcTokColon))
+	{
+		out->fValue = kRlcParsedTypeNameValueSymbolConstant;
+		struct RlcToken name;
+		rlc_parser_expect(parser, &name, 1, kRlcTokIdentifier);
+		out->fSymbolConstant = name.content;
+		rlc_parsed_symbol_constant_register(rlc_parser_file(parser), &out->fSymbolConstant);
 	} else
 		return 0;
 
@@ -422,6 +439,11 @@ void rlc_parsed_type_name_print(
 				out);
 			if(decay)
 				fputs(">", out);
+		} break;
+	case kRlcParsedTypeNameValueSymbolConstant:
+		{
+			fputs("::__rl::constant::_t_", out);
+			rlc_src_string_print_noreplace(&this->fSymbolConstant, file, out);
 		} break;
 	case kRlcParsedTypeNameValueFunction:
 		{
