@@ -261,10 +261,12 @@ static void rlc_parsed_class_print_impl(
 			file,
 			out);
 		fputs("()\n", out);
+		fputs("#define _return return\n", out);
 		rlc_parsed_block_statement_print(
 			&this->fDestructor.fBody,
 			file,
 			out);
+		fputs("#undef _return\n", out);
 	}
 	else
 	{
@@ -366,7 +368,9 @@ static void rlc_parsed_class_print_impl(
 
 		if(ctor->fIsDefinition)
 		{
+			fputs("\n#define _return return\n", out);
 			rlc_parsed_block_statement_print(&ctor->fBody, file, out);
+			fputs("\n#undef _return\n", out);
 		} else fputs("{;}\n", out);
 	}
 
