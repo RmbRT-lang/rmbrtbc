@@ -95,6 +95,7 @@ void rlc_src_string_print(
 		"char", "int", "short", "double", "long", "float", "usigned", "bool",
 		"auto",
 		"class",
+		"concept",
 		"enum",
 		"extern",
 		"inline",
