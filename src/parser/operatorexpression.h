@@ -36,7 +36,10 @@ enum RlcOperator
 	kAssign,
 	kAddAssign, kSubAssign, kMulAssign, kDivAssign, kModAssign,
 	kBitAndAssign, kBitOrAssign, kBitXorAssign,
-	kShiftLeftAssign, kShiftRightAssign
+	kShiftLeftAssign, kShiftRightAssign,
+
+	kCtor,
+	kCtorPtr
 };
 
 

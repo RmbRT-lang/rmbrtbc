@@ -15,7 +15,8 @@ void rlc_parsed_cast_expression_create(
 		first,
 		last);
 
-	this->fValue = NULL;
+	this->fValues = NULL;
+	this->fValueCount = 0;
 }
 
 
@@ -24,10 +25,15 @@ void rlc_parsed_cast_expression_destroy(
 {
 	RLC_DASSERT(this != NULL);
 
-	if(this->fValue)
+	if(this->fValues)
 	{
-		rlc_parsed_expression_destroy_virtual(this->fValue);
-		rlc_free((void**)&this->fValue);
+		for(RlcSrcIndex i = 0; i < this->fValueCount; i++)
+		{
+			rlc_parsed_expression_destroy_virtual(this->fValues[i]);
+			rlc_free((void**)&this->fValues[i]);
+		}
+		rlc_free((void**)&this->fValues);
+		this->fValueCount = 0;
 	}
 
 	rlc_parsed_type_name_destroy(&this->fType);
@@ -68,19 +74,33 @@ int rlc_parsed_cast_expression_parse(
 		1,
 		kRlcTokParentheseOpen);
 
-	struct RlcParsedExpression * value = rlc_parsed_expression_parse(
-		parser,
-		RLC_ALL_FLAGS(RlcParsedExpressionType));
+	struct RlcParsedExpression ** values = NULL;
+	RlcSrcIndex valueCount = 0;
 
 	struct RlcToken end;
-	rlc_parser_expect(
-		parser,
-		&end,
-		1,
-		kRlcTokParentheseClose);
+	if(!rlc_parser_consume(parser, &end, kRlcTokParentheseClose))
+	{
+		do
+		{
+			struct RlcParsedExpression * value = rlc_parsed_expression_parse(
+				parser,
+				RLC_ALL_FLAGS(RlcParsedExpressionType));
+			if(!value)
+				rlc_parser_fail(parser, "expected expression");
 
+			rlc_realloc((void**)&values, ++valueCount * sizeof(struct RlcParsedExpression *));
+			values[valueCount-1] = value;
+		} while(rlc_parser_consume(parser, NULL, kRlcTokComma));
+
+		rlc_parser_expect(
+			parser,
+			&end,
+			1,
+			kRlcTokParentheseClose);
+	}
 	rlc_parsed_cast_expression_create(out, first, end);
-	out->fValue = value;
+	out->fValues = values;
+	out->fValueCount = valueCount;
 
 	return 1;
 }
@@ -90,9 +110,13 @@ void rlc_parsed_cast_expression_print(
 	struct RlcSrcFile const * file,
 	FILE * out)
 {
-	fputs("((", out);
+	fputs("::__rl::__rl_cast<", out);
 	rlc_parsed_type_name_print(&this->fType, file, out);
-	fputs(")(", out);
-	rlc_parsed_expression_print(this->fValue, file, out);
-	fputs("))", out);
+	fputs(">(", out);
+	for(RlcSrcIndex i = 0; i < this->fValueCount; i++)
+	{
+		if(i) fputs(", ", out);
+		rlc_parsed_expression_print(this->fValues[i], file, out);
+	}
+	fputs(")", out);
 }

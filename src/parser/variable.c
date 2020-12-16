@@ -102,6 +102,7 @@ int rlc_parsed_variable_parse(
 			{ kRlcTokSemicolon, 0 },
 			{ kRlcTokComma, 0 },
 			{ kRlcTokParentheseClose, 0 },
+			{ kRlcTokBraceClose, 0 },
 			{ kRlcTokExclamationMark, 0 }
 		};
 		int found = 0;

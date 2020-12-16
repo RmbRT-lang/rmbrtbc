@@ -335,11 +335,13 @@ static _Nodiscard struct RlcParsedExpression * parse_postfix(
 			static struct {
 				enum RlcTokenType fToken;
 				enum RlcOperator fOperator;
+				enum RlcOperator fCtorOperator;
 			} const k_ops[] = {
-				{ kRlcTokDot, kMemberReference },
-				{ kRlcTokMinusGreater, kMemberPointer }
+				{ kRlcTokDot, kMemberReference, kCtor },
+				{ kRlcTokMinusGreater, kMemberPointer, kCtorPtr }
 			};
 
+			RLC_ASSERT(out);
 			for(size_t i = _countof(k_ops); i--;)
 			{
 				if(rlc_parser_consume(
@@ -347,13 +349,38 @@ static _Nodiscard struct RlcParsedExpression * parse_postfix(
 					NULL,
 					k_ops[i].fToken))
 				{
-					struct RlcParsedOperatorExpression * temp =
-						make_binary_expression(
+					struct RlcParsedOperatorExpression * temp = NULL;
+					if(rlc_parser_consume(parser, NULL, kRlcTokBraceOpen))
+					{
+						struct RlcToken end;
+						temp = make_unary_expression(
+								k_ops[i].fCtorOperator,
+								out,
+								out->fStart,
+								out->fEnd);
+
+						if(!rlc_parser_consume(parser, &end, kRlcTokBraceClose))
+						{
+							do
+							{
+								rlc_parsed_operator_expression_add(
+									temp,
+									rlc_parsed_expression_parse(
+										parser,
+										RLC_ALL_FLAGS(RlcParsedExpressionType)));
+							} while(rlc_parser_consume(parser, NULL, kRlcTokComma));
+							rlc_parser_expect(parser, &end, 1, kRlcTokBraceClose);
+						}
+						RLC_BASE_CAST(temp, RlcParsedExpression)->fEnd = end;
+					} else
+					{
+						temp = make_binary_expression(
 							k_ops[i].fOperator,
 							out,
 							rlc_parsed_expression_parse(
 								parser,
 								RLC_FLAG(kRlcParsedSymbolChildExpression)));
+					}
 
 					if(!(out = RLC_BASE_CAST(temp, RlcParsedExpression)))
 					{
@@ -569,7 +596,10 @@ void rlc_parsed_operator_expression_print(
 		{kBitAndAssign, 1, "&=", 1}, {kBitOrAssign, 1, "|=", 1},
 		{kBitXorAssign, 1, "^=", 1},
 
-		{kShiftLeftAssign, 1, "<<=", 1}, {kShiftRightAssign, 1, ">>=", 1}
+		{kShiftLeftAssign, 1, "<<=", 1}, {kShiftRightAssign, 1, ">>=", 1},
+
+		{kCtor, -1, NULL, 0},
+		{kCtorPtr, -1, NULL, 0},
 	};
 
 	RLC_DASSERT(k_position[this->fOperator].op == this->fOperator);
@@ -583,6 +613,21 @@ void rlc_parsed_operator_expression_print(
 		{
 			RLC_DASSERT(this->fExpressionCount == 1);
 			fprintf(out, " %s", k_position[this->fOperator].str);
+		} break;
+	case -1:
+		{
+			switch(this->fOperator)
+			{
+			case kCtor:
+				{
+					fputs("::__rl::__rl_constructor(", out);
+				} break;
+			case kCtorPtr:
+				{
+					fputs("::__rl::__rl_p_constructor(", out);
+				} break;
+			default: { ; }
+			}
 		} break;
 	default:;
 	}
@@ -656,6 +701,16 @@ void rlc_parsed_operator_expression_print(
 					RLC_DASSERT(this->fExpressionCount == 2);
 					fprintf(out, "->");
 					rlc_parsed_expression_print(this->fExpressions[1], file, out);
+				} break;
+			case kCtor:
+			case kCtorPtr:
+				{
+					for(RlcSrcIndex i = 1; i < this->fExpressionCount; i++)
+					{
+						fputs(", ", out);
+						rlc_parsed_expression_print(this->fExpressions[i], file, out);
+					}
+					fputc(')', out);
 				} break;
 			default:
 				RLC_ASSERT(!"not implemented");

@@ -66,32 +66,25 @@ int rlc_parsed_constructor_parse(
 	|| !rlc_parser_consume(
 		parser,
 		NULL,
-		kRlcTokConstructor))
+		kRlcTokBraceOpen))
 		return 0;
 
 	rlc_parsed_constructor_create(
 		out,
 		member);
-
-	rlc_parser_expect(
-		parser,
-		NULL,
-		1,
-		kRlcTokParentheseOpen);
-
 	if(rlc_parser_is_current(
 		parser,
 		kRlcTokVoid)
 	&& rlc_parser_is_ahead(
 		parser,
-		kRlcTokParentheseClose))
+		kRlcTokBraceClose))
 	{
 		rlc_parser_skip(parser);
 		rlc_parser_skip(parser);
 	} else if(!rlc_parser_consume(
 		parser,
 		NULL,
-		kRlcTokParentheseClose))
+		kRlcTokBraceClose))
 	{
 		do {
 			struct RlcParsedVariable argument;
@@ -121,7 +114,7 @@ int rlc_parsed_constructor_parse(
 			parser,
 			NULL,
 			1,
-			kRlcTokParentheseClose);
+			kRlcTokBraceClose);
 	}
 
 	if(rlc_parser_consume(

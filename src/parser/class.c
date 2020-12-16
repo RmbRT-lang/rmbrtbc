@@ -287,13 +287,6 @@ static void rlc_parsed_class_print_impl(
 		out);
 	fputs("(); }", out);
 
-	// Print "constructor" member function.
-	fputs(
-		"public:\n"
-		"template<class ...Args>\n"
-		"inline void __rl_constructor(Args&&...args)\n"
-		"{ ::__rl::__rl_constructor(*this, std::forward<Args>(args)...); }\n", out);
-
 	for(RlcSrcIndex i = 0; i < this->fConstructors.fEntryCount; i++)
 	{
 		struct RlcParsedConstructor * ctor = RLC_DERIVE_CAST(

@@ -98,13 +98,6 @@ int rlc_parsed_symbol_child_parse(
 	{
 		out->fType = kRlcParsedSymbolChildTypeIdentifier;
 	} else if(allowSpecialIdentifiers
-	&& rlc_parser_consume(
-		parser,
-		&name,
-		kRlcTokConstructor))
-	{
-		out->fType = kRlcParsedSymbolChildTypeConstructor;
-	} else if(allowSpecialIdentifiers
 	&& !hasTemplate
 	&& rlc_parser_consume(
 		parser,

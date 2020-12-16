@@ -22,8 +22,9 @@ struct RlcParsedCastExpression
 
 	/** The cast expression's type. */
 	struct RlcParsedTypeName fType;
-	/** The cast expression's value. */
-	struct RlcParsedExpression * fValue;
+	/** The cast expression's values. */
+	struct RlcParsedExpression ** fValues;
+	RlcSrcSize fValueCount;
 };
 
 /** Creates a cast expression.

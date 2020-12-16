@@ -142,11 +142,24 @@ namespace __rl
 	nullptr_t const null {};
 
 	template<class T, class ...Args>
+	inline T __rl_cast(Args&&...args)
+	{
+		return T(std::forward<Args>(args)...);
+	}
+
+	template<class T, class ...Args>
 	inline void __rl_constructor(
 		T &self,
 		Args&&...args)
 	{
 		new (&self) T(std::forward<Args>(args)...);
+	}
+	template<class T, class ...Args>
+	inline void __rl_p_constructor(
+		T *self,
+		Args&&...args)
+	{
+		new (self) T(std::forward<Args>(args)...);
 	}
 
 	template<class T>
