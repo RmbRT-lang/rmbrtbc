@@ -139,7 +139,7 @@ struct RlcParsedExpression * rlc_parsed_expression_parse(
 
 	static_assert(RLC_COVERS_ENUM(k_parse_lookup, RlcParsedExpressionType), "ill-sized parse table.");
 
-	struct RlcParsedExpression * ret;
+	struct RlcParsedExpression * ret = NULL;
 
 	for(size_t i = 0; i < _countof(k_parse_lookup); i++)
 	{
@@ -165,23 +165,44 @@ struct RlcParsedExpression * rlc_parsed_expression_parse(
 		}
 	}
 
+	struct RlcToken tok;
 	if(rlc_parser_consume(
 		parser,
-		NULL,
+		&tok,
 		kRlcTokParentheseOpen))
 	{
-		ret = rlc_parsed_expression_parse(
-			parser,
-			RLC_ALL_FLAGS(RlcParsedExpressionType));
+		struct RlcParsedOperatorExpression * opexp = NULL;
+		do {
+			if(ret && !opexp)
+			{
+				opexp = make_operator_expression(
+					kTuple,
+					tok, tok);
+				rlc_parsed_operator_expression_add(opexp, ret);
+			}
 
-		if(!ret)
-			rlc_parser_fail(parser, "expected expression");
+			ret = rlc_parsed_expression_parse(
+				parser,
+				RLC_ALL_FLAGS(RlcParsedExpressionType));
 
-		rlc_parser_expect(
+			if(!ret)
+				rlc_parser_fail(parser, "expected expression");
+
+			if(opexp)
+				rlc_parsed_operator_expression_add(opexp, ret);
+
+		} while(kRlcTokComma == rlc_parser_expect(
 			parser,
-			NULL,
-			1,
-			kRlcTokParentheseClose);
+			&tok,
+			2,
+			kRlcTokParentheseClose,
+			kRlcTokComma));
+
+		if(opexp)
+		{
+			ret = RLC_BASE_CAST(opexp, RlcParsedExpression);
+			ret->fEnd = tok;
+		}
 		return ret;
 	}
 

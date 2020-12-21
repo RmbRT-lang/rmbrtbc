@@ -39,7 +39,9 @@ enum RlcOperator
 	kShiftLeftAssign, kShiftRightAssign,
 
 	kCtor,
-	kCtorPtr
+	kCtorPtr,
+
+	kTuple
 };
 
 
@@ -86,6 +88,11 @@ void rlc_parsed_operator_expression_destroy(
 	`Null`, if no expression could be parsed, otherwise a pointer to a dynamically allocated expression, which is either an operator expression, or a more primitive expression in case no operator operator was present. */
 _Nodiscard struct RlcParsedExpression * rlc_parsed_operator_expression_parse(
 	struct RlcParser * parser);
+
+struct RlcParsedOperatorExpression * make_operator_expression(
+	enum RlcOperator type,
+	struct RlcToken first,
+	struct RlcToken last);
 
 /** Adds an expression to an operator expression's list.
 @memberof RlcParsedOperatorExpression

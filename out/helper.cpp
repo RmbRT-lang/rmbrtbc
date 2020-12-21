@@ -13,6 +13,7 @@
 #include <future>
 #include <thread>
 #include <type_traits>
+#include <tuple>
 
 // Enable the use of std::future<T> as a coroutine type
 // by using a std::promise<T> as the promise type.
@@ -242,6 +243,27 @@ namespace __rl
 				>= (int_t)value;
 		}
 	};
+
+
+
+	template<class ...Types>
+	class Tuple : std::tuple<Types...>
+	{
+	public:
+		using std::tuple<Types...>::tuple;
+
+		template<class T, class = std::enable_if_t<std::is_constructible_v<T, Types...>>>
+		inline operator T() {
+			return std::apply(
+				&__rl_cast<T, Types...>,
+				static_cast<std::tuple<Types...> &&>(*this));
+		}
+	};
+
+	template<class ...Types>
+	Tuple<Types &&...> mk_tuple(Types&&...values) {
+		return Tuple<Types&&...>(std::forward<Types>(values)...);
+	}
 }
 
 #define __rl_assert(expr, code, file, line, col) do { \

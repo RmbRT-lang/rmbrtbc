@@ -130,7 +130,7 @@ static size_t const k_binary_groups[] = {
 	11 // :=
 };
 
-static struct RlcParsedOperatorExpression * make_operator_expression(
+struct RlcParsedOperatorExpression * make_operator_expression(
 	enum RlcOperator type,
 	struct RlcToken first,
 	struct RlcToken last)
@@ -600,6 +600,8 @@ void rlc_parsed_operator_expression_print(
 
 		{kCtor, -1, NULL, 0},
 		{kCtorPtr, -1, NULL, 0},
+
+		{kTuple, -1, NULL, 0}
 	};
 
 	RLC_DASSERT(k_position[this->fOperator].op == this->fOperator);
@@ -625,6 +627,10 @@ void rlc_parsed_operator_expression_print(
 			case kCtorPtr:
 				{
 					fputs("::__rl::__rl_p_constructor(", out);
+				} break;
+			case kTuple:
+				{
+					fputs("::__rl::mk_tuple(", out);
 				} break;
 			default: { ; }
 			}
@@ -704,6 +710,7 @@ void rlc_parsed_operator_expression_print(
 				} break;
 			case kCtor:
 			case kCtorPtr:
+			case kTuple:
 				{
 					for(RlcSrcIndex i = 1; i < this->fExpressionCount; i++)
 					{
