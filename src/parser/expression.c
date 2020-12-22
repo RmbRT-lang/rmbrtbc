@@ -184,12 +184,13 @@ struct RlcParsedExpression * rlc_parsed_expression_parse(
 			ret = rlc_parsed_expression_parse(
 				parser,
 				RLC_ALL_FLAGS(RlcParsedExpressionType));
-
 			if(!ret)
 				rlc_parser_fail(parser, "expected expression");
 
 			if(opexp)
 				rlc_parsed_operator_expression_add(opexp, ret);
+			else
+				ret->fStart = tok;
 
 		} while(kRlcTokComma == rlc_parser_expect(
 			parser,
