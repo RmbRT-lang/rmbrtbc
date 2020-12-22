@@ -9,6 +9,7 @@
 #include "member.h"
 #include "blockstatement.h"
 #include "templatedecl.h"
+#include "operatorexpression.h"
 
 #include <stddef.h>
 
@@ -29,6 +30,9 @@ enum RlcFunctionReturnType
 struct RlcParsedFunction
 {
 	RLC_DERIVE(struct,RlcParsedScopeEntry);
+
+	unsigned char fIsOperator;
+	enum RlcOperator fOperatorName;
 
 	/** Whether the function has an explicit return type. */
 	enum RlcFunctionReturnType fHasReturnType;

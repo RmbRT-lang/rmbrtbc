@@ -63,6 +63,11 @@ const k_unary[] = {
 	{ kRlcTokDoubleAt, kFullAsync },
 	{ kRlcTokLessMinus, kAwait }
 },
+// postfix operators.
+k_unary_postfix[] = {
+	{ kRlcTokDoublePlus, kPostIncrement },
+	{ kRlcTokDoubleMinus, kPostDecrement }
+},
 // binary operators.
 k_binary[] = {
 	// bind operators.
@@ -129,6 +134,43 @@ static size_t const k_binary_groups[] = {
 	0, // ?:
 	11 // :=
 };
+
+int rlc_operator_parse_unary_prefix(
+	enum RlcOperator * op,
+	struct RlcParser * parser)
+{
+	for(unsigned i = 0; i < _countof(k_unary); i++)
+		if(rlc_parser_consume(parser, NULL, k_unary[i].fTok))
+		{
+			*op = k_unary[i].fOp;
+			return 1;
+		}
+	return 0;
+}
+int rlc_operator_parse_unary_postfix(
+	enum RlcOperator * op,
+	struct RlcParser * parser)
+{
+	for(unsigned i = 0; i < _countof(k_unary_postfix); i++)
+		if(rlc_parser_consume(parser, NULL, k_unary_postfix[i].fTok))
+		{
+			*op = k_unary_postfix[i].fOp;
+			return 1;
+		}
+	return 0;
+}
+int rlc_operator_parse_binary(
+	enum RlcOperator * op,
+	struct RlcParser * parser)
+{
+	for(unsigned i = 0; i < _countof(k_binary); i++)
+		if(rlc_parser_consume(parser, NULL, k_binary[i].fTok))
+		{
+			*op = k_binary[i].fOp;
+			return 1;
+		}
+	return 0;
+}
 
 struct RlcParsedOperatorExpression * make_operator_expression(
 	enum RlcOperator type,
@@ -215,14 +257,6 @@ static _Nodiscard struct RlcParsedExpression * parse_postfix(
 	// get all postfix operators, if any.
 	for(int postfix = 1; postfix--;)
 	{
-		static struct {
-			enum RlcTokenType fTok;
-			enum RlcOperator fOp;
-		} const k_unary_postfix[] = {
-			{ kRlcTokDoublePlus, kPostIncrement },
-			{ kRlcTokDoubleMinus, kPostDecrement }
-		};
-
 		{
 			int found = 0;
 			struct RlcToken token;

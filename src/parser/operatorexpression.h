@@ -112,6 +112,16 @@ void rlc_parsed_operator_expression_print(
 	struct RlcSrcFile const * file,
 	FILE * out);
 
+int rlc_operator_parse_unary_prefix(
+	enum RlcOperator * op,
+	struct RlcParser * parser);
+int rlc_operator_parse_unary_postfix(
+	enum RlcOperator * op,
+	struct RlcParser * parser);
+int rlc_operator_parse_binary(
+	enum RlcOperator * op,
+	struct RlcParser * parser);
+
 #ifdef __cplusplus
 }
 #endif

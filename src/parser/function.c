@@ -2,6 +2,7 @@
 
 #include "../assert.h"
 #include "../malloc.h"
+#include "../resolver/resolver.h"
 
 void rlc_parsed_function_create(
 	struct RlcParsedFunction * this,
@@ -22,6 +23,7 @@ void rlc_parsed_function_create(
 	this->fArguments = NULL;
 	this->fArgumentCount = 0;
 
+	this->fIsOperator = 0;
 	this->fIsInline = 0;
 	this->fIsAsync = 0;
 
@@ -97,6 +99,8 @@ int rlc_parsed_function_parse(
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
 
+	int isOp = 0;
+	int isThisFirst = 0;
 	struct RlcToken name;
 	if(!rlc_parser_is_ahead(
 		parser,
@@ -105,50 +109,114 @@ int rlc_parsed_function_parse(
 		parser,
 		&name,
 		kRlcTokIdentifier))
-		return 0;
+	{
+		isOp = 1;
+		if(!(isThisFirst = rlc_parser_consume(
+			parser,
+			&name,
+			kRlcTokThis))
+		&& !rlc_parser_is_ahead(
+			parser,
+			kRlcTokThis))
+			return 0;
+	}
 
 	struct RlcParserTracer tracer;
 	rlc_parser_trace(parser, "function", &tracer);
-	rlc_parser_expect(
-		parser,
-		NULL,
-		1,
-		kRlcTokParentheseOpen);
-
-
 	rlc_parsed_function_create(
 		out,
 		&name.content,
 		templates);
 
-	// parse arguments.
-	struct RlcParsedVariable argument;
-	while(rlc_parsed_variable_parse(
-			&argument,
-			parser,
-			NULL,
-			0,
-			0,
-			0,
-			0,
-			1))
+	// Expecting operator now (except '(' and '[')?
+	if((out->fIsOperator = isOp)
+	&& (!isThisFirst
+		|| (!rlc_parser_is_current(
+				parser,
+				kRlcTokParentheseOpen)
+			&& !rlc_parser_is_current(
+				parser,
+				kRlcTokBracketOpen))))
 	{
-		rlc_parsed_function_add_argument(
-			out,
-			&argument);
+		if(isThisFirst)
+		{
+			int arity = 0;
+			if(!rlc_operator_parse_unary_postfix(&out->fOperatorName, parser)
+			&& !(arity = rlc_operator_parse_binary(&out->fOperatorName, parser))
+			&& !(arity = 2 * rlc_parser_consume(parser, NULL, kRlcTokQuestionMark)))
+				rlc_parser_fail(parser, "expected postfix or binary operator");
 
-		if(!rlc_parser_consume(
+			if(arity == 2)
+				out->fOperatorName = kConditional;
+
+			// this++
+			// this + (arg)
+			// this ? (arg) : (arg)
+			for(int i = 0; i < arity; i++)
+			{
+				rlc_parser_expect(parser, NULL, 1, kRlcTokParentheseOpen);
+				struct RlcParsedVariable rhs;
+				if(!rlc_parsed_variable_parse(&rhs, parser, NULL, 0,0,0,0,1))
+					rlc_parser_fail(parser, "expected argument");
+				rlc_parsed_function_add_argument(out, &rhs);
+				rlc_parser_expect(parser, NULL, 1, kRlcTokParentheseClose);
+
+				if(!i && arity == 2)
+					rlc_parser_expect(parser, NULL, 1, kRlcTokColon);
+			}
+		} else
+		{
+			// ++this
+			if(!rlc_operator_parse_unary_prefix(&out->fOperatorName, parser))
+				rlc_parser_fail(parser, "expected prefix operator before THIS");
+			rlc_parser_expect(parser, &name, 1, kRlcTokThis);
+			RLC_BASE_CAST(out, RlcParsedScopeEntry)->fName = name.content;
+		}
+	} else
+	{
+		switch(rlc_parser_expect(
 			parser,
 			NULL,
-			kRlcTokComma))
-			break;
-	}
+			1 + isThisFirst,
+			kRlcTokParentheseOpen,
+			kRlcTokBracketOpen))
+		{
+		default: RLC_DASSERT(!"this should never happen");
+		case kRlcTokParentheseOpen:	out->fOperatorName = kCall; break;
+		case kRlcTokBracketOpen: out->fOperatorName = kSubscript; break;
+		}
 
-	rlc_parser_expect(
-		parser,
-		NULL,
-		1,
-		kRlcTokParentheseClose);
+		// parse arguments.
+		struct RlcParsedVariable argument;
+		while(rlc_parsed_variable_parse(
+				&argument,
+				parser,
+				NULL,
+				0,
+				0,
+				0,
+				0,
+				1))
+		{
+			rlc_parsed_function_add_argument(
+				out,
+				&argument);
+
+			if(!rlc_parser_consume(
+				parser,
+				NULL,
+				kRlcTokComma))
+				break;
+		}
+
+		rlc_parser_expect(
+			parser,
+			NULL,
+			1,
+			out->fOperatorName == kCall
+				? kRlcTokParentheseClose
+				: kRlcTokBracketClose);
+	}
 
 	out->fIsAsync = rlc_parser_consume(
 		parser,
@@ -241,10 +309,72 @@ static void rlc_parsed_function_print_head_2(
 	struct RlcSrcFile const * file,
 	FILE * out)
 {
-	rlc_src_string_print(
-		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
-		file,
-		out);
+	if(!this->fIsOperator)
+		rlc_src_string_print(
+			&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+			file,
+			out);
+	else
+	{
+		fputs("operator ", out);
+		char const * op;
+		switch(this->fOperatorName)
+		{
+		case kAdd: case kPos: op = "+"; break;
+		case kSub: case kNeg: op = "-"; break;
+		case kMul: case kDereference: op = "*"; break;
+		case kDiv: op = "/"; break;
+		case kMod: op = "%"; break;
+		case kEquals: op = "=="; break;
+		case kNotEquals: op = "!="; break;
+		case kLess: op = "<"; break;
+		case kLessEquals: op = "<="; break;
+		case kGreater: op = ">"; break;
+		case kGreaterEquals: op = ">="; break;
+
+		case kBitAnd: op = "&"; break;
+		case kBitOr: op = "|"; break;
+		case kBitXor: op = "^"; break;
+		case kBitNot: op = "~"; break;
+
+		case kLogAnd: op = "&&"; break;
+		case kLogOr: op = "||"; break;
+		case kLogNot: op = "!"; break;
+
+		case kShiftLeft: op = "<<"; break;
+		case kShiftRight: op = ">>"; break;
+
+		case kSubscript: op = "[]"; break;
+		case kCall: op = "()"; break;
+
+		case kPreIncrement: case kPostIncrement: op = "++"; break;
+		case kPreDecrement: case kPostDecrement: op = "--"; break;
+
+		case kAwait: op = "co_await"; break;
+
+		case kAssign: op = "="; break;
+
+		case kAddAssign: op = "+="; break;
+		case kSubAssign: op = "-="; break;
+		case kMulAssign: op = "*="; break;
+		case kDivAssign: op = "/="; break;
+		case kModAssign: op = "%="; break;
+
+		case kBitAndAssign: op = "&="; break;
+		case kBitOrAssign: op = "|="; break;
+		case kBitXorAssign: op = "^="; break;
+
+		case kShiftLeftAssign: op = "<<="; break;
+		case kShiftRightAssign: op = ">>="; break;
+		default:
+			rlc_resolver_fail(
+				&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+				file,
+				"this operator cannot be user-defined");
+		}
+
+		fputs(op, out);
+	}
 
 	fputc('(', out);
 	for(RlcSrcIndex i = 0; i < this->fArgumentCount; i++)
@@ -532,5 +662,19 @@ void rlc_parsed_member_function_print(
 			RLC_BASE_CAST(this, RlcParsedFunction),
 			file,
 			out);
+	}
+
+	if(RLC_BASE_CAST(this, RlcParsedFunction)->fIsOperator)
+	{
+		switch(RLC_BASE_CAST(this, RlcParsedFunction)->fOperatorName)
+		{
+		case kDereference:
+			{
+				fputs(
+					"\ninline auto operator->() { return & * *this; }\n",
+					printer->fTypesImpl);
+			} break;
+		default:;
+		}
 	}
 }
