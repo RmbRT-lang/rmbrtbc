@@ -73,7 +73,7 @@ void rlc_parsed_assert_statement_print(
 {
 	fputs("__rl_assert(", out);
 	rlc_parsed_expression_print(this->fAssertion, file, out);
-	fputs(", ", out);
+	fputs(", (", out);
 	struct RlcSrcString span = {
 		this->fAssertion->fStart.content.start,
 		rlc_src_string_end(&this->fAssertion->fEnd.content)
@@ -82,5 +82,5 @@ void rlc_parsed_assert_statement_print(
 	rlc_src_string_print(&span, file, out);
 	struct RlcSrcPosition pos;
 	rlc_src_file_position(file, &pos, span.start);
-	fprintf(out, ", \"%s\", %u, %u);\n", file->fName, pos.line, pos.column);
+	fprintf(out, "), \"%s\", %u, %u);\n", file->fName, pos.line, pos.column);
 }

@@ -265,10 +265,10 @@ namespace __rl
 		return Tuple<Types&&...>(std::forward<Types>(values)...);
 	}
 }
-
+#define __rl_assert_stringify_code(code...) #code
 #define __rl_assert(expr, code, file, line, col) do { \
 	if(!(expr)) \
-		throw file ":" #line ":" #col ": assertion failed: '" #code "'"; \
+		throw file ":" #line ":" #col ": assertion failed: '" __rl_assert_stringify_code code "'"; \
 } while(0)
 
 // Helpers for TEST.
