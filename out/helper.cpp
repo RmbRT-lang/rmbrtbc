@@ -247,7 +247,7 @@ namespace __rl
 
 
 	template<class ...Types>
-	class Tuple : std::tuple<Types...>
+	class Tuple : public std::tuple<Types...>
 	{
 	public:
 		using std::tuple<Types...>::tuple;

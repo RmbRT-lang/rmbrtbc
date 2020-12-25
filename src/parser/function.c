@@ -272,9 +272,22 @@ int rlc_parsed_function_parse(
 		rlc_parser_fail(parser, "expected return type");
 
 	out->fHasBody = 1;
-	out->fIsShortHandBody = !rlc_parsed_block_statement_parse(
-		&out->fBodyStatement,
-		parser);
+	if(!out->fHasReturnType)
+		if(rlc_parser_consume(parser, NULL, kRlcTokQuestionMark))
+		{
+			out->fHasReturnType = kRlcFunctionReturnTypeAuto;
+			if(!rlc_parsed_block_statement_parse(
+				&out->fBodyStatement,
+				parser))
+				rlc_parser_fail(parser, "expected block statement");
+
+			out->fIsShortHandBody = 0;
+		} else
+			out->fIsShortHandBody = 1;
+	else
+		out->fIsShortHandBody = !rlc_parsed_block_statement_parse(
+			&out->fBodyStatement,
+			parser);
 
 	if(out->fIsShortHandBody)
 	{

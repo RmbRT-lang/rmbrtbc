@@ -180,6 +180,16 @@ void rlc_parsed_type_name_destroy(
 				rlc_free((void**)&this->fExpression);
 			}
 		} break;
+	case kRlcParsedTypeNameValueTuple:
+		{
+			if(this->fTuple.fTypes)
+			{
+				for(RlcSrcIndex i = 0; i < this->fTuple.fTypeCount; i++)
+					rlc_parsed_type_name_destroy(&this->fTuple.fTypes[i]);
+				rlc_free((void**)&this->fTuple.fTypes);
+				this->fTuple.fTypeCount = 0;
+			}
+		} break;
 	case kRlcParsedTypeNameValueVoid:
 	case kRlcParsedTypeNameValueSymbolConstant: { ; }
 	}
@@ -210,6 +220,7 @@ void rlc_parsed_type_name_create(
 	this->fName = NULL;
 	this->fReferenceType = kRlcReferenceTypeNone;
 
+	this->fTuple.fTypeCount = 0;
 	this->fTypeModifiers = NULL;
 	this->fTypeModifierCount = 0;
 }
@@ -290,6 +301,22 @@ static int rlc_parsed_type_name_parse_impl(
 		rlc_parser_expect(parser, &name, 1, kRlcTokIdentifier);
 		out->fSymbolConstant = name.content;
 		rlc_parsed_symbol_constant_register(rlc_parser_file(parser), &out->fSymbolConstant);
+	} else if(rlc_parser_consume(
+		parser,
+		NULL,
+		kRlcTokBraceOpen))
+	{
+		out->fValue = kRlcParsedTypeNameValueTuple;
+		struct RlcParsedTypeName type;
+		do {
+			if(!rlc_parsed_type_name_parse(&type, parser, 1))
+				rlc_parser_fail(parser, "expected type name");
+			rlc_realloc(
+				(void**)&out->fTuple.fTypes,
+				++out->fTuple.fTypeCount * sizeof(struct RlcParsedTypeName));
+			out->fTuple.fTypes[out->fTuple.fTypeCount-1] = type;
+		} while(rlc_parser_consume(parser, NULL, kRlcTokComma));
+		rlc_parser_expect(parser, NULL, 1, kRlcTokBraceClose);
 	} else
 		return 0;
 
@@ -457,6 +484,16 @@ void rlc_parsed_type_name_print(
 			fputs("__rl::auto_t<decltype(", out);
 			rlc_parsed_expression_print(this->fExpression, file, out);
 			fputs(")>", out);
+		} break;
+	case kRlcParsedTypeNameValueTuple:
+		{
+			fputs("__rl::Tuple<", out);
+			for(RlcSrcIndex i = 0; i < this->fTuple.fTypeCount; i++)
+			{
+				if(i) fputs(", ", out);
+				rlc_parsed_type_name_print(&this->fTuple.fTypes[i], file, out);
+			}
+			fputs(">", out);
 		} break;
 	}
 
