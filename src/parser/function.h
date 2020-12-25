@@ -25,13 +25,20 @@ enum RlcFunctionReturnType
 	kRlcFunctionReturnTypeType
 };
 
+enum RlcFunctionType
+{
+	kRlcFunctionTypeFunction,
+	kRlcFunctionTypeOperator,
+	kRlcFunctionTypeCast,
+};
+
 /** A function as used in the parser.
 @extends RlcParsedScopeEntry */
 struct RlcParsedFunction
 {
 	RLC_DERIVE(struct,RlcParsedScopeEntry);
 
-	unsigned char fIsOperator;
+	enum RlcFunctionType fType;
 	enum RlcOperator fOperatorName;
 
 	/** Whether the function has an explicit return type. */

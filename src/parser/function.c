@@ -23,7 +23,7 @@ void rlc_parsed_function_create(
 	this->fArguments = NULL;
 	this->fArgumentCount = 0;
 
-	this->fIsOperator = 0;
+	this->fType = kRlcFunctionTypeFunction;
 	this->fIsInline = 0;
 	this->fIsAsync = 0;
 
@@ -99,27 +99,35 @@ int rlc_parsed_function_parse(
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
 
-	int isOp = 0;
+	enum RlcFunctionType fnType;
 	int isThisFirst = 0;
 	struct RlcToken name;
-	if(!rlc_parser_is_ahead(
+	if(rlc_parser_is_ahead(
 		parser,
 		kRlcTokParentheseOpen)
-	|| !rlc_parser_consume(
+	&& rlc_parser_consume(
 		parser,
 		&name,
 		kRlcTokIdentifier))
 	{
-		isOp = 1;
-		if(!(isThisFirst = rlc_parser_consume(
-			parser,
-			&name,
-			kRlcTokThis))
-		&& !rlc_parser_is_ahead(
-			parser,
-			kRlcTokThis))
-			return 0;
-	}
+		fnType = kRlcFunctionTypeFunction;
+	} else if(rlc_parser_consume(
+		parser,
+		&name,
+		kRlcTokLess))
+	{
+		fnType = kRlcFunctionTypeCast;
+	} else if((isThisFirst = rlc_parser_consume(
+		parser,
+		&name,
+		kRlcTokThis))
+	|| rlc_parser_is_ahead(
+		parser,
+		kRlcTokThis))
+	{
+		fnType = kRlcFunctionTypeOperator;
+	} else
+		return 0;
 
 	struct RlcParserTracer tracer;
 	rlc_parser_trace(parser, "function", &tracer);
@@ -127,16 +135,28 @@ int rlc_parsed_function_parse(
 		out,
 		&name.content,
 		templates);
+	out->fType = fnType;
 
+	switch(out->fType)
+	{
+	case kRlcFunctionTypeCast:
+		{
+			out->fHasReturnType = kRlcFunctionReturnTypeType;
+
+			if(!rlc_parsed_type_name_parse(&out->fReturnType, parser, 1))
+				rlc_parser_fail(parser, "expected type name");
+
+			rlc_parser_expect(parser, NULL, 1, kRlcTokGreater);
+		} break;
 	// Expecting operator now (except '(' and '[')?
-	if((out->fIsOperator = isOp)
-	&& (!isThisFirst
-		|| (!rlc_parser_is_current(
-				parser,
-				kRlcTokParentheseOpen)
-			&& !rlc_parser_is_current(
-				parser,
-				kRlcTokBracketOpen))))
+	case kRlcFunctionTypeOperator:
+	if(!isThisFirst
+	|| (!rlc_parser_is_current(
+			parser,
+			kRlcTokParentheseOpen)
+		&& !rlc_parser_is_current(
+			parser,
+			kRlcTokBracketOpen)))
 	{
 		if(isThisFirst)
 		{
@@ -172,50 +192,53 @@ int rlc_parsed_function_parse(
 			rlc_parser_expect(parser, &name, 1, kRlcTokThis);
 			RLC_BASE_CAST(out, RlcParsedScopeEntry)->fName = name.content;
 		}
-	} else
-	{
-		switch(rlc_parser_expect(
-			parser,
-			NULL,
-			1 + isThisFirst,
-			kRlcTokParentheseOpen,
-			kRlcTokBracketOpen))
+		break;
+	} // fallthrough
+	case kRlcFunctionTypeFunction:
 		{
-		default: RLC_DASSERT(!"this should never happen");
-		case kRlcTokParentheseOpen:	out->fOperatorName = kCall; break;
-		case kRlcTokBracketOpen: out->fOperatorName = kSubscript; break;
-		}
-
-		// parse arguments.
-		struct RlcParsedVariable argument;
-		while(rlc_parsed_variable_parse(
-				&argument,
+			switch(rlc_parser_expect(
 				parser,
 				NULL,
-				0,
-				0,
-				0,
-				0,
-				1))
-		{
-			rlc_parsed_function_add_argument(
-				out,
-				&argument);
+				1 + isThisFirst,
+				kRlcTokParentheseOpen,
+				kRlcTokBracketOpen))
+			{
+			default: RLC_DASSERT(!"this should never happen");
+			case kRlcTokParentheseOpen:	out->fOperatorName = kCall; break;
+			case kRlcTokBracketOpen: out->fOperatorName = kSubscript; break;
+			}
 
-			if(!rlc_parser_consume(
+			// parse arguments.
+			struct RlcParsedVariable argument;
+			while(rlc_parsed_variable_parse(
+					&argument,
+					parser,
+					NULL,
+					0,
+					0,
+					0,
+					0,
+					1))
+			{
+				rlc_parsed_function_add_argument(
+					out,
+					&argument);
+
+				if(!rlc_parser_consume(
+					parser,
+					NULL,
+					kRlcTokComma))
+					break;
+			}
+
+			rlc_parser_expect(
 				parser,
 				NULL,
-				kRlcTokComma))
-				break;
+				1,
+				out->fOperatorName == kCall
+					? kRlcTokParentheseClose
+					: kRlcTokBracketClose);
 		}
-
-		rlc_parser_expect(
-			parser,
-			NULL,
-			1,
-			out->fOperatorName == kCall
-				? kRlcTokParentheseClose
-				: kRlcTokBracketClose);
 	}
 
 	out->fIsAsync = rlc_parser_consume(
@@ -228,7 +251,8 @@ int rlc_parsed_function_parse(
 		NULL,
 		kRlcTokInline);
 
-	if(rlc_parsed_type_name_parse(
+	if(fnType != kRlcFunctionTypeCast
+	&& rlc_parsed_type_name_parse(
 		&out->fReturnType,
 		parser,
 		1))
@@ -299,8 +323,8 @@ static void rlc_parsed_function_print_head_1(
 	if(templates)
 		rlc_parsed_template_decl_print(&this->fTemplates, file, out);
 
-
-	if(this->fHasReturnType != kRlcFunctionReturnTypeNone)
+	if(this->fType != kRlcFunctionTypeCast
+	&& this->fHasReturnType != kRlcFunctionReturnTypeNone)
 		fputs("auto ", out);
 }
 
@@ -309,73 +333,85 @@ static void rlc_parsed_function_print_head_2(
 	struct RlcSrcFile const * file,
 	FILE * out)
 {
-	if(!this->fIsOperator)
+	switch(this->fType)
+	{
+	case kRlcFunctionTypeFunction:
 		rlc_src_string_print(
 			&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
 			file,
 			out);
-	else
-	{
-		fputs("operator ", out);
-		char const * op;
-		switch(this->fOperatorName)
+		break;
+	case kRlcFunctionTypeOperator:
 		{
-		case kAdd: case kPos: op = "+"; break;
-		case kSub: case kNeg: op = "-"; break;
-		case kMul: case kDereference: op = "*"; break;
-		case kDiv: op = "/"; break;
-		case kMod: op = "%"; break;
-		case kEquals: op = "=="; break;
-		case kNotEquals: op = "!="; break;
-		case kLess: op = "<"; break;
-		case kLessEquals: op = "<="; break;
-		case kGreater: op = ">"; break;
-		case kGreaterEquals: op = ">="; break;
+			fputs("operator ", out);
+			char const * op;
+			switch(this->fOperatorName)
+			{
+			case kAdd: case kPos: op = "+"; break;
+			case kSub: case kNeg: op = "-"; break;
+			case kMul: case kDereference: op = "*"; break;
+			case kDiv: op = "/"; break;
+			case kMod: op = "%"; break;
+			case kEquals: op = "=="; break;
+			case kNotEquals: op = "!="; break;
+			case kLess: op = "<"; break;
+			case kLessEquals: op = "<="; break;
+			case kGreater: op = ">"; break;
+			case kGreaterEquals: op = ">="; break;
 
-		case kBitAnd: op = "&"; break;
-		case kBitOr: op = "|"; break;
-		case kBitXor: op = "^"; break;
-		case kBitNot: op = "~"; break;
+			case kBitAnd: op = "&"; break;
+			case kBitOr: op = "|"; break;
+			case kBitXor: op = "^"; break;
+			case kBitNot: op = "~"; break;
 
-		case kLogAnd: op = "&&"; break;
-		case kLogOr: op = "||"; break;
-		case kLogNot: op = "!"; break;
+			case kLogAnd: op = "&&"; break;
+			case kLogOr: op = "||"; break;
+			case kLogNot: op = "!"; break;
 
-		case kShiftLeft: op = "<<"; break;
-		case kShiftRight: op = ">>"; break;
+			case kShiftLeft: op = "<<"; break;
+			case kShiftRight: op = ">>"; break;
 
-		case kSubscript: op = "[]"; break;
-		case kCall: op = "()"; break;
+			case kSubscript: op = "[]"; break;
+			case kCall: op = "()"; break;
 
-		case kPreIncrement: case kPostIncrement: op = "++"; break;
-		case kPreDecrement: case kPostDecrement: op = "--"; break;
+			case kPreIncrement: case kPostIncrement: op = "++"; break;
+			case kPreDecrement: case kPostDecrement: op = "--"; break;
 
-		case kAwait: op = "co_await"; break;
+			case kAwait: op = "co_await"; break;
 
-		case kAssign: op = "="; break;
+			case kAssign: op = "="; break;
 
-		case kAddAssign: op = "+="; break;
-		case kSubAssign: op = "-="; break;
-		case kMulAssign: op = "*="; break;
-		case kDivAssign: op = "/="; break;
-		case kModAssign: op = "%="; break;
+			case kAddAssign: op = "+="; break;
+			case kSubAssign: op = "-="; break;
+			case kMulAssign: op = "*="; break;
+			case kDivAssign: op = "/="; break;
+			case kModAssign: op = "%="; break;
 
-		case kBitAndAssign: op = "&="; break;
-		case kBitOrAssign: op = "|="; break;
-		case kBitXorAssign: op = "^="; break;
+			case kBitAndAssign: op = "&="; break;
+			case kBitOrAssign: op = "|="; break;
+			case kBitXorAssign: op = "^="; break;
 
-		case kShiftLeftAssign: op = "<<="; break;
-		case kShiftRightAssign: op = ">>="; break;
-		default:
-			rlc_resolver_fail(
-				&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
-				file,
-				"this operator cannot be user-defined");
-		}
+			case kShiftLeftAssign: op = "<<="; break;
+			case kShiftRightAssign: op = ">>="; break;
+			default:
+				rlc_resolver_fail(
+					&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+					file,
+					"this operator cannot be user-defined");
+			}
 
-		fputs(op, out);
+			fputs(op, out);
+		} break;
+	case kRlcFunctionTypeCast:
+		{
+			fputs("operator ", out);
+			if(this->fIsAsync)
+				fputs("::std::future<", out);
+			rlc_parsed_type_name_print(&this->fReturnType, file, out);
+			if(this->fIsAsync)
+					fputc('>', out);
+		} break;
 	}
-
 	fputc('(', out);
 	for(RlcSrcIndex i = 0; i < this->fArgumentCount; i++)
 	{
@@ -396,6 +432,9 @@ static void rlc_parsed_function_print_head_3(
 	struct RlcSrcFile const * file,
 	FILE * out)
 {
+	if(this->fType == kRlcFunctionTypeCast)
+		return;
+
 	switch(this->fHasReturnType)
 	{
 	case kRlcFunctionReturnTypeAuto:
@@ -664,7 +703,7 @@ void rlc_parsed_member_function_print(
 			out);
 	}
 
-	if(RLC_BASE_CAST(this, RlcParsedFunction)->fIsOperator)
+	if(RLC_BASE_CAST(this, RlcParsedFunction)->fType == kRlcFunctionTypeOperator)
 	{
 		switch(RLC_BASE_CAST(this, RlcParsedFunction)->fOperatorName)
 		{
