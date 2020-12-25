@@ -264,6 +264,19 @@ namespace __rl
 	Tuple<Types &&...> mk_tuple(Types&&...values) {
 		return Tuple<Types&&...>(std::forward<Types>(values)...);
 	}
+
+	template<class ...Types>
+	struct auto_type_wrapper<Tuple<Types...>> {
+		typedef Tuple<auto_t<::std::decay_t<Types>>...> type;
+	};
+	template<class ...Types>
+	struct auto_type_wrapper<Tuple<Types...> &&> {
+		typedef Tuple<auto_t<::std::decay_t<Types>>...> type;
+	};
+	template<class ...Types>
+	struct auto_type_wrapper<Tuple<Types...> const&> {
+		typedef Tuple<auto_t<::std::decay_t<Types>>...> type;
+	};
 }
 #define __rl_assert_stringify_code(code...) #code
 #define __rl_assert(expr, code, file, line, col) do { \

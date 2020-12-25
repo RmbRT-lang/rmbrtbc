@@ -45,6 +45,8 @@ struct RlcParsedFunction
 	enum RlcFunctionReturnType fHasReturnType;
 	/** The return type of the function. */
 	struct RlcParsedTypeName fReturnType;
+	enum RlcTypeQualifier fAutoReturnQualifier;
+	enum RlcReferenceType fAutoReturnReference;
 
 	/** The arguments the function takes. */
 	struct RlcParsedVariable * fArguments;

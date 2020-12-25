@@ -19,6 +19,8 @@ void rlc_parsed_function_create(
 	this->fTemplates = *templates;
 
 	this->fHasReturnType = kRlcFunctionReturnTypeNone;
+	this->fAutoReturnQualifier = kRlcTypeQualifierNone;
+	this->fAutoReturnReference = kRlcReferenceTypeNone;
 
 	this->fArguments = NULL;
 	this->fArgumentCount = 0;
@@ -273,6 +275,13 @@ int rlc_parsed_function_parse(
 
 	out->fHasBody = 1;
 	if(!out->fHasReturnType)
+	{
+		rlc_type_qualifier_parse(&out->fAutoReturnQualifier, parser);
+		if(rlc_parser_consume(parser, NULL, kRlcTokAnd))
+			out->fAutoReturnReference = kRlcReferenceTypeReference;
+		else if(rlc_parser_consume(parser, NULL, kRlcTokDoubleAnd))
+			out->fAutoReturnReference = kRlcReferenceTypeTempReference;
+
 		if(rlc_parser_consume(parser, NULL, kRlcTokQuestionMark))
 		{
 			out->fHasReturnType = kRlcFunctionReturnTypeAuto;
@@ -284,6 +293,7 @@ int rlc_parsed_function_parse(
 			out->fIsShortHandBody = 0;
 		} else
 			out->fIsShortHandBody = 1;
+	}
 	else
 		out->fIsShortHandBody = !rlc_parsed_block_statement_parse(
 			&out->fBodyStatement,
@@ -457,9 +467,17 @@ static void rlc_parsed_function_print_head_3(
 				fputs(" -> ", out);
 				if(this->fIsAsync)
 					fputs("::std::future<", out);
-				fputs("decltype(", out);
+				fputs("::__rl::auto_t<decltype(", out);
 				rlc_parsed_expression_print(this->fReturnValue, file, out);
-				fputs(")\n", out);
+				fputs(")>\n", out);
+				if(this->fAutoReturnQualifier & kRlcTypeQualifierConst)
+					fputs(" const ", out);
+				if(this->fAutoReturnQualifier & kRlcTypeQualifierVolatile)
+					fputs(" volatile ", out);
+				if(this->fAutoReturnReference == kRlcReferenceTypeReference)
+					fputs("&", out);
+				else if(this->fAutoReturnReference == kRlcReferenceTypeTempReference)
+					fputs("&&", out);
 				if(this->fIsAsync)
 					fputc('>', out);
 			} else
