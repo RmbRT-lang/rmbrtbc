@@ -177,7 +177,7 @@ struct RlcParsedExpression * rlc_parsed_expression_parse(
 			{
 				opexp = make_operator_expression(
 					kTuple,
-					tok, tok);
+					ret->fStart, tok);
 				rlc_parsed_operator_expression_add(opexp, ret);
 			}
 
