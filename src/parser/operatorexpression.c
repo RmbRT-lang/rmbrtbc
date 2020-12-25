@@ -54,6 +54,7 @@ const k_unary[] = {
 	{ kRlcTokTilde, kBitNot },
 	{ kRlcTokExclamationMark, kLogNot },
 	{ kRlcTokAnd, kAddress },
+	{ kRlcTokDoubleAnd, kMove },
 	{ kRlcTokAsterisk, kDereference },
 	{ kRlcTokDoublePlus, kPreIncrement },
 	{ kRlcTokDoubleMinus, kPreDecrement },
@@ -612,7 +613,7 @@ void rlc_parsed_operator_expression_print(
 		{kSubscript, -1, NULL,0}, {kCall, -1, NULL,0}, {kConditional, -1, NULL,1},
 		{kMemberReference, -1, ".",0}, {kMemberPointer, -1, "->",0},
 		{kBindReference, 1, ".*",1}, {kBindPointer, 1, "->*",1},
-		{kDereference, 0, "*",1}, {kAddress, 0, "&",1},
+		{kDereference, 0, "*",1}, {kAddress, 0, "&",1}, {kMove, -1, NULL,0},
 		{kPreIncrement, 0, "++",1}, {kPreDecrement, 0, "--",1},
 		{kPostIncrement, 2, "++",1}, {kPostDecrement, 2, "--",1},
 
@@ -665,6 +666,10 @@ void rlc_parsed_operator_expression_print(
 			case kTuple:
 				{
 					fputs("::__rl::mk_tuple(", out);
+				} break;
+			case kMove:
+				{
+					fputs("::std::move(", out);
 				} break;
 			default: { ; }
 			}
@@ -745,6 +750,7 @@ void rlc_parsed_operator_expression_print(
 			case kCtor:
 			case kCtorPtr:
 			case kTuple:
+			case kMove:
 				{
 					for(RlcSrcIndex i = 1; i < this->fExpressionCount; i++)
 					{

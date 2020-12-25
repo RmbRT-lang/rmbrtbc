@@ -23,7 +23,7 @@ enum RlcOperator
 	kSubscript, kCall, kConditional,
 	kMemberReference, kMemberPointer,
 	kBindReference, kBindPointer,
-	kDereference, kAddress,
+	kDereference, kAddress, kMove,
 	kPreIncrement, kPreDecrement,
 	kPostIncrement, kPostDecrement,
 
