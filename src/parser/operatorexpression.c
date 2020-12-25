@@ -371,9 +371,10 @@ static _Nodiscard struct RlcParsedExpression * parse_postfix(
 				enum RlcTokenType fToken;
 				enum RlcOperator fOperator;
 				enum RlcOperator fCtorOperator;
+				enum RlcOperator fTupleOperator;
 			} const k_ops[] = {
-				{ kRlcTokDot, kMemberReference, kCtor },
-				{ kRlcTokMinusGreater, kMemberPointer, kCtorPtr }
+				{ kRlcTokDot, kMemberReference, kCtor, kTupleMember },
+				{ kRlcTokMinusGreater, kMemberPointer, kCtorPtr, kTupleMemberPtr }
 			};
 
 			RLC_ASSERT(out);
@@ -398,14 +399,34 @@ static _Nodiscard struct RlcParsedExpression * parse_postfix(
 						{
 							do
 							{
-								rlc_parsed_operator_expression_add(
-									temp,
+								struct RlcParsedExpression * exp =
 									rlc_parsed_expression_parse(
 										parser,
-										RLC_ALL_FLAGS(RlcParsedExpressionType)));
+										RLC_ALL_FLAGS(RlcParsedExpressionType));
+								if(!exp)
+									rlc_parser_fail(parser, "expected expression");
+								rlc_parsed_operator_expression_add(temp, exp);
 							} while(rlc_parser_consume(parser, NULL, kRlcTokComma));
 							rlc_parser_expect(parser, &end, 1, kRlcTokBraceClose);
 						}
+						RLC_BASE_CAST(temp, RlcParsedExpression)->fEnd = end;
+					} else if(rlc_parser_consume(parser, NULL, kRlcTokParentheseOpen))
+					{
+						struct RlcToken end;
+						temp = make_unary_expression(
+							k_ops[i].fTupleOperator,
+							out,
+							out->fStart,
+							out->fEnd);
+
+						struct RlcParsedExpression * exp =
+							rlc_parsed_expression_parse(
+								parser,
+								RLC_ALL_FLAGS(RlcParsedExpressionType));
+						if(!exp)
+							rlc_parser_fail(parser, "expected expression");
+						rlc_parsed_operator_expression_add(temp, exp);
+						rlc_parser_expect(parser, &end, 1, kRlcTokParentheseClose);
 						RLC_BASE_CAST(temp, RlcParsedExpression)->fEnd = end;
 					} else
 					{
@@ -635,6 +656,8 @@ void rlc_parsed_operator_expression_print(
 
 		{kCtor, -1, NULL, 0},
 		{kCtorPtr, -1, NULL, 0},
+		{kTupleMember, -1, NULL, 0},
+		{kTupleMemberPtr, -1, NULL, 0},
 
 		{kTuple, -1, NULL, 0}
 	};
@@ -670,6 +693,20 @@ void rlc_parsed_operator_expression_print(
 			case kMove:
 				{
 					fputs("::std::move(", out);
+				} break;
+			case kTupleMember:
+			case kTupleMemberPtr:
+				{
+					fputs("::std::get<", out);
+					RLC_DASSERT(this->fExpressionCount == 2);
+					rlc_parsed_expression_print(
+						this->fExpressions[1],
+						file,
+						out);
+					fputs(this->fOperator == kTupleMemberPtr
+						? ">(*("
+						: ">(",
+						out);
 				} break;
 			default: { ; }
 			}
@@ -759,6 +796,9 @@ void rlc_parsed_operator_expression_print(
 					}
 					fputc(')', out);
 				} break;
+			case kTupleMemberPtr: fputc(')', out);
+			// fallthrough
+			case kTupleMember: fputc(')', out); break;
 			default:
 				RLC_ASSERT(!"not implemented");
 			}
