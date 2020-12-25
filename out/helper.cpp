@@ -251,6 +251,7 @@ namespace __rl
 	{
 	public:
 		using std::tuple<Types...>::tuple;
+		using std::tuple<Types...>::operator=;
 
 		template<class T, class = std::enable_if_t<std::is_constructible_v<T, Types...>>>
 		inline operator T() {
