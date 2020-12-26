@@ -223,6 +223,7 @@ void rlc_parsed_type_name_create(
 	this->fTuple.fTypeCount = 0;
 	this->fTypeModifiers = NULL;
 	this->fTypeModifierCount = 0;
+	this->fVariadicExpand = 0;
 }
 
 static int rlc_parsed_type_name_parse_impl(
@@ -365,6 +366,8 @@ after_type_name:
 		} else
 			out->fReferenceType = kRlcReferenceTypeNone;
 	}
+
+	out->fVariadicExpand = rlc_parser_consume(parser, NULL, kRlcTokTripleDot);
 
 	if(rlc_parser_consume(
 		parser,
@@ -534,9 +537,12 @@ void rlc_parsed_type_name_print(
 	}
 
 	if(this->fReferenceType == kRlcReferenceTypeReference)
-		fprintf(out, "&");
+		fputc('&', out);
 	if(this->fReferenceType == kRlcReferenceTypeTempReference)
-		fprintf(out, "&&");
+		fputs("&&", out);
+
+	if(this->fVariadicExpand)
+		fputs("...", out);
 }
 
 void rlc_parsed_function_signature_create(

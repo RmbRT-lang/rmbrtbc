@@ -67,7 +67,8 @@ const k_unary[] = {
 // postfix operators.
 k_unary_postfix[] = {
 	{ kRlcTokDoublePlus, kPostIncrement },
-	{ kRlcTokDoubleMinus, kPostDecrement }
+	{ kRlcTokDoubleMinus, kPostDecrement },
+	{ kRlcTokTripleDot, kVariadicExpand }
 },
 // binary operators.
 k_binary[] = {
@@ -658,6 +659,8 @@ void rlc_parsed_operator_expression_print(
 		{kCtorPtr, -1, NULL, 0},
 		{kTupleMember, -1, NULL, 0},
 		{kTupleMemberPtr, -1, NULL, 0},
+
+		{kVariadicExpand, 2, "...", 0},
 
 		{kTuple, -1, NULL, 0}
 	};

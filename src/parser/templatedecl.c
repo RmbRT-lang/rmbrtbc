@@ -3,6 +3,7 @@
 #include "../printer.h"
 #include "../malloc.h"
 #include "../assert.h"
+#include "../resolver/resolver.h"
 
 struct RlcParsedTemplateDecl const kRlcParsedTemplateDeclNone = {
 	NULL, 0
@@ -80,6 +81,7 @@ void rlc_parsed_template_decl_parse(
 			kRlcTokIdentifier);
 
 		child.fName = name.content;
+		child.fIsVariadic = rlc_parser_consume(parser, NULL, kRlcTokTripleDot);
 
 		rlc_parser_expect(
 			parser,
@@ -167,15 +169,19 @@ void rlc_parsed_template_decl_child_print(
 	case kRlcParsedTemplateDeclTypeType:
 		{
 			fputs("class ", out);
+			if(this->fIsVariadic)
+				fputs("...", out);
 			rlc_src_string_print(&this->fName, file, out);
 		} break;
 	case kRlcParsedTemplateDeclTypeNumber:
 		{
 			fprintf(out, "int ");
+			if(this->fIsVariadic)
+				fputs("...", out);
 			rlc_src_string_print(&this->fName, file, out);
 		} break;
 	case kRlcParsedTemplateDeclTypeValue:
 	default:
-		RLC_ASSERT(!"not implemented");
+		rlc_resolver_fail(&this->fName, file, "Unimplemented template type");
 	}
 }

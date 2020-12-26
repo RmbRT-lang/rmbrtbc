@@ -34,6 +34,8 @@ struct RlcParsedTemplateDeclChild
 	struct RlcParsedTypeName fValueType;
 	/** The name of the argument. */
 	struct RlcSrcString fName;
+	/** Whether the argument is variadic. */
+	int fIsVariadic;
 };
 
 /** Multiple template arguemnt declaration. */

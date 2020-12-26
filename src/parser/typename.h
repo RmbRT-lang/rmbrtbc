@@ -156,6 +156,7 @@ struct RlcParsedTypeName
 	};
 
 	int fNoDecay;
+	int fVariadicExpand;
 
 	/** The type modifiers list. */
 	struct RlcTypeModifier * fTypeModifiers;

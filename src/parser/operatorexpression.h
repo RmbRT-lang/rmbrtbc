@@ -43,6 +43,8 @@ enum RlcOperator
 	kTupleMember,
 	kTupleMemberPtr,
 
+	kVariadicExpand,
+
 	kTuple
 };
 
