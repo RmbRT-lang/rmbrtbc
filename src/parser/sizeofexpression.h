@@ -17,6 +17,7 @@ struct RlcParsedSizeofExpression
 {
 	RLC_DERIVE(struct,RlcParsedExpression);
 
+	int fIsVariadic;
 	int fIsType;
 	union {
 		struct RlcParsedTypeName fType;

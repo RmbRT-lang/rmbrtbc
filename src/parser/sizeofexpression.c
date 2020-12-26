@@ -48,6 +48,7 @@ int rlc_parsed_sizeof_expression_parse(
 		kRlcTokSizeof))
 		return 0;
 
+	out->fIsVariadic = rlc_parser_consume(parser, NULL, kRlcTokTripleDot);
 
 	rlc_parser_expect(
 		parser,
@@ -93,7 +94,7 @@ void rlc_parsed_sizeof_expression_print(
 	struct RlcSrcFile const * file,
 	FILE * out)
 {
-	fprintf(out, "sizeof(");
+	fprintf(out, "sizeof%s(", this->fIsVariadic ? "...":"");
 	if(this->fIsType)
 		rlc_parsed_type_name_print(&this->fType, file, out);
 	else
