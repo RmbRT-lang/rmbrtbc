@@ -245,13 +245,15 @@ namespace __rl
 	};
 
 
+	class CreateTuple {};
+	CreateTuple const createTuple;
 
 	template<class ...Types>
 	class Tuple : public std::tuple<Types...>
 	{
 	public:
-		using std::tuple<Types...>::tuple;
 		using std::tuple<Types...>::operator=;
+
 
 		template<class T, class = std::enable_if_t<std::is_constructible_v<T, Types...>>>
 		inline operator T() {
@@ -259,11 +261,47 @@ namespace __rl
 				&__rl_cast<T, Types...>,
 				static_cast<std::tuple<Types...> &&>(*this));
 		}
+
+		template<class T, class = std::enable_if_t<std::is_constructible_v<T, Types...>>>
+		inline operator T() const {
+			return std::apply(
+				&__rl_cast<T, Types...>,
+				static_cast<std::tuple<Types...>>(*this));
+		}
+
+		inline Tuple()
+		{
+			static_assert((std::is_default_constructible_v<Types> && ...));
+		}
+
+		template<class ...Types2>
+		inline Tuple(
+			std::enable_if_t<
+				(...&&std::is_constructible_v<Types, Types2&&>),
+				CreateTuple>,
+			Types2 &&... args):
+			std::tuple<Types...>(
+				std::forward<Types2>(args)...)
+		{
+		}
+
+		template<class ...Types2>
+		inline Tuple(Tuple<Types2...> const& rhs):
+			std::tuple<Types...>(static_cast<std::tuple<Types2...> const&>(rhs))
+		{
+			static_assert(std::is_constructible_v<std::tuple<Types...>, std::tuple<Types2...> const&>);
+		}
+		template<class ...Types2>
+		inline Tuple(Tuple<Types2...> && rhs):
+			std::tuple<Types...>(static_cast<std::tuple<Types2...> &&>(rhs))
+		{
+			static_assert(std::is_constructible_v<std::tuple<Types...>, std::tuple<Types2...> &&>);
+		}
 	};
 
 	template<class ...Types>
 	Tuple<Types &&...> mk_tuple(Types&&...values) {
-		return Tuple<Types&&...>(std::forward<Types>(values)...);
+		return Tuple<Types&&...>(createTuple, std::forward<Types>(values)...);
 	}
 
 	template<class ...Types>
