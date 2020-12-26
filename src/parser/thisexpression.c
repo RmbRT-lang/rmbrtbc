@@ -49,5 +49,5 @@ void rlc_parsed_this_expression_print(
 {
 	(void) this;
 	(void) file;
-	fprintf(out, "this");
+	fprintf(out, "(*this)");
 }

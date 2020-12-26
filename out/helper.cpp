@@ -373,14 +373,6 @@ typedef bool __rlc_bool;
 #define TRUE true
 #define FALSE false
 
-#define ASSIGN operator=
-#define DEREF operator*
-#define PTRACCESS operator->
-#define LOG_NOT operator!
-#define SUBSCRIPT operator[]
-#define NOTYPE
-#define CONVERT(...) operator __VA_ARGS__ ()
-
 typedef ::nullptr_t NULL_t;
 const NULL_t __rlc_NULL{};
 
