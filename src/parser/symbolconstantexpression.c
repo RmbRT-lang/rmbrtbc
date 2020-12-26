@@ -61,7 +61,9 @@ void rlc_parsed_symbol_constant_print(FILE * out)
 	for(RlcSrcIndex i = 0; i < symbolCount; i++)
 	{
 		char const * name = symbols[i];
-		fprintf(out, "struct _t_%s {} const _v_%s{};\n", name, name);
+		fprintf(out,
+			"struct _t_%s : public __rl::SymbolBase<_t_%s> {} const _v_%s{};\n",
+			name, name, name);
 	}
 
 	fputs("}\n", out);

@@ -316,6 +316,15 @@ namespace __rl
 	struct auto_type_wrapper<Tuple<Types...> const&> {
 		typedef Tuple<auto_t<::std::decay_t<Types>>...> type;
 	};
+
+	template<class Symbol>
+	struct SymbolBase
+	{
+		template<class T, class ...Ts>
+		inline Tuple<Symbol, T&&, Ts&&...> operator()(T&& arg, Ts&&...args) const {
+			return mk_tuple(Symbol(), std::forward<T>(arg), std::forward<Ts>(args)...);
+		}
+	};
 }
 #define __rl_assert_stringify_code(code...) #code
 #define __rl_assert(expr, code, file, line, col) do { \
