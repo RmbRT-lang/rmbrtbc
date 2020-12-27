@@ -740,9 +740,10 @@ void rlc_parsed_member_function_print(
 		{
 		case kDereference:
 			{
-				fputs(
-					"\ninline auto operator->() { return & * *this; }\n",
-					printer->fTypesImpl);
+				fprintf(
+					printer->fTypesImpl,
+					"\ninline auto operator->() %s { return & * *this; }\n",
+					member->fAttribute == kRlcMemberAttributeIsolated ? "const" : "");
 			} break;
 		default:;
 		}
