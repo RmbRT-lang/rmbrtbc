@@ -289,6 +289,72 @@ static void rlc_parsed_class_print_impl(
 		out);
 	fputs("(); }", out);
 
+
+	////////////////
+	// tuple ctor //
+	////////////////
+
+	fputs(
+		"\n// tuple ctor helper: applies a tuple to any existing ctors.\n"
+		"template<class...__RL_Types, std::size_t ...__RL_Indices>\n"
+		"inline ", out);
+	rlc_src_string_print(
+		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+		file,
+		out);
+	fputs("(::__rl::TupleCtorHelper,"
+		"::__rl::Tuple<__RL_Types...> && __rl_tuple,"
+		"::std::index_sequence<__RL_Indices...>):\n", out);
+	rlc_src_string_print(
+		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+		file,
+		out);
+	fputs("(::std::forward<__RL_Types>(::std::get<__RL_Indices>(__rl_tuple))...)\n"
+		"{\n"
+		"}\n", out);
+
+
+	fputs("// tuple ctor: calls tuple ctor helper to apply tuples to ctors.\n"
+		"template<class ...__RL_Types>\n"
+		"inline ", out);
+	rlc_src_string_print(
+		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+		file,
+		out);
+	fputs("(::__rl::Tuple<__RL_Types...> &&__rl_tuple,\n"
+		"::std::enable_if_t<::std::is_constructible_v<", out);
+	rlc_src_string_print(
+		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+		file,
+		out);
+	fputs(", __RL_Types...>,\n"
+		"\t::__rl::TupleCtorHelper> = __rl::tupleCtorHelper):\n", out);
+	rlc_src_string_print(
+		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+		file,
+		out);
+	fputs("(::__rl::tupleCtorHelper,"
+		"::std::move(__rl_tuple),"
+		"::std::make_index_sequence<sizeof...(__RL_Types)>{})\n"
+		"{\n"
+		"}\n", out);
+
+	// Add manual default ctor.
+	if(!this->fConstructors.fEntryCount)
+	{
+		rlc_src_string_print(
+			&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+			file,
+			out);
+		fputs("() = default;", out);
+	}
+
+	////////////////////
+	// tuple ctor end //
+	////////////////////
+
+
+
 	for(RlcSrcIndex i = 0; i < this->fConstructors.fEntryCount; i++)
 	{
 		struct RlcParsedConstructor * ctor = RLC_DERIVE_CAST(

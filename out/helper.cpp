@@ -254,21 +254,6 @@ namespace __rl
 	public:
 		using std::tuple<Types...>::operator=;
 
-
-		template<class T, class = std::enable_if_t<std::is_constructible_v<T, Types...>>>
-		inline operator T() {
-			return std::apply(
-				&__rl_cast<T, Types...>,
-				static_cast<std::tuple<Types...> &&>(*this));
-		}
-
-		template<class T, class = std::enable_if_t<std::is_constructible_v<T, Types...>>>
-		inline operator T() const {
-			return std::apply(
-				&__rl_cast<T, Types...>,
-				static_cast<std::tuple<Types...>>(*this));
-		}
-
 		inline Tuple()
 		{
 			static_assert((std::is_default_constructible_v<Types> && ...));
@@ -279,9 +264,8 @@ namespace __rl
 			std::enable_if_t<
 				(...&&std::is_constructible_v<Types, Types2&&>),
 				CreateTuple>,
-			Types2 &&... args):
-			std::tuple<Types...>(
-				std::forward<Types2>(args)...)
+			Types2&&... args):
+			std::tuple<Types...>(static_cast<Types2&&>(args)...)
 		{
 		}
 
@@ -301,7 +285,7 @@ namespace __rl
 
 	template<class ...Types>
 	Tuple<Types &&...> mk_tuple(Types&&...values) {
-		return Tuple<Types&&...>(createTuple, std::forward<Types>(values)...);
+		return Tuple<Types&&...>(createTuple, static_cast<Types&&>(values)...);
 	}
 
 	template<class ...Types>
@@ -325,6 +309,8 @@ namespace __rl
 			return mk_tuple(Symbol(), std::forward<T>(arg), std::forward<Ts>(args)...);
 		}
 	};
+
+	struct TupleCtorHelper {} const tupleCtorHelper {};
 }
 #define __rl_assert_stringify_code(code...) #code
 #define __rl_assert(expr, code, file, line, col) do { \
