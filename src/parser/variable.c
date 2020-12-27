@@ -142,6 +142,22 @@ int rlc_parsed_variable_parse(
 				1,
 				kRlcTokIdentifier);
 			rlc_parser_skip(parser);
+			if(rlc_parser_consume(parser, NULL, kRlcTokQuestionMark))
+			{
+				needs_type = 0;
+				out->fHasType = 0;
+				rlc_type_qualifier_parse(
+					&out->fTypeQualifier,
+					parser);
+				if(rlc_parser_consume(parser, NULL, kRlcTokAnd))
+					out->fReference = kRlcReferenceTypeReference;
+				else if(rlc_parser_consume(parser, NULL, kRlcTokDoubleAnd))
+					out->fReference = kRlcReferenceTypeTempReference;
+				else
+					out->fReference = kRlcReferenceTypeNone;
+
+				rlc_parser_expect(parser, NULL, 1, kRlcTokColonEqual);
+			}
 		} else if(allow_initialiser)
 		{
 			static enum RlcTokenType const k_need_ahead[] = {
@@ -167,6 +183,8 @@ int rlc_parsed_variable_parse(
 						&qualifier,
 						parser);
 
+
+
 					// "name ::=" style variable?
 					rlc_parser_expect(
 						parser,
@@ -178,6 +196,7 @@ int rlc_parsed_variable_parse(
 					needs_type = 0;
 					out->fHasType = 0;
 					out->fTypeQualifier = qualifier;
+					out->fReference = kRlcReferenceTypeNone;
 					break;
 				}
 			}
@@ -305,7 +324,19 @@ static void rlc_parsed_variable_print_argument_1(
 			file,
 			out);
 	else
+	{
 		fprintf(out, "auto");
+		if(this->fTypeQualifier & kRlcTypeQualifierConst)
+			fputs(" const ", out);
+		if(this->fTypeQualifier & kRlcTypeQualifierVolatile)
+			fputs(" volatile ", out);
+		switch(this->fReference)
+		{
+		case kRlcReferenceTypeNone: break;
+		case kRlcReferenceTypeReference: fputs("&", out); break;
+		case kRlcReferenceTypeTempReference: fputs("&&", out); break;
+		}
+	}
 }
 
 static void rlc_parsed_variable_print_argument_2(

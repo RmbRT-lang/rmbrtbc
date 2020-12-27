@@ -30,8 +30,11 @@ struct RlcParsedVariable
 	union {
 		/** The variable type. */
 		struct RlcParsedTypeName fType;
-		/** The type qualifier, if no explicit type. */
-		enum RlcTypeQualifier fTypeQualifier;
+		struct {
+			/** The type qualifier, if no explicit type. */
+			enum RlcTypeQualifier fTypeQualifier;
+			enum RlcReferenceType fReference;
+		};
 	};
 	/** The initialising arguments, or null. */
 	struct RlcParsedExpression ** fInitArgs;
