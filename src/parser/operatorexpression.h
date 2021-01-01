@@ -33,6 +33,8 @@ enum RlcOperator
 	kMaybeDynamic,
 	kAwait,
 
+	kStreamFeed,
+
 	kAssign,
 	kAddAssign, kSubAssign, kMulAssign, kDivAssign, kModAssign,
 	kBitAndAssign, kBitOrAssign, kBitXorAssign,

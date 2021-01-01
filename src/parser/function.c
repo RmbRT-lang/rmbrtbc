@@ -366,6 +366,12 @@ static void rlc_parsed_function_print_head_2(
 		break;
 	case kRlcFunctionTypeOperator:
 		{
+			if(this->fOperatorName == kStreamFeed)
+			{
+				fputs("__rl_stream_feed", out);
+				break;
+			}
+
 			fputs("operator ", out);
 			char const * op;
 			switch(this->fOperatorName)

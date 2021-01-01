@@ -108,6 +108,9 @@ k_binary[] = {
 	{ kRlcTokDoubleAnd, kLogAnd },
 	{ kRlcTokDoublePipe, kLogOr },
 
+	// stream feed operator.
+	{ kRlcTokLessMinus, kStreamFeed },
+
 	// assignments.
 	{ kRlcTokColonEqual, kAssign },
 	{ kRlcTokPlusEqual, kAddAssign },
@@ -134,6 +137,7 @@ static size_t const k_binary_groups[] = {
 	1, // &&
 	1, // ||
 	0, // ?:
+	1, // <-
 	11 // :=
 };
 
@@ -644,6 +648,8 @@ void rlc_parsed_operator_expression_print(
 		{kExpectDynamic, -1, NULL,1},
 		{kMaybeDynamic, -1, NULL,1},
 		{kAwait, 0, " co_await ", 1},
+
+		{kStreamFeed, 1, ").__rl_stream_feed(", 1},
 
 		{kAssign, 1, "=", 1},
 		{kAddAssign, 1, "+=", 1}, {kSubAssign, 1, "-=", 1},
