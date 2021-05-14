@@ -9,6 +9,7 @@ char const * rlc_token_type_name(
 	static char const * const names[] = {
 		"identifier",
 		"number",
+		"float number",
 		"character",
 		"string",
 

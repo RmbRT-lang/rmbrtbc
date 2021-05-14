@@ -19,6 +19,7 @@ enum RlcTokenType
 {
 	kRlcTokIdentifier,
 	kRlcTokNumberLiteral,
+	kRlcTokFloatLiteral,
 	kRlcTokCharacterLiteral,
 	kRlcTokStringLiteral,
 

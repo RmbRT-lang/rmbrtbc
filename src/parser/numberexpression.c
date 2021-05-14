@@ -41,7 +41,11 @@ int rlc_parsed_number_expression_parse(
 	if(rlc_parser_consume(
 		parser,
 		&token,
-		kRlcTokNumberLiteral))
+		kRlcTokNumberLiteral)
+	|| rlc_parser_consume(
+		parser,
+		&token,
+		kRlcTokFloatLiteral))
 	{
 		rlc_parsed_number_expression_create(
 			out,
@@ -57,7 +61,13 @@ void rlc_parsed_number_expression_print(
 	struct RlcSrcFile const * file,
 	FILE * out)
 {
-	struct RlcNumber number;
-	rlc_number_from_token(&number, file, &this->fNumberToken);
-	rlc_number_fprint(&number, out);
+	if(this->fNumberToken.type == kRlcTokNumberLiteral)
+	{
+		struct RlcNumber number;
+		rlc_number_from_token(&number, file, &this->fNumberToken);
+		rlc_number_fprint(&number, out);
+	} else
+	{
+		rlc_src_string_print(&this->fNumberToken.content, file, out);
+	}
 }
