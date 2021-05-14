@@ -72,5 +72,5 @@ void rlc_parsed_control_label_print(
 
 	rlc_parsed_control_label_print_name(this, file, out, suffix);
 
-	fputs(":\n", out);
+	fputs(":{;}\n", out);
 }
