@@ -15,10 +15,18 @@
 extern "C" {
 #endif
 
+enum RlcCastType
+{
+	kRlcCastTypeStatic,
+	kRlcCastTypeDynamic
+};
+
 /** A cast expression as used by the parser. */
 struct RlcParsedCastExpression
 {
 	RLC_DERIVE(struct,RlcParsedExpression);
+
+	enum RlcCastType fMethod;
 
 	/** The cast expression's type. */
 	struct RlcParsedTypeName fType;
