@@ -26,9 +26,10 @@ struct RlcParsedSymbolChildTemplate
 	int fIsExpression;
 	union
 	{
-		struct RlcParsedExpression * fExpression;
-		struct RlcParsedTypeName * fTypeName;
+		struct RlcParsedExpression ** fExpressions;
+		struct RlcParsedTypeName * fTypeNames;
 	};
+	RlcSrcSize fSize;
 };
 
 /** A single identifier, possibly templated.

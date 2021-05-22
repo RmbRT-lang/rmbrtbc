@@ -400,8 +400,11 @@ after_type_name:
 		rlc_realloc(
 			(void**)&child->fTemplates,
 			++child->fTemplateCount * sizeof(struct RlcParsedSymbolChildTemplate));
-		child->fTemplates[child->fTemplateCount-1].fIsExpression = 0;
-		child->fTemplates[child->fTemplateCount-1].fTypeName = temp;
+		struct RlcParsedSymbolChildTemplate * tpl =
+			&child->fTemplates[child->fTemplateCount-1];
+		tpl->fIsExpression = 0;
+		tpl->fSize = 1;
+		tpl->fTypeNames = temp;
 
 		goto after_type_name;
 	}

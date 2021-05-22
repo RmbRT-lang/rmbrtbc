@@ -32,43 +32,58 @@ static int rlc_parsed_symbol_child_template_parse(
 
 	struct RlcParsedSymbolChildTemplate template;
 	do {
-		if((template.fIsExpression = rlc_parser_consume(
+		template.fSize = 0;
+		template.fExpressions = NULL;
+
+		if(rlc_parser_is_current(parser, kRlcTokSemicolon))
+		{
+			template.fIsExpression = 0;
+		} else if((template.fIsExpression = rlc_parser_consume(
 			parser,
 			NULL,
 			kRlcTokHash)))
 		{
-			if(!(template.fExpression = rlc_parsed_expression_parse(
+			do {
+				rlc_realloc(
+					(void**)&template.fExpressions,
+					sizeof(struct RlcParsedExpression *) * ++template.fSize);
+				if(!(template.fExpressions[template.fSize-1]
+					= rlc_parsed_expression_parse(
+						parser,
+						RLC_ALL_FLAGS(RlcParsedExpressionType))))
+				{
+					rlc_parser_fail(parser, "expected expression");
+				}
+			} while(rlc_parser_consume(
 				parser,
-				RLC_ALL_FLAGS(RlcParsedExpressionType))))
-			{
-				rlc_parser_fail(parser, "expected expression");
-			}
-			rlc_parsed_symbol_child_add_template(
-				out,
-				&template);
+				NULL,
+				kRlcTokComma));
 		} else
 		{
-			template.fTypeName = NULL;
-			rlc_malloc(
-				(void**)&template.fTypeName,
-				sizeof(struct RlcParsedTypeName));
+			do {
+				rlc_realloc(
+					(void**)&template.fTypeNames,
+					sizeof(struct RlcParsedTypeName) * ++template.fSize);
 
-			if(!rlc_parsed_type_name_parse(
-				template.fTypeName,
+				if(!rlc_parsed_type_name_parse(
+					&template.fTypeNames[template.fSize-1],
+					parser,
+					0))
+				{
+					rlc_parser_fail(parser, "expected type name");
+				}
+			} while(rlc_parser_consume(
 				parser,
-				0))
-			{
-				rlc_parser_fail(parser, "expected type name");
-			}
-
-			rlc_parsed_symbol_child_add_template(
-				out,
-				&template);
+				NULL,
+				kRlcTokComma));
 		}
+		rlc_parsed_symbol_child_add_template(
+			out,
+			&template);
 	} while(rlc_parser_consume(
 		parser,
 		NULL,
-		kRlcTokComma));
+		kRlcTokSemicolon));
 
 	rlc_parser_expect(
 		parser,
@@ -139,22 +154,22 @@ void rlc_parsed_symbol_child_destroy(
 	{
 		for(size_t i = 0; i < this->fTemplateCount; i++)
 		{
-			if(this->fTemplates[i].fIsExpression)
+			for(RlcSrcIndex j = 0; j < this->fTemplates[i].fSize; j++)
 			{
-				if(this->fTemplates[i].fExpression)
+				if(this->fTemplates[i].fIsExpression)
 				{
-					rlc_parsed_expression_destroy_virtual(this->fTemplates[i].fExpression);
-					rlc_free((void**)&this->fTemplates[i].fExpression);
+					rlc_parsed_expression_destroy_virtual(
+						this->fTemplates[i].fExpressions[j]);
+					rlc_free((void**)&this->fTemplates[i].fExpressions[j]);
+				}
+				else
+				{
+					rlc_parsed_type_name_destroy(
+						&this->fTemplates[i].fTypeNames[j]);
 				}
 			}
-			else
-			{
-				if(this->fTemplates[i].fTypeName)
-				{
-					rlc_parsed_type_name_destroy(this->fTemplates[i].fTypeName);
-					rlc_free((void**)&this->fTemplates[i].fTypeName);
-				}
-			}
+			if(this->fTemplates[i].fTypeNames)
+				rlc_free((void**)&this->fTemplates[i].fTypeNames);
 		}
 		rlc_free((void**)&this->fTemplates);
 	}
@@ -192,19 +207,24 @@ void rlc_parsed_symbol_child_print(
 		for(RlcSrcIndex i = 0; i < this->fTemplateCount; i++)
 		{
 			if(i)
-				fprintf(out, ", ");
-			if(this->fTemplates[i].fIsExpression)
+				fputs(", ", out);
+			for(RlcSrcIndex j = 0; j < this->fTemplates[i].fSize; j++)
 			{
-				rlc_parsed_expression_print(
-					this->fTemplates[i].fExpression,
-					file,
-					out);
-			} else
-			{
-				rlc_parsed_type_name_print(
-					this->fTemplates[i].fTypeName,
-					file,
-					out);
+				if(j)
+					fputs(", ", out);
+				if(this->fTemplates[i].fIsExpression)
+				{
+					rlc_parsed_expression_print(
+						this->fTemplates[i].fExpressions[j],
+						file,
+						out);
+				} else
+				{
+					rlc_parsed_type_name_print(
+						&this->fTemplates[i].fTypeNames[j],
+						file,
+						out);
+				}
 			}
 		}
 

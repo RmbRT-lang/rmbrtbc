@@ -114,11 +114,11 @@ void rlc_parsed_template_decl_parse(
 		rlc_parsed_template_decl_add_child(
 			decl,
 			&child);
-	} while(kRlcTokComma == rlc_parser_expect(
+	} while(kRlcTokSemicolon == rlc_parser_expect(
 		parser,
 		NULL,
 		2,
-		kRlcTokComma,
+		kRlcTokSemicolon,
 		kRlcTokBracketClose));
 
 	rlc_parser_untrace(parser, &tracer);
