@@ -402,6 +402,10 @@ typedef long __rlc_long;
 typedef float __rlc_float;
 typedef double __rlc_double;
 typedef bool __rlc_bool;
+#define BOOL bool
+#define CHAR char
+#define INT int
+#define UINT uint
 
 #define TRUE true
 #define FALSE false
