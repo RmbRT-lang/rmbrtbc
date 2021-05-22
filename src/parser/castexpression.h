@@ -18,7 +18,8 @@ extern "C" {
 enum RlcCastType
 {
 	kRlcCastTypeStatic,
-	kRlcCastTypeDynamic
+	kRlcCastTypeDynamic,
+	kRlcCastTypeConcept
 };
 
 /** A cast expression as used by the parser. */

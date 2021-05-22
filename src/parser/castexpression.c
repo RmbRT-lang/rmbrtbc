@@ -57,7 +57,8 @@ int rlc_parsed_cast_expression_parse(
 		int allowMultipleArgs, expectArgs;
 	} const k_lookup[] = {
 		{ kRlcTokLess, kRlcTokGreater, kRlcCastTypeStatic, 1, 0},
-		{ kRlcTokDoubleLess, kRlcTokDoubleGreater, kRlcCastTypeDynamic, 0, 1 }
+		{ kRlcTokDoubleLess, kRlcTokDoubleGreater, kRlcCastTypeDynamic, 0, 1 },
+		{ kRlcTokTripleLess, kRlcTokTripleGreater, kRlcCastTypeConcept, 1, 1 }
 	};
 
 	unsigned type;
@@ -128,22 +129,25 @@ void rlc_parsed_cast_expression_print(
 	case kRlcCastTypeStatic:
 		fputs("::__rl::__rl_cast<", out);
 		rlc_parsed_type_name_print(&this->fType, file, out);
-		fputs(">(", out);
-		for(RlcSrcIndex i = 0; i < this->fValueCount; i++)
-		{
-			if(i) fputs(", ", out);
-			rlc_parsed_expression_print(this->fValues[i], file, out);
-		}
-		fputs(")", out);
+		fputs(">", out);
 		break;
 	case kRlcCastTypeDynamic:
 		fputs("dynamic_cast<", out);
 		rlc_parsed_type_name_print(&this->fType, file, out);
-		fputs(">(", out);
-		rlc_parsed_expression_print(this->fValues[0], file, out);
-		fputs(")", out);
+		fputs(">", out);
+		break;
+	case kRlcCastTypeConcept:
+		rlc_parsed_type_name_print(&this->fType, file, out);
+		fputs("::FROM", out);
 		break;
 	default:
 		RLC_DASSERT(!"unhandled type");
 	}
+	fputs("(", out);
+	for(RlcSrcIndex i = 0; i < this->fValueCount; i++)
+	{
+		if(i) fputs(", ", out);
+		rlc_parsed_expression_print(this->fValues[i], file, out);
+	}
+	fputs(")", out);
 }
