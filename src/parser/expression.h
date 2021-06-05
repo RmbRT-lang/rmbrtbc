@@ -34,6 +34,8 @@ enum RlcParsedExpressionType {
 	kRlcParsedCastExpression,
 	/** RlcParsedSizeofExpression. */
 	kRlcParsedSizeofExpression,
+	/** RlcParsedSymbolConstantExpression. */
+	kRlcParsedSymbolConstantExpression,
 
 	RLC_ENUM_END(RlcParsedExpressionType)
 };
@@ -45,9 +47,9 @@ struct RlcParsedExpression
 	RLC_ABSTRACT(RlcParsedExpression);
 
 	/** The expression's first token. */
-	RlcSrcIndex fFirst;
+	struct RlcToken fStart;
 	/** The expression's last token.*/
-	RlcSrcIndex fLast;
+	struct RlcToken fEnd;
 };
 
 /** Creates an expression.
@@ -61,8 +63,8 @@ struct RlcParsedExpression
 void rlc_parsed_expression_create(
 	struct RlcParsedExpression * this,
 	enum RlcParsedExpressionType type,
-	RlcSrcIndex first,
-	RlcSrcIndex end);
+	struct RlcToken first,
+	struct RlcToken last);
 
 /** Destroys an expression.
 @memberof RlcParsedExpression

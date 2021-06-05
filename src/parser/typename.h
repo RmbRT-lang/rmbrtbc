@@ -121,10 +121,20 @@ enum RlcParsedTypeNameValue
 	kRlcParsedTypeNameValueVoid,
 	/** The type name is a name. */
 	kRlcParsedTypeNameValueName,
+	/** Symbol constant type. */
+	kRlcParsedTypeNameValueSymbolConstant,
 	/** The type name is a function signature. */
 	kRlcParsedTypeNameValueFunction,
 	/** The type name is the type of an expression. */
-	kRlcParsedTypeNameValueExpression
+	kRlcParsedTypeNameValueExpression,
+	/** The type name is a tuple of types. */
+	kRlcParsedTypeNameValueTuple
+};
+
+struct RlcParsedTupleType
+{
+	struct RlcParsedTypeName * fTypes;
+	RlcSrcSize fTypeCount;
 };
 
 /** A (possibly) scope-qualified identifier, or void, and type qualifiers. */
@@ -135,13 +145,18 @@ struct RlcParsedTypeName
 	union {
 		/** The name of the type. */
 		struct RlcParsedSymbol * fName;
+		/** The symbol constant name. */
+		struct RlcSrcString fSymbolConstant;
 		/** The function signature type. */
 		struct RlcParsedFunctionSignature * fFunction;
 		/** The expression (for type-of). */
 		struct RlcParsedExpression * fExpression;
+		/** Tuple types. */
+		struct RlcParsedTupleType fTuple;
 	};
 
 	int fNoDecay;
+	int fVariadicExpand;
 
 	/** The type modifiers list. */
 	struct RlcTypeModifier * fTypeModifiers;

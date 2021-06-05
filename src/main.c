@@ -1,5 +1,6 @@
 #include "scoper/fileregistry.h"
 #include "printer.h"
+#include "parser/symbolconstantexpression.h"
 #include "unicode.h"
 #include "malloc.h"
 #include "fs.h"
@@ -79,12 +80,15 @@ int main(
 			"usage:\n"
 			"\t%s f1 f2 ... fN\n"
 			"\t\tcompiles f1...fN into executable 'a.out'.\n"
+			"\t%s --test f1 f2 ... fN\n"
+			"\t\tcompiles tests in f1...fN into executable 'a.out'.\n"
 			"\t%s --help\n"
 				"\t\tprints this message.\n"
 			"\t%s --license\n"
 				"\t\tprints the license information.\n"
 			"\t%s --find path\n"
 				"\t\tresolves the requested include path.\n",
+			argv[0],
 			argv[0],
 			argv[0],
 			argv[0],
@@ -95,7 +99,7 @@ int main(
 	if(argc == 2 && !strcmp(argv[1], "--license"))
 	{
 		puts(
-			"github.com/RmbRT/rlc - RmbRT language compiler (C bootstrap ver.)\n"
+			"github.com/RmbRT-lang/rmbrtbc - RmbRT language compiler (C bootstrap ver.)\n"
 			"Copyright (C) 2020 Steffen \"RmbRT\" Rattay <steffen@sm2.network>\n"
 			"\n"
 			"This program is free software: you can redistribute it and/or modify\n"
@@ -109,7 +113,7 @@ int main(
 			"\nGNU Affero General Public License for more details.\n"
 			"\n"
 			"\nYou should have received a copy of the GNU Affero General Public License\n"
-			"along with this program.  If not, see <https://www.gnu.org/licenses/>.n");
+			"along with this program.  If not, see <https://www.gnu.org/licenses/>.");
 		return 0;
 	}
 	if(argc >= 2 && !strcmp(argv[1], "--find"))
@@ -137,10 +141,14 @@ int main(
 		return 0;
 	}
 
+	int isTest = !strcmp(argv[1], "--test");
+
 	struct RlcScopedFileRegistry scoped_registry;
 	rlc_scoped_file_registry_create(&scoped_registry);
 
 
+	char * symbolConstantsBuf;
+	size_t symbolConstantsLen;
 	char * typesBuf, * typesImplBuf;
 	size_t typesLen, typesImplLen;
 	char * funcsBuf, * funcsImplBuf;
@@ -150,6 +158,8 @@ int main(
 
 	struct RlcPrinter printer = {
 		0,
+		isTest,
+		open_memstream(&symbolConstantsBuf, &symbolConstantsLen),
 		open_memstream(&typesBuf, &typesLen),
 		open_memstream(&varsBuf, &varsLen),
 		open_memstream(&funcsBuf, &funcsLen),
@@ -161,7 +171,7 @@ int main(
 	};
 
 	int status = 1;
-	for(int i = 1; i < argc; i++)
+	for(int i = 1 + isTest; i < argc; i++)
 	{
 		char const * abs = to_absolute_path(argv[i]);
 		struct RlcScopedFile * file;
@@ -180,7 +190,12 @@ int main(
 				argv[i]);
 			status = 0;
 		}
+
+		++printer.fCompilationUnit;
 	}
+
+	rlc_parsed_symbol_constant_print(printer.fSymbolConstants);
+	rlc_parsed_symbol_constant_free();
 
 	rlc_scoped_file_registry_destroy(&scoped_registry);
 
@@ -192,28 +207,40 @@ int main(
 		return 1;
 	}
 	char out_file[PATH_MAX];
-	char rlc_dir[PATH_MAX];
-	ssize_t rlc_dir_len;
-	if((rlc_dir_len = readlink("/proc/self/exe", rlc_dir, sizeof(rlc_dir))) == -1)
+	char *rlc_actual;
+	ssize_t rlc_which_len;
+	if((rlc_which_len = readlink("/proc/self/exe", out_file, sizeof(out_file))) == -1)
 	{
 		perror("readlink");
 		return 1;
 	}
-	rlc_dir[rlc_dir_len] = '\0';
-	snprintf(out_file, sizeof(out_file), "%.*s/out/helper.cpp", parent_dir(rlc_dir), rlc_dir);
+	out_file[rlc_which_len] = '\0';
+	if(!(rlc_actual = realpath(out_file, NULL)))
+	{
+		perror("realpath");
+		return 1;
+	}
+
+	snprintf(out_file, sizeof(out_file), "%.*s/out/helper.cpp", parent_dir(rlc_actual), rlc_actual);
 	pipe_file(out_file, pipefd);
+	read_into_pipe_and_close(printer.fSymbolConstants, &symbolConstantsBuf, &symbolConstantsLen, pipefd);
 	read_into_pipe_and_close(printer.fTypes, &typesBuf, &typesLen, pipefd);
 	read_into_pipe_and_close(printer.fFuncs, &funcsBuf, &funcsLen, pipefd);
 	read_into_pipe_and_close(printer.fTypesImpl, &typesImplBuf, &typesImplLen, pipefd);
 	read_into_pipe_and_close(printer.fVars, &varsBuf, &varsLen, pipefd);
-	read_into_pipe_and_close(printer.fFuncsImpl, &funcsImplBuf, &funcsImplLen, pipefd);
 	read_into_pipe_and_close(printer.fVarsImpl, &varsImplBuf, &varsImplLen, pipefd);
+	read_into_pipe_and_close(printer.fFuncsImpl, &funcsImplBuf, &funcsImplLen, pipefd);
+	snprintf(out_file, sizeof(out_file), "%.*s/out/%s", parent_dir(rlc_actual), rlc_actual, isTest ? "testmain.cpp" : "exemain.cpp");
+	pipe_file(out_file, pipefd);
+	free(rlc_actual);
 	shutdown(pipefd, SHUT_WR);
 
+	fflush(stdout);
+
 	char command[PATH_MAX+128];
-	snprintf(command, sizeof(command), "c++ -std=gnu++2a -x c++ -Werror %s -o a.out",
+	snprintf(command, sizeof(command), "c++ -std=c++2a -fcoroutines -pthread -x c++ -Wfatal-errors -Werror %s -o a.out -g",
 		pipename);
-	if(!system(command))
+	if((status = !system(command)))
 		puts("compiled!");
 	close(pipefd);
 

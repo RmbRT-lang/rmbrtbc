@@ -20,6 +20,8 @@ enum RlcParsedScopeEntryType
 {
 	/** RlcParsedClass */
 	kRlcParsedClass,
+	/** RlcParsedConcept */
+	kRlcParsedConcept,
 	/** RlcParsedRawtype */
 	kRlcParsedRawtype,
 	/** RlcParsedUnion */
@@ -38,6 +40,8 @@ enum RlcParsedScopeEntryType
 	kRlcParsedTypedef,
 	/** RlcParsedExternalSymbol */
 	kRlcParsedExternalSymbol,
+	/** RlcParsedTest */
+	kRlcParsedTest,
 
 	RLC_ENUM_END(RlcParsedScopeEntryType)
 };

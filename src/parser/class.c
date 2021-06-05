@@ -68,7 +68,8 @@ int rlc_parsed_class_parse(
 
 	struct RlcToken name;
 	if((!rlc_parser_is_ahead(parser, kRlcTokBraceOpen)
-		&& !rlc_parser_is_ahead(parser, kRlcTokMinusGreater))
+		&& !rlc_parser_is_ahead(parser, kRlcTokMinusGreater)
+		&& !rlc_parser_is_ahead(parser, kRlcTokVirtual))
 	|| !rlc_parser_consume(parser, &name, kRlcTokIdentifier))
 	{
 		return 0;
@@ -78,6 +79,11 @@ int rlc_parsed_class_parse(
 	rlc_parser_trace(parser, "class", &tracer);
 
 	rlc_parsed_class_create(out, &name.content, templates);
+
+	out->fIsVirtual = rlc_parser_consume(
+		parser,
+		NULL,
+		kRlcTokVirtual);
 
 	if(kRlcTokMinusGreater == rlc_parser_expect(
 		parser,
@@ -168,7 +174,7 @@ static void rlc_parsed_inheritance_print(
 	if(this->fVirtual)
 		fprintf(out, " virtual ");
 
-	rlc_parsed_symbol_print(&this->fBase, file, out);
+	rlc_parsed_symbol_print_no_template(&this->fBase, file, out);
 }
 
 static void rlc_parsed_class_print_decl(
@@ -237,6 +243,8 @@ static void rlc_parsed_class_print_impl(
 		if(this->fDestructor.fIsInline)
 			fputs("inline ", out);
 
+		if(this->fIsVirtual)
+			fputs("virtual ", out);
 		fputc('~', out);
 		rlc_src_string_print(
 			&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
@@ -253,15 +261,27 @@ static void rlc_parsed_class_print_impl(
 			file,
 			out);
 		fputs("()\n", out);
+		fputs("#define _return return\n", out);
 		rlc_parsed_block_statement_print(
 			&this->fDestructor.fBody,
 			file,
 			out);
+		fputs("#undef _return\n", out);
 	}
-
-	// Print "destructor" member function.
-	if(!this->fHasDestructor)
+	else
+	{
 		fputs("public:", out);
+		if(this->fIsVirtual)
+		{
+			fputs("virtual ",out);
+			fputs(" ~", out);
+				rlc_src_string_print(
+					&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+					file,
+					out);
+				fputs("() = default;\n", out);
+		}
+	}
 	fputs("inline void __rl_destructor() const { this->~", out);
 	rlc_src_string_print(
 		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
@@ -269,12 +289,71 @@ static void rlc_parsed_class_print_impl(
 		out);
 	fputs("(); }", out);
 
-	// Print "constructor" member function.
+
+	////////////////
+	// tuple ctor //
+	////////////////
+
 	fputs(
-		"public:\n"
-		"template<class ...Args>\n"
-		"inline void __rl_constructor(Args&&...args)\n"
-		"{ ::__rl::placement_new(this, std::forward<Args>(args)...); }\n", out);
+		"\n// tuple ctor helper: applies a tuple to any existing ctors.\n"
+		"template<class...__RL_Types, std::size_t ...__RL_Indices>\n"
+		"inline ", out);
+	rlc_src_string_print(
+		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+		file,
+		out);
+	fputs("(::__rl::TupleCtorHelper,"
+		"::__rl::Tuple<__RL_Types...> && __rl_tuple,"
+		"::std::index_sequence<__RL_Indices...>):\n", out);
+	rlc_src_string_print(
+		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+		file,
+		out);
+	fputs("(::std::forward<__RL_Types>(::std::get<__RL_Indices>(__rl_tuple))...)\n"
+		"{\n"
+		"}\n", out);
+
+
+	fputs("// tuple ctor: calls tuple ctor helper to apply tuples to ctors.\n"
+		"template<class ...__RL_Types>\n"
+		"inline ", out);
+	rlc_src_string_print(
+		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+		file,
+		out);
+	fputs("(::__rl::Tuple<__RL_Types...> &&__rl_tuple,\n"
+		"::std::enable_if_t<::std::is_constructible_v<", out);
+	rlc_src_string_print(
+		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+		file,
+		out);
+	fputs(", __RL_Types...>,\n"
+		"\t::__rl::TupleCtorHelper> = __rl::tupleCtorHelper):\n", out);
+	rlc_src_string_print(
+		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+		file,
+		out);
+	fputs("(::__rl::tupleCtorHelper,"
+		"::std::move(__rl_tuple),"
+		"::std::make_index_sequence<sizeof...(__RL_Types)>{})\n"
+		"{\n"
+		"}\n", out);
+
+	// Add manual default ctor.
+	if(!this->fConstructors.fEntryCount)
+	{
+		rlc_src_string_print(
+			&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+			file,
+			out);
+		fputs("() = default;", out);
+	}
+
+	////////////////////
+	// tuple ctor end //
+	////////////////////
+
+
 
 	for(RlcSrcIndex i = 0; i < this->fConstructors.fEntryCount; i++)
 	{
@@ -305,7 +384,16 @@ static void rlc_parsed_class_print_impl(
 				out,
 				1);
 		}
-		fputs(");\n", out);
+		fputc(')', out);
+		if(!ctor->fIsDefinition
+		&& !ctor->fArgumentCount
+		&& !ctor->fInitialiserCount)
+		{
+			fputs(" = default;\n", out);
+			continue;
+		}
+
+		fputs(";\n", out);
 
 		FILE * out = printer->fFuncsImpl;
 		rlc_printer_print_ctx_tpl(printer, file, out);
@@ -346,7 +434,9 @@ static void rlc_parsed_class_print_impl(
 
 		if(ctor->fIsDefinition)
 		{
+			fputs("\n#define _return return\n", out);
 			rlc_parsed_block_statement_print(&ctor->fBody, file, out);
+			fputs("\n#undef _return\n", out);
 		} else fputs("{;}\n", out);
 	}
 

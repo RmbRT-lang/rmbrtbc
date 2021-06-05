@@ -23,16 +23,34 @@ enum RlcOperator
 	kSubscript, kCall, kConditional,
 	kMemberReference, kMemberPointer,
 	kBindReference, kBindPointer,
-	kDereference, kAddress,
+	kDereference, kAddress, kMove,
 	kPreIncrement, kPreDecrement,
 	kPostIncrement, kPostDecrement,
+	kCount,
 
 	kAsync,
 	kFullAsync,
 	kExpectDynamic,
 	kMaybeDynamic,
+	kAwait,
 
-	kAssign
+	kStreamFeed,
+
+	kAssign,
+	kAddAssign, kSubAssign, kMulAssign, kDivAssign, kModAssign,
+	kBitAndAssign, kBitOrAssign, kBitXorAssign,
+	kShiftLeftAssign, kShiftRightAssign,
+
+	kCtor,
+	kCtorPtr,
+	kDtor,
+	kDtorPtr,
+	kTupleMember,
+	kTupleMemberPtr,
+
+	kVariadicExpand,
+
+	kTuple
 };
 
 
@@ -59,8 +77,8 @@ struct RlcParsedOperatorExpression
 	The first token of the expression. */
 void rlc_parsed_operator_expression_create(
 	struct RlcParsedOperatorExpression * this,
-	RlcSrcIndex first,
-	RlcSrcIndex last);
+	struct RlcToken first,
+	struct RlcToken last);
 
 /** Destroys an operator expression.
 @memberof RlcParsedOperatorExpression
@@ -80,6 +98,11 @@ void rlc_parsed_operator_expression_destroy(
 _Nodiscard struct RlcParsedExpression * rlc_parsed_operator_expression_parse(
 	struct RlcParser * parser);
 
+struct RlcParsedOperatorExpression * make_operator_expression(
+	enum RlcOperator type,
+	struct RlcToken first,
+	struct RlcToken last);
+
 /** Adds an expression to an operator expression's list.
 @memberof RlcParsedOperatorExpression
 @param[in,out] this:
@@ -97,6 +120,16 @@ void rlc_parsed_operator_expression_print(
 	struct RlcParsedOperatorExpression const * this,
 	struct RlcSrcFile const * file,
 	FILE * out);
+
+int rlc_operator_parse_unary_prefix(
+	enum RlcOperator * op,
+	struct RlcParser * parser);
+int rlc_operator_parse_unary_postfix(
+	enum RlcOperator * op,
+	struct RlcParser * parser);
+int rlc_operator_parse_binary(
+	enum RlcOperator * op,
+	struct RlcParser * parser);
 
 #ifdef __cplusplus
 }

@@ -1,4 +1,5 @@
 #include "casestatement.h"
+#include "switchstatement.h"
 
 #include "../assert.h"
 #include "../malloc.h"
@@ -89,27 +90,42 @@ int rlc_parsed_case_statement_parse(
 		&~RLC_FLAG(kRlcParsedCaseStatement)
 		&~RLC_FLAG(kRlcParsedVariableStatement));
 
+	out->fIsFallthrough = rlc_parser_consume(parser, NULL, kRlcTokMinusGreater);
+
 	return 1;
 }
 
 void rlc_parsed_case_statement_print(
 	struct RlcParsedCaseStatement const * this,
+	struct RlcParsedSwitchStatement const * parent,
 	struct RlcSrcFile const * file,
 	FILE * out)
 {
 	RLC_ASSERT(!this->fControlLabel.fExists);
 
 	if(this->fIsDefault)
-		fputs("default:\n", out);
+		fputs("default:", out);
 	else
 	{
 		for(size_t i = 0; i < this->fValues.fCount; i++)
 		{
-			fputs("case ", out);
+			fputs("case static_cast<::std::decay_t<decltype(::__rl::mk_auto(", out);
+			if(parent->fIsVariableSwitchValue)
+				rlc_src_string_print(
+					&RLC_BASE_CAST(
+						&parent->fSwitchValue.fVariable, RlcParsedScopeEntry)->fName,
+					file,
+					out);
+			else
+				rlc_parsed_expression_print(parent->fSwitchValue.fExpression, file, out);
+			fputs("))>>(", out);
 			rlc_parsed_expression_print(this->fValues.fValues[i], file, out);
-			fputs(":\n", out);
+			fputs("):\n", out);
 		}
 	}
-
+	fputs("{", out);
 	rlc_parsed_statement_print(this->fBody, file, out);
+	if(!this->fIsFallthrough)
+		fputs("\tbreak;\n", out);
+	fputs("}", out);
 }

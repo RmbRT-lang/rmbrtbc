@@ -9,6 +9,7 @@
 #include "member.h"
 #include "blockstatement.h"
 #include "templatedecl.h"
+#include "operatorexpression.h"
 
 #include <stddef.h>
 
@@ -17,16 +18,35 @@
 extern "C" {
 #endif
 
+enum RlcFunctionReturnType
+{
+	kRlcFunctionReturnTypeNone,
+	kRlcFunctionReturnTypeAuto,
+	kRlcFunctionReturnTypeType
+};
+
+enum RlcFunctionType
+{
+	kRlcFunctionTypeFunction,
+	kRlcFunctionTypeOperator,
+	kRlcFunctionTypeCast,
+};
+
 /** A function as used in the parser.
 @extends RlcParsedScopeEntry */
 struct RlcParsedFunction
 {
 	RLC_DERIVE(struct,RlcParsedScopeEntry);
 
+	enum RlcFunctionType fType;
+	enum RlcOperator fOperatorName;
+
 	/** Whether the function has an explicit return type. */
-	int fHasReturnType;
+	enum RlcFunctionReturnType fHasReturnType;
 	/** The return type of the function. */
 	struct RlcParsedTypeName fReturnType;
+	enum RlcTypeQualifier fAutoReturnQualifier;
+	enum RlcReferenceType fAutoReturnReference;
 
 	/** The arguments the function takes. */
 	struct RlcParsedVariable * fArguments;

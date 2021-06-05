@@ -1,6 +1,7 @@
 #include "scopeentry.h"
 
 #include "class.h"
+#include "concept.h"
 #include "rawtype.h"
 #include "union.h"
 #include "namespace.h"
@@ -9,6 +10,7 @@
 #include "enum.h"
 #include "typedef.h"
 #include "externalsymbol.h"
+#include "test.h"
 
 #include "../macros.h"
 #include "../assert.h"
@@ -36,6 +38,7 @@ void rlc_parsed_scope_entry_destroy_virtual(
 		void * this);
 	static destructor_t const k_vtable[] = {
 		(destructor_t)&rlc_parsed_class_destroy,
+		(destructor_t)&rlc_parsed_concept_destroy,
 		(destructor_t)&rlc_parsed_rawtype_destroy,
 		(destructor_t)&rlc_parsed_union_destroy,
 		(destructor_t)&rlc_parsed_namespace_destroy,
@@ -44,13 +47,15 @@ void rlc_parsed_scope_entry_destroy_virtual(
 		(destructor_t)&rlc_parsed_enum_destroy,
 		(destructor_t)&rlc_parsed_enum_constant_destroy,
 		(destructor_t)&rlc_parsed_typedef_destroy,
-		(destructor_t)&rlc_parsed_external_symbol_destroy
+		(destructor_t)&rlc_parsed_external_symbol_destroy,
+		(destructor_t)&rlc_parsed_test_destroy
 	};
 
 	static_assert(RLC_COVERS_ENUM(k_vtable, RlcParsedScopeEntryType), "ill-sized vtable.");
 
 	static intptr_t const k_offsets[] = {
 		RLC_DERIVE_OFFSET(RlcParsedScopeEntry, struct RlcParsedClass),
+		RLC_DERIVE_OFFSET(RlcParsedScopeEntry, struct RlcParsedConcept),
 		RLC_DERIVE_OFFSET(RlcParsedScopeEntry, struct RlcParsedRawtype),
 		RLC_DERIVE_OFFSET(RlcParsedScopeEntry, struct RlcParsedUnion),
 		RLC_DERIVE_OFFSET(RlcParsedScopeEntry, struct RlcParsedNamespace),
@@ -59,7 +64,8 @@ void rlc_parsed_scope_entry_destroy_virtual(
 		RLC_DERIVE_OFFSET(RlcParsedScopeEntry, struct RlcParsedEnum),
 		RLC_DERIVE_OFFSET(RlcParsedScopeEntry, struct RlcParsedEnumConstant),
 		RLC_DERIVE_OFFSET(RlcParsedScopeEntry, struct RlcParsedTypedef),
-		RLC_DERIVE_OFFSET(RlcParsedScopeEntry, struct RlcParsedExternalSymbol)
+		RLC_DERIVE_OFFSET(RlcParsedScopeEntry, struct RlcParsedExternalSymbol),
+		RLC_DERIVE_OFFSET(RlcParsedScopeEntry, struct RlcParsedTest)
 	};
 
 	static_assert(RLC_COVERS_ENUM(k_offsets, RlcParsedScopeEntryType), "ill-sized offset table.");
@@ -138,6 +144,7 @@ struct RlcParsedScopeEntry * rlc_parsed_scope_entry_parse(
 		struct RlcParsedNamespace fNamespace;
 		struct RlcParsedEnum fEnum;
 		struct RlcParsedExternalSymbol fExternalSymbol;
+		struct RlcParsedTest fTest;
 	} pack;
 
 	typedef int (*parse_fn_t)(
@@ -159,13 +166,15 @@ struct RlcParsedScopeEntry * rlc_parsed_scope_entry_parse(
 		ENTRY(RlcParsedVariable, &dummy_rlc_parsed_variable_parse),
 		ENTRY(RlcParsedFunction, &dummy_rlc_parsed_function_parse),
 		ENTRY(RlcParsedClass, &rlc_parsed_class_parse),
+		ENTRY(RlcParsedConcept, &rlc_parsed_concept_parse),
 		ENTRY(RlcParsedUnion, &rlc_parsed_union_parse),
 		ENTRY(RlcParsedRawtype, &rlc_parsed_rawtype_parse),
 		ENTRY(RlcParsedTypedef, &rlc_parsed_typedef_parse),
 		ENTRY(RlcParsedNamespace, &rlc_parsed_namespace_parse),
 		ENTRY(RlcParsedEnum, &rlc_parsed_enum_parse),
 		ENTRY(RlcParsedEnumConstant, NULL), // Must not be called.
-		ENTRY(RlcParsedExternalSymbol, &rlc_parsed_external_symbol_parse)
+		ENTRY(RlcParsedExternalSymbol, &rlc_parsed_external_symbol_parse),
+		ENTRY(RlcParsedTest, &rlc_parsed_test_parse)
 	};
 #undef ENTRY
 
@@ -224,6 +233,7 @@ void rlc_parsed_scope_entry_print(
 		enum RlcParsedScopeEntryType type;
 	} const k_vtable[] = {
 		ENTRY(RlcParsedClass, &rlc_parsed_class_print),
+		ENTRY(RlcParsedConcept, &rlc_parsed_concept_print),
 		ENTRY(RlcParsedRawtype, &rlc_parsed_rawtype_print),
 		ENTRY(RlcParsedUnion, &rlc_parsed_union_print),
 		ENTRY(RlcParsedNamespace, &rlc_parsed_namespace_print),
@@ -232,7 +242,8 @@ void rlc_parsed_scope_entry_print(
 		ENTRY(RlcParsedEnum, &rlc_parsed_enum_print),
 		ENTRY(RlcParsedEnumConstant, NULL), // Must not be called.
 		ENTRY(RlcParsedTypedef, &rlc_parsed_typedef_print),
-		ENTRY(RlcParsedExternalSymbol, &rlc_parsed_external_symbol_print)
+		ENTRY(RlcParsedExternalSymbol, &rlc_parsed_external_symbol_print),
+		ENTRY(RlcParsedTest, &rlc_parsed_test_print)
 	};
 #undef ENTRY
 

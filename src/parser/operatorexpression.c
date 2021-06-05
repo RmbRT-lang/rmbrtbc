@@ -5,8 +5,8 @@
 
 void rlc_parsed_operator_expression_create(
 	struct RlcParsedOperatorExpression * this,
-	RlcSrcIndex first,
-	RlcSrcIndex last)
+	struct RlcToken first,
+	struct RlcToken last)
 {
 	RLC_DASSERT(this != NULL);
 
@@ -54,13 +54,22 @@ const k_unary[] = {
 	{ kRlcTokTilde, kBitNot },
 	{ kRlcTokExclamationMark, kLogNot },
 	{ kRlcTokAnd, kAddress },
+	{ kRlcTokDoubleAnd, kMove },
 	{ kRlcTokAsterisk, kDereference },
 	{ kRlcTokDoublePlus, kPreIncrement },
 	{ kRlcTokDoubleMinus, kPreDecrement },
 	{ kRlcTokDoubleDotExclamationMark, kExpectDynamic },
 	{ kRlcTokDoubleDotQuestionMark, kMaybeDynamic },
 	{ kRlcTokAt, kAsync },
-	{ kRlcTokDoubleAt, kFullAsync }
+	{ kRlcTokDoubleAt, kFullAsync },
+	{ kRlcTokLessMinus, kAwait },
+	{ kRlcTokDoubleHash, kCount }
+},
+// postfix operators.
+k_unary_postfix[] = {
+	{ kRlcTokDoublePlus, kPostIncrement },
+	{ kRlcTokDoubleMinus, kPostDecrement },
+	{ kRlcTokTripleDot, kVariadicExpand }
 },
 // binary operators.
 k_binary[] = {
@@ -100,8 +109,21 @@ k_binary[] = {
 	{ kRlcTokDoubleAnd, kLogAnd },
 	{ kRlcTokDoublePipe, kLogOr },
 
+	// stream feed operator.
+	{ kRlcTokLessMinus, kStreamFeed },
+
 	// assignments.
-	{ kRlcTokColonEqual, kAssign }
+	{ kRlcTokColonEqual, kAssign },
+	{ kRlcTokPlusEqual, kAddAssign },
+	{ kRlcTokMinusEqual, kSubAssign },
+	{ kRlcTokAsteriskEqual, kMulAssign },
+	{ kRlcTokForwardSlashEqual, kDivAssign },
+	{ kRlcTokPercentEqual, kModAssign },
+	{ kRlcTokAndEqual, kBitAndAssign },
+	{ kRlcTokPipeEqual, kBitOrAssign },
+	{ kRlcTokCircumflexEqual, kBitXorAssign },
+	{ kRlcTokDoubleLessEqual, kShiftLeftAssign },
+	{ kRlcTokDoubleGreaterEqual, kShiftRightAssign }
 };
 
 static size_t const k_binary_groups[] = {
@@ -115,13 +137,52 @@ static size_t const k_binary_groups[] = {
 	6, // < <= > >= == !=
 	1, // &&
 	1, // ||
-	1 // :=
+	0, // ?:
+	1, // <-
+	11 // :=
 };
 
-static struct RlcParsedOperatorExpression * make_operator_expression(
+int rlc_operator_parse_unary_prefix(
+	enum RlcOperator * op,
+	struct RlcParser * parser)
+{
+	for(unsigned i = 0; i < _countof(k_unary); i++)
+		if(rlc_parser_consume(parser, NULL, k_unary[i].fTok))
+		{
+			*op = k_unary[i].fOp;
+			return 1;
+		}
+	return 0;
+}
+int rlc_operator_parse_unary_postfix(
+	enum RlcOperator * op,
+	struct RlcParser * parser)
+{
+	for(unsigned i = 0; i < _countof(k_unary_postfix); i++)
+		if(rlc_parser_consume(parser, NULL, k_unary_postfix[i].fTok))
+		{
+			*op = k_unary_postfix[i].fOp;
+			return 1;
+		}
+	return 0;
+}
+int rlc_operator_parse_binary(
+	enum RlcOperator * op,
+	struct RlcParser * parser)
+{
+	for(unsigned i = 0; i < _countof(k_binary); i++)
+		if(rlc_parser_consume(parser, NULL, k_binary[i].fTok))
+		{
+			*op = k_binary[i].fOp;
+			return 1;
+		}
+	return 0;
+}
+
+struct RlcParsedOperatorExpression * make_operator_expression(
 	enum RlcOperator type,
-	RlcSrcIndex first,
-	RlcSrcIndex last)
+	struct RlcToken first,
+	struct RlcToken last)
 {
 	struct RlcParsedOperatorExpression * out = NULL;
 	rlc_malloc(
@@ -161,8 +222,8 @@ static struct RlcParsedOperatorExpression * make_binary_expression(
 
 	struct RlcParsedOperatorExpression * out = make_operator_expression(
 		type,
-		lhs->fFirst,
-		rhs->fLast);
+		lhs->fStart,
+		rhs->fEnd);
 	rlc_parsed_operator_expression_add(out, lhs);
 	rlc_parsed_operator_expression_add(out, rhs);
 
@@ -172,8 +233,8 @@ static struct RlcParsedOperatorExpression * make_binary_expression(
 static struct RlcParsedOperatorExpression * make_unary_expression(
 	enum RlcOperator type,
 	struct RlcParsedExpression * operand,
-	size_t first,
-	size_t last)
+	struct RlcToken first,
+	struct RlcToken last)
 {
 	if(!operand)
 		return NULL;
@@ -203,14 +264,6 @@ static _Nodiscard struct RlcParsedExpression * parse_postfix(
 	// get all postfix operators, if any.
 	for(int postfix = 1; postfix--;)
 	{
-		static struct {
-			enum RlcTokenType fTok;
-			enum RlcOperator fOp;
-		} const k_unary_postfix[] = {
-			{ kRlcTokDoublePlus, kPostIncrement },
-			{ kRlcTokDoubleMinus, kPostDecrement }
-		};
-
 		{
 			int found = 0;
 			struct RlcToken token;
@@ -224,8 +277,8 @@ static _Nodiscard struct RlcParsedExpression * parse_postfix(
 						make_unary_expression(
 							k_unary_postfix[i].fOp,
 							out,
-							out->fFirst,
-							rlc_src_string_end(&token.content));
+							out->fStart,
+							token);
 					out = RLC_BASE_CAST(
 						temp,
 						RlcParsedExpression);
@@ -262,7 +315,7 @@ static _Nodiscard struct RlcParsedExpression * parse_postfix(
 
 			rlc_parser_expect(
 				parser,
-				NULL,
+				&out->fEnd,
 				1,
 				kRlcTokBracketClose);
 
@@ -279,16 +332,15 @@ static _Nodiscard struct RlcParsedExpression * parse_postfix(
 				make_unary_expression(
 					kCall,
 					out,
-					out->fFirst,
-					0);
+					out->fStart,
+					out->fStart);
 
 			out = RLC_BASE_CAST(temp, RlcParsedExpression);
 
-			struct RlcToken parenthese;
 			int arguments = 0;
 			while(!rlc_parser_consume(
 				parser,
-				&parenthese,
+				&out->fEnd,
 				kRlcTokParentheseClose))
 			{
 				// parse comma, if necessary.
@@ -315,8 +367,6 @@ static _Nodiscard struct RlcParsedExpression * parse_postfix(
 					arg);
 			}
 
-			out->fLast = rlc_src_string_end(&parenthese.content);
-
 			++postfix;
 			continue;
 		}
@@ -326,26 +376,82 @@ static _Nodiscard struct RlcParsedExpression * parse_postfix(
 			static struct {
 				enum RlcTokenType fToken;
 				enum RlcOperator fOperator;
+				enum RlcOperator fCtorOperator;
+				enum RlcOperator fTupleOperator;
+				enum RlcOperator fDtorOperator;
 			} const k_ops[] = {
-				{ kRlcTokDot, kMemberReference },
-				{ kRlcTokMinusGreater, kMemberPointer }
+				{ kRlcTokDot, kMemberReference, kCtor, kTupleMember, kDtor },
+				{ kRlcTokMinusGreater, kMemberPointer, kCtorPtr, kTupleMemberPtr, kDtorPtr }
 			};
 
-			struct RlcToken token;
+			RLC_ASSERT(out);
 			for(size_t i = _countof(k_ops); i--;)
 			{
 				if(rlc_parser_consume(
 					parser,
-					&token,
+					NULL,
 					k_ops[i].fToken))
 				{
-					struct RlcParsedOperatorExpression * temp =
-						make_binary_expression(
+					struct RlcToken dtor_token;
+					struct RlcParsedOperatorExpression * temp = NULL;
+					if(rlc_parser_consume(parser, NULL, kRlcTokBraceOpen))
+					{
+						struct RlcToken end;
+						temp = make_unary_expression(
+								k_ops[i].fCtorOperator,
+								out,
+								out->fStart,
+								out->fEnd);
+
+						if(!rlc_parser_consume(parser, &end, kRlcTokBraceClose))
+						{
+							do
+							{
+								struct RlcParsedExpression * exp =
+									rlc_parsed_expression_parse(
+										parser,
+										RLC_ALL_FLAGS(RlcParsedExpressionType));
+								if(!exp)
+									rlc_parser_fail(parser, "expected expression");
+								rlc_parsed_operator_expression_add(temp, exp);
+							} while(rlc_parser_consume(parser, NULL, kRlcTokComma));
+							rlc_parser_expect(parser, &end, 1, kRlcTokBraceClose);
+						}
+						RLC_BASE_CAST(temp, RlcParsedExpression)->fEnd = end;
+					} else if(rlc_parser_consume(parser, NULL, kRlcTokParentheseOpen))
+					{
+						struct RlcToken end;
+						temp = make_unary_expression(
+							k_ops[i].fTupleOperator,
+							out,
+							out->fStart,
+							out->fEnd);
+
+						struct RlcParsedExpression * exp =
+							rlc_parsed_expression_parse(
+								parser,
+								RLC_ALL_FLAGS(RlcParsedExpressionType));
+						if(!exp)
+							rlc_parser_fail(parser, "expected expression");
+						rlc_parsed_operator_expression_add(temp, exp);
+						rlc_parser_expect(parser, &end, 1, kRlcTokParentheseClose);
+						RLC_BASE_CAST(temp, RlcParsedExpression)->fEnd = end;
+					} else if(rlc_parser_consume(parser, &dtor_token, kRlcTokTilde))
+					{
+						temp = make_unary_expression(
+							k_ops[i].fDtorOperator,
+							out,
+							out->fStart,
+							dtor_token);
+					} else
+					{
+						temp = make_binary_expression(
 							k_ops[i].fOperator,
 							out,
 							rlc_parsed_expression_parse(
 								parser,
 								RLC_FLAG(kRlcParsedSymbolChildExpression)));
+					}
 
 					if(!(out = RLC_BASE_CAST(temp, RlcParsedExpression)))
 					{
@@ -367,31 +473,45 @@ static struct RlcParsedExpression * parse_prefix(
 {
 	RLC_DASSERT(parser != NULL);
 
-	// track the beginning index of the expression.
-	size_t const first = rlc_parser_index(parser);
-
+	struct RlcToken start;
 	for(size_t i = _countof(k_unary); i--;)
 	{
 		if(rlc_parser_consume(
 			parser,
-			NULL,
+			&start,
 			k_unary[i].fTok))
 		{
+			int isAsync = k_unary[i].fOp == kAsync || k_unary[i].fOp == kFullAsync;
+			struct RlcParserTracer trace;
+			if(isAsync)
+				rlc_parser_trace(parser, "asynchronous call", &trace);
+
 			struct RlcParsedExpression * operand = parse_prefix(parser);
+
+			if(k_unary[i].fOp == kAsync || k_unary[i].fOp == kFullAsync)
+			{
+				struct RlcParsedOperatorExpression * op;
+				if((op = RLC_DYNAMIC_CAST(operand, RlcParsedExpression, RlcParsedOperatorExpression)))
+				{
+					if(op->fOperator != kCall)
+						rlc_parser_fail(parser, "expected call expression");
+					rlc_parser_untrace(parser, &trace);
+					op->fOperator = k_unary[i].fOp;
+					return operand;
+				}
+			}
+
 			struct RlcParsedOperatorExpression * unary = NULL;
 			if(!(unary = make_unary_expression(
 					k_unary[i].fOp,
 					operand,
-					first,
-					0)))
+					start,
+					operand->fEnd)))
 			{
 				rlc_parser_fail(parser, "expected expression");
 			}
 
-			struct RlcParsedExpression * out = RLC_BASE_CAST(unary, RlcParsedExpression);
-			out->fLast = operand->fLast;
-
-			return out;
+			return RLC_BASE_CAST(unary, RlcParsedExpression);
 		}
 	}
 
@@ -411,6 +531,42 @@ static struct RlcParsedExpression * parse_binary(
 
 	if(!lhs)
 		return NULL;
+
+	// Special ?: group?
+	if(k_binary_groups[group] == 0)
+	{
+		if(rlc_parser_consume(
+			parser,
+			NULL,
+			kRlcTokQuestionMark))
+		{
+			struct RlcParsedExpression * then = rlc_parsed_operator_expression_parse(parser);
+			if(!then)
+			{
+				rlc_parser_fail(parser, "expected expression");
+			}
+
+			rlc_parser_expect(
+				parser,
+				NULL,
+				1,
+				kRlcTokColon);
+
+			struct RlcParsedExpression * other = rlc_parsed_operator_expression_parse(parser);
+			if(!other)
+			{
+				rlc_parser_fail(parser, "expected expression");
+			}
+
+			struct RlcParsedOperatorExpression * cond = make_binary_expression(
+				kConditional,
+				lhs,
+				then);
+			rlc_parsed_operator_expression_add(cond, other);
+
+			return RLC_BASE_CAST(cond, RlcParsedExpression);
+		}
+	}
 
 	size_t start = 0;
 	for(size_t i = 0; i < group; i++)
@@ -452,38 +608,6 @@ struct RlcParsedExpression * rlc_parsed_operator_expression_parse(
 		return NULL;
 	}
 
-	if(rlc_parser_consume(
-		parser,
-		NULL,
-		kRlcTokQuestionMark))
-	{
-		struct RlcParsedExpression * then = rlc_parsed_operator_expression_parse(parser);
-		if(!then)
-		{
-			rlc_parser_fail(parser, "expected expression");
-		}
-
-		rlc_parser_expect(
-			parser,
-			NULL,
-			1,
-			kRlcTokColon);
-
-		struct RlcParsedExpression * other = rlc_parsed_operator_expression_parse(parser);
-		if(!other)
-		{
-			rlc_parser_fail(parser, "expected expression");
-		}
-
-		struct RlcParsedOperatorExpression * cond = make_binary_expression(
-			kConditional,
-			left,
-			then);
-		rlc_parsed_operator_expression_add(cond, other);
-
-		return RLC_BASE_CAST(cond, RlcParsedExpression);
-	}
-
 	return left;
 }
 
@@ -499,7 +623,7 @@ void rlc_parsed_operator_expression_add(
 		sizeof(struct RlcParsedExpression*) * ++this->fExpressionCount);
 
 	this->fExpressions[this->fExpressionCount-1] = expression;
-	RLC_BASE_CAST(this, RlcParsedExpression)->fLast = expression->fLast;
+	RLC_BASE_CAST(this, RlcParsedExpression)->fEnd = expression->fEnd;
 }
 
 void rlc_parsed_operator_expression_print(
@@ -525,19 +649,45 @@ void rlc_parsed_operator_expression_print(
 		{kSubscript, -1, NULL,0}, {kCall, -1, NULL,0}, {kConditional, -1, NULL,1},
 		{kMemberReference, -1, ".",0}, {kMemberPointer, -1, "->",0},
 		{kBindReference, 1, ".*",1}, {kBindPointer, 1, "->*",1},
-		{kDereference, 0, "*",1}, {kAddress, 0, "&",1},
+		{kDereference, 0, "*",1}, {kAddress, 0, "&",1}, {kMove, -1, NULL,0},
 		{kPreIncrement, 0, "++",1}, {kPreDecrement, 0, "--",1},
 		{kPostIncrement, 2, "++",1}, {kPostDecrement, 2, "--",1},
+		{kCount, -1, NULL, 0},
 
 		{kAsync, -1, NULL,1},
 		{kFullAsync, -1, NULL,1},
 		{kExpectDynamic, -1, NULL,1},
 		{kMaybeDynamic, -1, NULL,1},
+		{kAwait, 0, " co_await ", 1},
 
-		{kAssign, 1, "=",1}
+		{kStreamFeed, 1, ").__rl_stream_feed(", 1},
+
+		{kAssign, 1, "=", 1},
+		{kAddAssign, 1, "+=", 1}, {kSubAssign, 1, "-=", 1},
+		{kMulAssign, 1, "*=", 1}, {kDivAssign, 1, "/=", 1},
+		{kModAssign, 1, "%=", 1},
+
+		{kBitAndAssign, 1, "&=", 1}, {kBitOrAssign, 1, "|=", 1},
+		{kBitXorAssign, 1, "^=", 1},
+
+		{kShiftLeftAssign, 1, "<<=", 1}, {kShiftRightAssign, 1, ">>=", 1},
+
+		{kCtor, -1, NULL, 0},
+		{kCtorPtr, -1, NULL, 0},
+		{kDtor, -1, NULL, 0},
+		{kDtorPtr, -1, NULL, 0},
+		{kTupleMember, -1, NULL, 0},
+		{kTupleMemberPtr, -1, NULL, 0},
+
+		{kVariadicExpand, 2, "...", 0},
+
+		{kTuple, -1, NULL, 0}
 	};
 
 	RLC_DASSERT(k_position[this->fOperator].op == this->fOperator);
+
+	if(k_position[this->fOperator].needsParentheses)
+		fputc('(', out);
 
 	switch(k_position[this->fOperator].position)
 	{
@@ -546,11 +696,60 @@ void rlc_parsed_operator_expression_print(
 			RLC_DASSERT(this->fExpressionCount == 1);
 			fprintf(out, " %s", k_position[this->fOperator].str);
 		} break;
+	case -1:
+		{
+			switch(this->fOperator)
+			{
+			case kCtor:
+				{
+					fputs("::__rl::__rl_constructor(", out);
+				} break;
+			case kDtor:
+				{
+					fputs("::__rl::__rl_destructor(", out);
+				} break;
+			case kCtorPtr:
+				{
+					fputs("::__rl::__rl_p_constructor(", out);
+				} break;
+			case kDtorPtr:
+				{
+					fputs("::__rl::__rl_p_destructor(", out);
+				} break;
+			case kTuple:
+				{
+					fputs("::__rl::mk_tuple(", out);
+				} break;
+			case kMove:
+				{
+					fputs("::std::move(", out);
+				} break;
+			case kTupleMember:
+			case kTupleMemberPtr:
+				{
+					fputs("::std::get<", out);
+					RLC_DASSERT(this->fExpressionCount == 2);
+					rlc_parsed_expression_print(
+						this->fExpressions[1],
+						file,
+						out);
+					fputs(this->fOperator == kTupleMemberPtr
+						? ">(*("
+						: ">(",
+						out);
+				} break;
+			case kCount:
+				{
+					fputs("::__rl::count(", out);
+				} break;
+			default: { ; }
+			}
+		} break;
 	default:;
 	}
 
-	if(k_position[this->fOperator].needsParentheses)
-		fputc('(', out);
+	if(this->fOperator == kAsync || this->fOperator == kFullAsync)
+		fputs("::std::async([&]{ return ", out);
 
 	rlc_parsed_expression_print(
 		this->fExpressions[0],
@@ -585,6 +784,8 @@ void rlc_parsed_operator_expression_print(
 					fputc(']', out);
 				} break;
 			case kCall:
+			case kAsync:
+			case kFullAsync:
 				{
 					fputc('(', out);
 					for(RlcSrcIndex i = 1; i < this->fExpressionCount; i++)
@@ -594,6 +795,8 @@ void rlc_parsed_operator_expression_print(
 						rlc_parsed_expression_print(this->fExpressions[i], file, out);
 					}
 					fputc(')', out);
+					if(this->fOperator != kCall)
+						fputs("; })", out);
 				} break;
 			case kConditional:
 				{
@@ -615,6 +818,24 @@ void rlc_parsed_operator_expression_print(
 					fprintf(out, "->");
 					rlc_parsed_expression_print(this->fExpressions[1], file, out);
 				} break;
+			case kCtor:
+			case kCtorPtr:
+			case kDtor:
+			case kDtorPtr:
+			case kTuple:
+			case kMove:
+			case kCount:
+				{
+					for(RlcSrcIndex i = 1; i < this->fExpressionCount; i++)
+					{
+						fputs(", ", out);
+						rlc_parsed_expression_print(this->fExpressions[i], file, out);
+					}
+					fputc(')', out);
+				} break;
+			case kTupleMemberPtr: fputc(')', out);
+			// fallthrough
+			case kTupleMember: fputc(')', out); break;
 			default:
 				RLC_ASSERT(!"not implemented");
 			}

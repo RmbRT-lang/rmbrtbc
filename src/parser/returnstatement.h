@@ -31,6 +31,10 @@ void rlc_parsed_return_statement_print(
 	struct RlcSrcFile const * file,
 	FILE * out);
 
+void rlc_parsed_return_statement_forbid();
+void rlc_parsed_return_statement_allow();
+
+
 #ifdef __cplusplus
 }
 #endif

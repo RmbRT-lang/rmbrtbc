@@ -19,15 +19,17 @@ enum RlcTokenType
 {
 	kRlcTokIdentifier,
 	kRlcTokNumberLiteral,
+	kRlcTokFloatLiteral,
 	kRlcTokCharacterLiteral,
 	kRlcTokStringLiteral,
 
 	// Keywords.
 	kRlcTokAbstract,
+	kRlcTokAssert,
 	kRlcTokBreak,
 	kRlcTokCase,
 	kRlcTokCatch,
-	kRlcTokConstructor,
+	kRlcTokConcept,
 	kRlcTokContinue,
 	kRlcTokDefault,
 	kRlcTokDestructor,
@@ -52,6 +54,7 @@ enum RlcTokenType
 	kRlcTokSizeof,
 	kRlcTokStatic,
 	kRlcTokSwitch,
+	kRlcTokTest,
 	kRlcTokThis,
 	kRlcTokThrow,
 	kRlcTokTry,
@@ -133,6 +136,7 @@ enum RlcTokenType
 	kRlcTokDoubleLessEqual,
 	kRlcTokDoubleLess,
 	kRlcTokLessEqual,
+	kRlcTokLessMinus,
 	kRlcTokLess,
 
 	kRlcTokTripleGreaterEqual,
@@ -143,6 +147,7 @@ enum RlcTokenType
 	kRlcTokGreater,
 
 	kRlcTokDollar,
+	kRlcTokDoubleHash,
 	kRlcTokHash,
 	RLC_ENUM_END(RlcTokenType)
 

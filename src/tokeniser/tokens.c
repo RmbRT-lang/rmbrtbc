@@ -9,14 +9,16 @@ char const * rlc_token_type_name(
 	static char const * const names[] = {
 		"identifier",
 		"number",
+		"float number",
 		"character",
 		"string",
 
 		"'ABSTRACT'",
+		"'ASSERT'",
 		"'BREAK'",
 		"'CASE'",
 		"'CATCH'",
-		"'CONSTRUCTOR'",
+		"'CONCEPT'",
 		"'CONTINUE'",
 		"'DEFAULT'",
 		"'DESTRUCTOR'",
@@ -41,6 +43,7 @@ char const * rlc_token_type_name(
 		"'SIZEOF'",
 		"'STATIC'",
 		"'SWITCH'",
+		"'TEST'",
 		"'THIS'",
 		"'THROW'",
 		"'TRY'",
@@ -121,6 +124,7 @@ char const * rlc_token_type_name(
 		"<<=",
 		"<<",
 		"<=",
+		"<-",
 		"<",
 
 		">>>=",
@@ -131,6 +135,7 @@ char const * rlc_token_type_name(
 		">",
 
 		"$",
+		"##",
 		"#"
 	};
 

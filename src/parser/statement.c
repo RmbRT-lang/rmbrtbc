@@ -1,5 +1,6 @@
 #include "statement.h"
 
+#include "assertstatement.h"
 #include "expressionstatement.h"
 #include "blockstatement.h"
 #include "ifstatement.h"
@@ -50,6 +51,7 @@ void rlc_parsed_statement_destroy_virtual(
 		thiscall_t fAddress;
 		ptrdiff_t fOffset;
 	} const k_vtable[] = {
+		ENTRY(AssertStatement, rlc_parsed_assert_statement_destroy),
 		ENTRY(ExpressionStatement, rlc_parsed_expression_statement_destroy),
 		ENTRY(BlockStatement, rlc_parsed_block_statement_destroy),
 		ENTRY(IfStatement, rlc_parsed_if_statement_destroy),
@@ -76,6 +78,7 @@ void rlc_parsed_statement_destroy_virtual(
 
 union RlcStatementStorage
 {
+	struct RlcParsedAssertStatement fRlcParsedAssertStatement;
 	struct RlcParsedExpressionStatement fRlcParsedExpressionStatement;
 	struct RlcParsedBlockStatement fRlcParsedBlockStatement;
 	struct RlcParsedIfStatement fRlcParsedIfStatement;
@@ -117,13 +120,14 @@ struct RlcParsedStatement * rlc_parsed_statement_parse(
 		size_t fTypeSize;
 		size_t fOffset;
 	} const k_parse_lookup[] = {
+		ENTRY(RlcParsedAssertStatement, &rlc_parsed_assert_statement_parse),
 		ENTRY(RlcParsedBlockStatement, &rlc_parsed_block_statement_parse),
 		ENTRY(RlcParsedReturnStatement, &rlc_parsed_return_statement_parse),
 		ENTRY(RlcParsedIfStatement, &rlc_parsed_if_statement_parse),
 		ENTRY(RlcParsedLoopStatement, &rlc_parsed_loop_statement_parse),
 		ENTRY(RlcParsedVariableStatement, &rlc_parsed_variable_statement_parse),
 		ENTRY(RlcParsedSwitchStatement, &rlc_parsed_switch_statement_parse),
-		ENTRY(RlcParsedCaseStatement, &rlc_parsed_case_statement_parse),
+		NOENTRY(RlcParsedCaseStatement),
 		ENTRY(RlcParsedBreakStatement, &rlc_parsed_break_statement_parse),
 		ENTRY(RlcParsedContinueStatement, &rlc_parsed_continue_statement_parse),
 		ENTRY(RlcParsedTryStatement, &rlc_parsed_try_statement_parse),
@@ -226,6 +230,7 @@ void rlc_parsed_statement_print(
 		print_fn_t fAddress;
 		ptrdiff_t fOffset;
 	} const k_vtable[] = {
+		ENTRY(AssertStatement, rlc_parsed_assert_statement_print),
 		ENTRY(ExpressionStatement, rlc_parsed_expression_statement_print),
 		ENTRY(BlockStatement, rlc_parsed_block_statement_print),
 		ENTRY(IfStatement, rlc_parsed_if_statement_print),
@@ -233,7 +238,7 @@ void rlc_parsed_statement_print(
 		ENTRY(VariableStatement, rlc_parsed_variable_statement_print),
 		ENTRY(ReturnStatement, rlc_parsed_return_statement_print),
 		ENTRY(SwitchStatement, rlc_parsed_switch_statement_print),
-		ENTRY(CaseStatement, rlc_parsed_case_statement_print),
+		ENTRY(CaseStatement, NULL), // non-standard signature.
 		ENTRY(BreakStatement, rlc_parsed_break_statement_print),
 		ENTRY(ContinueStatement, rlc_parsed_continue_statement_print),
 		ENTRY(TryStatement, rlc_parsed_try_statement_print),

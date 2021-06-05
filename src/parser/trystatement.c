@@ -1,4 +1,5 @@
 #include "trystatement.h"
+#include "returnstatement.h"
 #include "../malloc.h"
 
 void rlc_parsed_try_statement_create(
@@ -81,6 +82,7 @@ int rlc_parsed_try_statement_parse(
 		NULL,
 		kRlcTokFinally))
 	{
+		rlc_parsed_return_statement_forbid();
 		struct RlcParserTracer tracer;
 		rlc_parser_trace(parser, "finally clause", &tracer);
 		if(!(out->fFinally = rlc_parsed_statement_parse(
@@ -89,6 +91,7 @@ int rlc_parsed_try_statement_parse(
 			&~RLC_FLAG(kRlcParsedVariableStatement))))
 			rlc_parser_fail(parser, "expected statement (not variable)");
 		rlc_parser_untrace(parser, &tracer);
+		rlc_parsed_return_statement_allow();
 	} else
 		out->fFinally = NULL;
 
@@ -101,6 +104,14 @@ void rlc_parsed_try_statement_print(
 	struct RlcSrcFile const * file,
 	FILE * out)
 {
+
+	if(this->fFinally)
+	{
+		fputs("{::__rl::Deferrer __rl_finally([&]{", out);
+		rlc_parsed_statement_print(this->fFinally, file, out);
+		fputs("});\n", out);
+	}
+
 	fputs("try {", out);
 	rlc_parsed_statement_print(this->fBody, file, out);
 	fputs("}", out);
@@ -109,7 +120,7 @@ void rlc_parsed_try_statement_print(
 	{
 		fputs(" catch(", out);
 		if(this->fCatches[i].fIsVoid)
-			fputs("nullthrow_t", out);
+			fputs("::__rl::voidthrow_t", out);
 		else
 			rlc_parsed_variable_print_argument(
 				&this->fCatches[i].fException,
@@ -117,9 +128,15 @@ void rlc_parsed_try_statement_print(
 				out,
 				1);
 		fputs(") {\n\t", out);
-		rlc_parsed_statement_print(this->fBody, file, out);
+		rlc_parsed_statement_print(this->fCatches[i].fBody, file, out);
 		fputs("}", out);
 	}
+
+	if(this->fFinally && !this->fCatchCount)
+		fputs(" catch(void***********) {\n throw;\n} /* no-op */", out);
+
+	if(this->fFinally)
+		fputs("\n}", out);
 
 	fputc('\n', out);
 }

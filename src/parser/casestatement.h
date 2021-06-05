@@ -13,12 +13,16 @@
 extern "C" {
 #endif
 
+struct RlcParsedSwitchStatement;
+
 /** A switch case statement.
 @implements RlcParsedStatement */
 struct RlcParsedCaseStatement
 {
 	RLC_DERIVE(struct, RlcParsedStatement);
 
+	/** Whether it should fall through to the next case. */
+	int fIsFallthrough;
 	/** Whether it is the default case. */
 	int fIsDefault;
 	/** The case's control label. */
@@ -63,6 +67,7 @@ _Nodiscard int rlc_parsed_case_statement_parse(
 
 void rlc_parsed_case_statement_print(
 	struct RlcParsedCaseStatement const * this,
+	struct RlcParsedSwitchStatement const * parent,
 	struct RlcSrcFile const * file,
 	FILE * out);
 

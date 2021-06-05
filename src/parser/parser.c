@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <unistd.h>
 
 void rlc_parser_create(
 	struct RlcParser * this,
@@ -30,6 +31,12 @@ void rlc_parser_create(
 		this->fEnd = 1;
 		this->fLookaheadSize = 1;
 	}
+}
+
+struct RlcSrcFile const * rlc_parser_file(
+	struct RlcParser * this)
+{
+	return this->fTokeniser.fSource;
 }
 
 void rlc_parser_destroy(
@@ -129,6 +136,8 @@ _Noreturn void rlc_parser_fail(
 	struct RlcParser * parser,
 	char const * reason)
 {
+	fflush(stdout);
+	fflush(stderr);
 	struct RlcSrcPosition pos;
 	if(rlc_parser_eof(parser))
 	{
@@ -198,6 +207,8 @@ enum RlcTokenType rlc_parser_expect(
 	struct RlcSrcPosition pos;
 	if(rlc_parser_eof(this))
 	{
+		fflush(stdout);
+		usleep(125 * 1000);
 		rlc_src_file_position(
 			this->fTokeniser.fSource,
 			&pos,
@@ -223,6 +234,9 @@ enum RlcTokenType rlc_parser_expect(
 		if(count)
 			type = va_arg(args, enum RlcTokenType);
 	}
+
+	fflush(stdout);
+	usleep(125 * 1000);
 
 	rlc_src_file_position(
 		this->fTokeniser.fSource,

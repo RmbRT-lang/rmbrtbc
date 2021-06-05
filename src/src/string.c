@@ -92,8 +92,10 @@ void rlc_src_string_print(
 	RLC_DASSERT(out != NULL);
 
 	static char const * s_special_identifiers[] = {
+		"char", "int", "short", "double", "long", "float", "usigned", "bool",
 		"auto",
 		"class",
+		"concept",
 		"enum",
 		"extern",
 		"inline",
@@ -113,11 +115,13 @@ void rlc_src_string_print(
 		"template",
 		"typedef",
 		"typename",
+		"namespace",
 		"using"
 		"volatile",
 		"std", // avoid having c++ std stuff appear in rl std.
 		"nullptr",
 		"nullptr_t",
+		"main",
 		"true",
 		"false",
 		"if",
@@ -144,7 +148,8 @@ void rlc_src_string_print(
 		"compl",
 		"not",
 		"or",
-		"xor"
+		"xor",
+		"NULL"
 	};
 
 	for(size_t i = 0; i < _countof(s_special_identifiers); i++)
@@ -154,5 +159,13 @@ void rlc_src_string_print(
 			break;
 		}
 
+	fprintf(out, "%.*s", (int)this->length, &file->fContents[this->start]);
+}
+
+void rlc_src_string_print_noreplace(
+	struct RlcSrcString const * this,
+	struct RlcSrcFile const * file,
+	FILE * out)
+{
 	fprintf(out, "%.*s", (int)this->length, &file->fContents[this->start]);
 }

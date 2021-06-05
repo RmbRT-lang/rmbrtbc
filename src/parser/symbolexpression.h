@@ -28,7 +28,7 @@ struct RlcParsedSymbolExpression
 	The expression's first token. */
 void rlc_parsed_symbol_expression_create(
 	struct RlcParsedSymbolExpression * this,
-	size_t first);
+	struct RlcToken first);
 
 /** Destroys a symbol expression.
 @memberof RlcParsedSymbolExpression

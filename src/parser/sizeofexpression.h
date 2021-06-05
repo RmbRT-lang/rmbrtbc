@@ -17,6 +17,7 @@ struct RlcParsedSizeofExpression
 {
 	RLC_DERIVE(struct,RlcParsedExpression);
 
+	int fIsVariadic;
 	int fIsType;
 	union {
 		struct RlcParsedTypeName fType;
@@ -33,8 +34,8 @@ struct RlcParsedSizeofExpression
 	The expression's first token. */
 void rlc_parsed_sizeof_expression_create(
 	struct RlcParsedSizeofExpression * this,
-	RlcSrcIndex start,
-	RlcSrcIndex end);
+	struct RlcToken start,
+	struct RlcToken end);
 
 /** Destroys a sizeof expression.
 @memberof RlcParsedSizeofExpression

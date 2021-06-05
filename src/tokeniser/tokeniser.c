@@ -172,10 +172,11 @@ struct {
 } const s_keywords [] = {
 	// keywords.
 	{"ABSTRACT", kRlcTokAbstract },
+	{"ASSERT", kRlcTokAssert },
 	{"BREAK", kRlcTokBreak },
 	{"CASE", kRlcTokCase },
 	{"CATCH", kRlcTokCatch },
-	{"CONSTRUCTOR", kRlcTokConstructor },
+	{"CONCEPT", kRlcTokConcept },
 	{"CONTINUE", kRlcTokContinue },
 	{"DEFAULT", kRlcTokDefault },
 	{"DESTRUCTOR", kRlcTokDestructor },
@@ -199,6 +200,7 @@ struct {
 	{"SIZEOF", kRlcTokSizeof },
 	{"STATIC", kRlcTokStatic },
 	{"SWITCH", kRlcTokSwitch },
+	{"TEST", kRlcTokTest },
 	{"THIS", kRlcTokThis },
 	{"THROW", kRlcTokThrow },
 	{"TRY", kRlcTokTry },
@@ -280,6 +282,7 @@ struct {
 	{ "<<=", kRlcTokDoubleLessEqual },
 	{ "<<", kRlcTokDoubleLess },
 	{ "<=", kRlcTokLessEqual },
+	{ "<-", kRlcTokLessMinus },
 	{ "<", kRlcTokLess },
 
 	{ ">>>=", kRlcTokTripleGreaterEqual },
@@ -290,6 +293,7 @@ struct {
 	{ ">", kRlcTokGreater },
 
 	{ "$", kRlcTokDollar },
+	{ "##", kRlcTokDoubleHash },
 	{ "#", kRlcTokHash },
 };
 
@@ -352,10 +356,16 @@ static int is_hexadecimal(char c)
 int number(
 	struct RlcTokeniser * this)
 {
+	int isFloat = 0;
 	char c = look(this);
 	if(c >= '1' && c <= '9')
 	{
 		do ignore(this, 1); while(is_decimal(look(this)));
+		if((isFloat = take_str(this, ".")))
+		{
+			if(!is_decimal(look(this))) tok_error(this, "expected digit");
+			do ignore(this, 1); while(is_decimal(look(this)));
+		}
 	} else if(c == '0')
 	{
 		ignore(this, 1);
@@ -373,12 +383,22 @@ int number(
 				do ignore(this, 1); while(is_binary(look(this)));
 			} break;
 		default:
-			while(is_octal(look(this))) ignore(this, 1);
+			if((isFloat = take_str(this, ".")))
+			{
+				if(!is_decimal(look(this))) tok_error(this, "expected digit");
+				do ignore(this, 1); while(is_decimal(look(this)));
+			} else
+				while(is_octal(look(this))) ignore(this, 1);
 		}
+	} else if((isFloat = c == '.'))
+	{
+		if(!is_decimal(ahead(this, 1))) return 0;
+
+		do ignore(this, 1); while(is_decimal(look(this)));
 	} else
 		return 0;
 
-	this->fType = kRlcTokNumberLiteral;
+	this->fType = isFloat ? kRlcTokFloatLiteral : kRlcTokNumberLiteral;
 	return 1;
 }
 

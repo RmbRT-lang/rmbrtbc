@@ -26,9 +26,10 @@ struct RlcParsedSymbolChildTemplate
 	int fIsExpression;
 	union
 	{
-		struct RlcParsedExpression * fExpression;
-		struct RlcParsedTypeName * fTypeName;
+		struct RlcParsedExpression ** fExpressions;
+		struct RlcParsedTypeName * fTypeNames;
 	};
+	RlcSrcSize fSize;
 };
 
 /** A single identifier, possibly templated.
@@ -139,6 +140,11 @@ int rlc_parsed_symbol_parse(
 	int allowSpecialIdentifiers);
 
 void rlc_parsed_symbol_print(
+	struct RlcParsedSymbol const * this,
+	struct RlcSrcFile const * file,
+	FILE * out);
+
+void rlc_parsed_symbol_print_no_template(
 	struct RlcParsedSymbol const * this,
 	struct RlcSrcFile const * file,
 	FILE * out);

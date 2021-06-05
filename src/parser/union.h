@@ -74,6 +74,11 @@ _Nodiscard int rlc_parsed_member_union_parse(
 	struct RlcParser * parser,
 	struct RlcParsedMemberCommon const * member);
 
+void rlc_parsed_member_union_print(
+	struct RlcParsedMemberUnion const * this,
+	struct RlcSrcFile const * file,
+	struct RlcPrinter * printer);
+
 #ifdef __cplusplus
 }
 #endif

@@ -16,8 +16,8 @@ static void rlc_parsed_string_expression_add(
 	this->fTokens[this->fTokenCount-1] = *token;
 
 	struct RlcParsedExpression * base = RLC_BASE_CAST(this, RlcParsedExpression);
-	if(base->fLast < rlc_src_string_end(&token->content))
-		base->fLast = rlc_src_string_end(&token->content);
+	if(base->fEnd.content.start < token->content.start)
+		base->fEnd = *token;
 }
 
 void rlc_parsed_string_expression_create(
@@ -30,8 +30,8 @@ void rlc_parsed_string_expression_create(
 	rlc_parsed_expression_create(
 		RLC_BASE_CAST(this, RlcParsedExpression),
 		kRlcParsedStringExpression,
-		first->content.start,
-		rlc_src_string_end(&first->content));
+		*first,
+		*first);
 
 	this->fTokens = NULL;
 	this->fTokenCount = 0;

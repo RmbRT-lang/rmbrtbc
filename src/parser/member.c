@@ -359,13 +359,13 @@ struct RlcParsedMember * rlc_parsed_member_parse(
 	} const k_parse_lookup[] = {
 		ENTRY(RlcParsedConstructor, &rlc_parsed_constructor_parse),
 		ENTRY(RlcParsedDestructor, &rlc_parsed_destructor_parse),
+		ENTRY(RlcParsedMemberTypedef, &rlc_parsed_member_typedef_parse),
 		ENTRY(RlcParsedMemberFunction, &rlc_parsed_member_function_parse),
 		ENTRY(RlcParsedMemberVariable, &rlc_parsed_member_variable_parse),
 		ENTRY(RlcParsedMemberClass, &rlc_parsed_member_class_parse),
 		ENTRY(RlcParsedMemberEnum, &rlc_parsed_member_enum_parse),
 		ENTRY(RlcParsedMemberUnion, &rlc_parsed_member_union_parse),
-		ENTRY(RlcParsedMemberRawtype, &rlc_parsed_member_rawtype_parse),
-		ENTRY(RlcParsedMemberTypedef, &rlc_parsed_member_typedef_parse)
+		ENTRY(RlcParsedMemberRawtype, &rlc_parsed_member_rawtype_parse)
 	};
 #undef ENTRY
 
@@ -429,10 +429,10 @@ void rlc_parsed_member_print(
 		ENTRY(RlcParsedMemberFunction, &rlc_parsed_member_function_print),
 		ENTRY(RlcParsedMemberVariable, &rlc_parsed_member_variable_print),
 		{0,0,0},//ENTRY(RlcParsedMemberRawtype, &rlc_parsed_member_rawtype_print),
-		{0,0,0},//ENTRY(RlcParsedMemberUnion, &rlc_parsed_member_union_print),
+		ENTRY(RlcParsedMemberUnion, &rlc_parsed_member_union_print),
 		ENTRY(RlcParsedMemberClass, &rlc_parsed_member_class_print),
 		ENTRY(RlcParsedMemberEnum, &rlc_parsed_member_enum_print),
-		{0,0,0},//ENTRY(RlcParsedMemberTypedef, &rlc_parsed_member_typedef_print),
+		ENTRY(RlcParsedMemberTypedef, &rlc_parsed_member_typedef_print),
 		ENTRY(RlcParsedConstructor, NULL), // Constructors need special logic.
 		ENTRY(RlcParsedDestructor, NULL) // Destructors need special logic.
 	};

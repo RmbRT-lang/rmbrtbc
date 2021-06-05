@@ -3,6 +3,7 @@
 #include "../printer.h"
 #include "../malloc.h"
 #include "../assert.h"
+#include "../resolver/resolver.h"
 
 struct RlcParsedTemplateDecl const kRlcParsedTemplateDeclNone = {
 	NULL, 0
@@ -80,6 +81,7 @@ void rlc_parsed_template_decl_parse(
 			kRlcTokIdentifier);
 
 		child.fName = name.content;
+		child.fIsVariadic = rlc_parser_consume(parser, NULL, kRlcTokTripleDot);
 
 		rlc_parser_expect(
 			parser,
@@ -112,11 +114,11 @@ void rlc_parsed_template_decl_parse(
 		rlc_parsed_template_decl_add_child(
 			decl,
 			&child);
-	} while(kRlcTokComma == rlc_parser_expect(
+	} while(kRlcTokSemicolon == rlc_parser_expect(
 		parser,
 		NULL,
 		2,
-		kRlcTokComma,
+		kRlcTokSemicolon,
 		kRlcTokBracketClose));
 
 	rlc_parser_untrace(parser, &tracer);
@@ -150,23 +152,36 @@ void rlc_parsed_template_decl_print(
 		if(i)
 			fprintf(out, ", ");
 
-		switch(this->fChildren[i].fType)
-		{
-		case kRlcParsedTemplateDeclTypeType:
-			{
-				fputs("class ", out);
-				rlc_src_string_print(&this->fChildren[i].fName, file, out);
-			} break;
-		case kRlcParsedTemplateDeclTypeNumber:
-			{
-				fprintf(out, "int ");
-				rlc_src_string_print(&this->fChildren[i].fName, file, out);
-			} break;
-		case kRlcParsedTemplateDeclTypeValue:
-		default:
-			RLC_ASSERT(!"not implemented");
-		}
+		rlc_parsed_template_decl_child_print(
+			&this->fChildren[i], file, out);
 	}
 
 	fprintf(out, "> ");
+}
+
+void rlc_parsed_template_decl_child_print(
+	struct RlcParsedTemplateDeclChild const * this,
+	struct RlcSrcFile const * file,
+	FILE * out)
+{
+	switch(this->fType)
+	{
+	case kRlcParsedTemplateDeclTypeType:
+		{
+			fputs("class ", out);
+			if(this->fIsVariadic)
+				fputs("...", out);
+			rlc_src_string_print(&this->fName, file, out);
+		} break;
+	case kRlcParsedTemplateDeclTypeNumber:
+		{
+			fprintf(out, "int ");
+			if(this->fIsVariadic)
+				fputs("...", out);
+			rlc_src_string_print(&this->fName, file, out);
+		} break;
+	case kRlcParsedTemplateDeclTypeValue:
+	default:
+		rlc_resolver_fail(&this->fName, file, "Unimplemented template type");
+	}
 }

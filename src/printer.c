@@ -56,7 +56,7 @@ void rlc_printer_print_ctx_symbol(
 		if(tail)
 		{
 			fputs("::", out);
-			if(ctx->tpl)
+			if(ctx->tpl && ctx->tpl->fChildCount)
 				fputs("template ", out);
 		}
 		tail = 1;

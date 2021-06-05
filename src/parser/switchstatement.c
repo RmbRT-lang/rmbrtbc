@@ -56,6 +56,9 @@ int rlc_parsed_switch_statement_parse(
 		kRlcTokSwitch))
 		return 0;
 
+	struct RlcParserTracer tracer;
+	rlc_parser_trace(parser, "switch statement", &tracer);
+
 	rlc_parsed_switch_statement_create(out);
 	rlc_parsed_control_label_parse(&out->fLabel, parser);
 
@@ -93,21 +96,32 @@ int rlc_parsed_switch_statement_parse(
 		1,
 		kRlcTokBraceOpen);
 
+	int hasDefault = 0;
+
+	struct RlcParsedCaseStatement case_stmt;
 	do {
-		struct RlcParsedCaseStatement case_stmt;
 		if(!rlc_parsed_case_statement_parse(
 			&case_stmt,
 			parser))
 		{
 			rlc_parser_fail(parser, "expected 'case' statement");
 		}
+
+		if(case_stmt.fIsDefault)
+		{
+			if(hasDefault)
+				rlc_parser_fail(parser, "duplicate default case");
+			hasDefault = 1;
+		}
+
 		rlc_parsed_switch_statement_add_case(
 			out,
 			&case_stmt);
-	} while(!rlc_parser_consume(
-		parser,
-		NULL,
-		kRlcTokBraceClose));
+	} while(case_stmt.fIsFallthrough
+		|| !rlc_parser_consume(parser, NULL, kRlcTokBraceClose));
+
+
+	rlc_parser_untrace(parser, &tracer);
 
 	return 1;
 }
@@ -145,17 +159,18 @@ void rlc_parsed_switch_statement_print(
 				RlcParsedScopeEntry)->fName,
 			file,
 			out);
+		fputs("){\n", out);
 	} else
 	{
-		fputs("switch(", out);
+		fputs("switch(__rl::mk_auto(", out);
 		rlc_parsed_expression_print(this->fSwitchValue.fExpression, file, out);
+		fputs(")){\n", out);
 	}
-	fputs(")\n{", out);
 
 	for(size_t i = 0; i < this->fCaseCount; i++)
-		rlc_parsed_case_statement_print(&this->fCases[i], file, out);
-	fputs("}\n", out);
+		rlc_parsed_case_statement_print(&this->fCases[i], this, file, out);
 
+	fputs("}\n", out);
 	if(this->fIsVariableSwitchValue)
 		fputs("}\n", out);
 	rlc_parsed_control_label_print(&this->fLabel, file, out, "_break");

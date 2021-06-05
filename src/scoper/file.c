@@ -75,7 +75,7 @@ void rlc_scoped_file_print(
 	RLC_DASSERT(registry != NULL);
 	RLC_DASSERT(printer != NULL);
 
-	if(this->lastPrinted > printer->fCompilationUnit)
+	if(this->lastPrinted)// > printer->fCompilationUnit)
 		return;
 
 

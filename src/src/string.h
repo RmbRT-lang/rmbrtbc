@@ -69,6 +69,12 @@ void rlc_src_string_print(
 	struct RlcSrcFile const * file,
 	FILE * out);
 
+/** Prints a source string without replacing identifiers. */
+void rlc_src_string_print_noreplace(
+	struct RlcSrcString const * this,
+	struct RlcSrcFile const * file,
+	FILE * out);
+
 #include "string.inl"
 
 #ifdef __cplusplus

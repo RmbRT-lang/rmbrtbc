@@ -30,10 +30,15 @@ void rlc_parsed_return_statement_destroy(
 	}
 }
 
+static _Thread_local int forbidden = 0;
+
 int rlc_parsed_return_statement_parse(
 	struct RlcParsedReturnStatement * out,
 	struct RlcParser * parser)
 {
+	if(forbidden && rlc_parser_is_current(parser, kRlcTokReturn))
+		rlc_parser_fail(parser, "forbidden in this context");
+
 	if(!rlc_parser_consume(
 		parser,
 		NULL,
@@ -59,8 +64,18 @@ void rlc_parsed_return_statement_print(
 	struct RlcSrcFile const * file,
 	FILE * out)
 {
-	fputs("return ", out);
+	fputs("_return ", out);
 	if(this->fExpression)
 		rlc_parsed_expression_print(this->fExpression, file, out);
 	fputs(";\n", out);
+}
+
+
+void rlc_parsed_return_statement_forbid()
+{
+	forbidden++;
+}
+void rlc_parsed_return_statement_allow()
+{
+	forbidden--;
 }
