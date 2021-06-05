@@ -43,6 +43,8 @@ enum RlcOperator
 
 	kCtor,
 	kCtorPtr,
+	kDtor,
+	kDtorPtr,
 	kTupleMember,
 	kTupleMemberPtr,
 

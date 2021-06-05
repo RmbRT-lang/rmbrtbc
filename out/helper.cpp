@@ -175,6 +175,17 @@ namespace __rl
 	}
 
 	template<class T>
+	inline void __rl_p_destructor(T *v)
+	{
+		v->~T();
+	}
+	template<class T>
+	inline void __rl_p_destructor(T const * v)
+	{
+		v.~T();
+	}
+
+	template<class T>
 	inline T & deref(T &v) { return v; }
 	template<class T>
 	inline T const& deref(T const& v) { return v; }

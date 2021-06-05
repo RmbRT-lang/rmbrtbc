@@ -378,9 +378,10 @@ static _Nodiscard struct RlcParsedExpression * parse_postfix(
 				enum RlcOperator fOperator;
 				enum RlcOperator fCtorOperator;
 				enum RlcOperator fTupleOperator;
+				enum RlcOperator fDtorOperator;
 			} const k_ops[] = {
-				{ kRlcTokDot, kMemberReference, kCtor, kTupleMember },
-				{ kRlcTokMinusGreater, kMemberPointer, kCtorPtr, kTupleMemberPtr }
+				{ kRlcTokDot, kMemberReference, kCtor, kTupleMember, kDtor },
+				{ kRlcTokMinusGreater, kMemberPointer, kCtorPtr, kTupleMemberPtr, kDtorPtr }
 			};
 
 			RLC_ASSERT(out);
@@ -391,6 +392,7 @@ static _Nodiscard struct RlcParsedExpression * parse_postfix(
 					NULL,
 					k_ops[i].fToken))
 				{
+					struct RlcToken dtor_token;
 					struct RlcParsedOperatorExpression * temp = NULL;
 					if(rlc_parser_consume(parser, NULL, kRlcTokBraceOpen))
 					{
@@ -434,6 +436,13 @@ static _Nodiscard struct RlcParsedExpression * parse_postfix(
 						rlc_parsed_operator_expression_add(temp, exp);
 						rlc_parser_expect(parser, &end, 1, kRlcTokParentheseClose);
 						RLC_BASE_CAST(temp, RlcParsedExpression)->fEnd = end;
+					} else if(rlc_parser_consume(parser, &dtor_token, kRlcTokTilde))
+					{
+						temp = make_unary_expression(
+							k_ops[i].fDtorOperator,
+							out,
+							out->fStart,
+							dtor_token);
 					} else
 					{
 						temp = make_binary_expression(
@@ -665,6 +674,8 @@ void rlc_parsed_operator_expression_print(
 
 		{kCtor, -1, NULL, 0},
 		{kCtorPtr, -1, NULL, 0},
+		{kDtor, -1, NULL, 0},
+		{kDtorPtr, -1, NULL, 0},
 		{kTupleMember, -1, NULL, 0},
 		{kTupleMemberPtr, -1, NULL, 0},
 
@@ -693,9 +704,17 @@ void rlc_parsed_operator_expression_print(
 				{
 					fputs("::__rl::__rl_constructor(", out);
 				} break;
+			case kDtor:
+				{
+					fputs("::__rl::__rl_destructor(", out);
+				} break;
 			case kCtorPtr:
 				{
 					fputs("::__rl::__rl_p_constructor(", out);
+				} break;
+			case kDtorPtr:
+				{
+					fputs("::__rl::__rl_p_destructor(", out);
 				} break;
 			case kTuple:
 				{
@@ -801,6 +820,8 @@ void rlc_parsed_operator_expression_print(
 				} break;
 			case kCtor:
 			case kCtorPtr:
+			case kDtor:
+			case kDtorPtr:
 			case kTuple:
 			case kMove:
 			case kCount:
