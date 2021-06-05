@@ -101,6 +101,14 @@ void rlc_parsed_try_statement_print(
 	struct RlcSrcFile const * file,
 	FILE * out)
 {
+
+	if(this->fFinally)
+	{
+		fputs("{::__rl::Deferrer __rl_finally([&]{", out);
+		rlc_parsed_statement_print(this->fFinally, file, out);
+		fputs("});\n", out);
+	}
+
 	fputs("try {", out);
 	rlc_parsed_statement_print(this->fBody, file, out);
 	fputs("}", out);
@@ -120,6 +128,12 @@ void rlc_parsed_try_statement_print(
 		rlc_parsed_statement_print(this->fCatches[i].fBody, file, out);
 		fputs("}", out);
 	}
+
+	if(this->fFinally && !this->fCatchCount)
+		fputs(" catch(void***********) {\n throw;\n} /* no-op */", out);
+
+	if(this->fFinally)
+		fputs("\n}", out);
 
 	fputc('\n', out);
 }

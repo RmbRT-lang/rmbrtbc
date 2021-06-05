@@ -94,6 +94,21 @@ namespace __rl
 	template<class Ret, class ...Args>
 	using function_t = Ret(Args...);
 
+	template<class T>
+	class Deferrer
+	{
+		T const& m_fn;
+	public:
+		inline Deferrer(T const& fn):
+			m_fn(fn)
+		{
+		}
+		inline ~Deferrer()
+		{
+			m_fn();
+		}
+	};
+
 	template<class PEnum, class IEnum>
 	class EnumConstant {
 	public:
