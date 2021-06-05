@@ -1,6 +1,7 @@
 #include "test.h"
 #include "../assert.h"
 #include "templatedecl.h"
+#include "returnstatement.h"
 
 void rlc_parsed_test_create(
 	struct RlcParsedTest * this)
@@ -55,10 +56,12 @@ _Nodiscard int rlc_parsed_test_parse(
 		kRlcTokStringLiteral);
 	out->fName = name.content;
 
+	rlc_parsed_return_statement_forbid();
 	if(!rlc_parsed_block_statement_parse(
 		&out->fBody,
 		parser))
 		rlc_parser_fail(parser, "expected block statement");
+	rlc_parsed_return_statement_allow();
 
 	rlc_parser_untrace(parser, &tracer);
 	return 1;

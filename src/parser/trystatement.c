@@ -1,4 +1,5 @@
 #include "trystatement.h"
+#include "returnstatement.h"
 #include "../malloc.h"
 
 void rlc_parsed_try_statement_create(
@@ -81,6 +82,7 @@ int rlc_parsed_try_statement_parse(
 		NULL,
 		kRlcTokFinally))
 	{
+		rlc_parsed_return_statement_forbid();
 		struct RlcParserTracer tracer;
 		rlc_parser_trace(parser, "finally clause", &tracer);
 		if(!(out->fFinally = rlc_parsed_statement_parse(
@@ -89,6 +91,7 @@ int rlc_parsed_try_statement_parse(
 			&~RLC_FLAG(kRlcParsedVariableStatement))))
 			rlc_parser_fail(parser, "expected statement (not variable)");
 		rlc_parser_untrace(parser, &tracer);
+		rlc_parsed_return_statement_allow();
 	} else
 		out->fFinally = NULL;
 
