@@ -26,6 +26,7 @@ enum RlcOperator
 	kDereference, kAddress, kMove,
 	kPreIncrement, kPreDecrement,
 	kPostIncrement, kPostDecrement,
+	kCount,
 
 	kAsync,
 	kFullAsync,

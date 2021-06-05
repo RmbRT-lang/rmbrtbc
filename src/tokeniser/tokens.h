@@ -147,6 +147,7 @@ enum RlcTokenType
 	kRlcTokGreater,
 
 	kRlcTokDollar,
+	kRlcTokDoubleHash,
 	kRlcTokHash,
 	RLC_ENUM_END(RlcTokenType)
 

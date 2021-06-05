@@ -62,7 +62,8 @@ const k_unary[] = {
 	{ kRlcTokDoubleDotQuestionMark, kMaybeDynamic },
 	{ kRlcTokAt, kAsync },
 	{ kRlcTokDoubleAt, kFullAsync },
-	{ kRlcTokLessMinus, kAwait }
+	{ kRlcTokLessMinus, kAwait },
+	{ kRlcTokDoubleHash, kCount }
 },
 // postfix operators.
 k_unary_postfix[] = {
@@ -642,6 +643,7 @@ void rlc_parsed_operator_expression_print(
 		{kDereference, 0, "*",1}, {kAddress, 0, "&",1}, {kMove, -1, NULL,0},
 		{kPreIncrement, 0, "++",1}, {kPreDecrement, 0, "--",1},
 		{kPostIncrement, 2, "++",1}, {kPostDecrement, 2, "--",1},
+		{kCount, -1, NULL, 0},
 
 		{kAsync, -1, NULL,1},
 		{kFullAsync, -1, NULL,1},
@@ -716,6 +718,10 @@ void rlc_parsed_operator_expression_print(
 						? ">(*("
 						: ">(",
 						out);
+				} break;
+			case kCount:
+				{
+					fputs("::__rl::count(", out);
 				} break;
 			default: { ; }
 			}
@@ -797,6 +803,7 @@ void rlc_parsed_operator_expression_print(
 			case kCtorPtr:
 			case kTuple:
 			case kMove:
+			case kCount:
 				{
 					for(RlcSrcIndex i = 1; i < this->fExpressionCount; i++)
 					{

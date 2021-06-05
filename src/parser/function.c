@@ -370,6 +370,10 @@ static void rlc_parsed_function_print_head_2(
 			{
 				fputs("__rl_stream_feed", out);
 				break;
+			} else if (this->fOperatorName == kCount)
+			{
+				fputs("__rl_count", out);
+				break;
 			}
 
 			fputs("operator ", out);

@@ -293,6 +293,7 @@ struct {
 	{ ">", kRlcTokGreater },
 
 	{ "$", kRlcTokDollar },
+	{ "##", kRlcTokDoubleHash },
 	{ "#", kRlcTokHash },
 };
 

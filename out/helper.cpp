@@ -365,26 +365,14 @@ namespace __rl::test
 	}
 }
 
-
-
-// Helpers for new/delete.
-
-template<class T, class ...Args>
-inline T * __rlc_new(
-	Args&&... args)
+namespace __rl
 {
-	return new T(
-		std::forward<Args>(args)...);
-}
+	template<class T, ::size_t kSize>
+	constexpr size_t  count(T (&)[kSize]) { return kSize; }
 
-template<class T>
-inline void __rlc_delete(T * p)
-{
-	delete p;
+	template<class T>
+	inline auto count(T &&v) { return v.__rl_count(); }
 }
-
-template<class T, ::size_t kSize>
-constexpr size_t  size(T (&)[kSize]) { return kSize; }
 
 // Declare special size types.
 typedef unsigned long int UM;
