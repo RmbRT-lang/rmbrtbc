@@ -176,7 +176,7 @@ struct {
 	{"BREAK", kRlcTokBreak },
 	{"CASE", kRlcTokCase },
 	{"CATCH", kRlcTokCatch },
-	{"CONCEPT", kRlcTokConcept },
+	{"MASK", kRlcTokMask },
 	{"CONTINUE", kRlcTokContinue },
 	{"DEFAULT", kRlcTokDefault },
 	{"DESTRUCTOR", kRlcTokDestructor },
