@@ -178,6 +178,14 @@ namespace __rl
 		new (self) T(std::forward<Args>(args)...);
 	}
 
+	template<class T, class ...Args>
+	inline void __rl_p_constructor(
+		T &self,
+		Args&&...args)
+	{
+		new (&*self) std::decay_t<decltype(*self)> (std::forward<Args>(args)...);
+	}
+
 	template<class T>
 	inline void __rl_destructor(T &v)
 	{
