@@ -97,6 +97,7 @@ enum RlcTokenType
 	kRlcTokTildeColon,
 	kRlcTokTilde,
 
+	kRlcTokTripleAnd,
 	kRlcTokDoubleAndEqual,
 	kRlcTokDoubleAnd,
 	kRlcTokAndEqual,

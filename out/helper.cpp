@@ -398,6 +398,23 @@ namespace __rl
 
 	template<class T>
 	inline auto count(T &&v) { return v.__rl_count(); }
+
+	inline void const * real_addr(signed const&v) { return &v; }
+	inline void const * real_addr(unsigned const&v) { return &v; }
+	inline void const * real_addr(signed short const&v) { return &v; }
+	inline void const * real_addr(unsigned short const&v) { return &v; }
+	inline void const * real_addr(signed long const&v) { return &v; }
+	inline void const * real_addr(unsigned long const&v) { return &v; }
+	inline void const * real_addr(signed char const&v) { return &v; }
+	inline void const * real_addr(unsigned char const&v) { return &v; }
+	inline void const * real_addr(float const&v) { return &v; }
+	inline void const * real_addr(double const&v) { return &v; }
+
+	template<class T> inline void const * real_addr(T const* const& v) { return &v; }
+	template<class T> inline void const * real_addr(T const&v)
+	{
+		return v.__rl_get_derived(static_cast<T::__rl_identifier const *>(nullptr));
+	}
 }
 
 // Declare special size types.

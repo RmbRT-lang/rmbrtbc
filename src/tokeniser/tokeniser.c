@@ -243,6 +243,7 @@ struct {
 	{ "~:", kRlcTokTildeColon },
 	{ "~", kRlcTokTilde },
 
+	{ "&&&", kRlcTokTripleAnd },
 	{ "&&=", kRlcTokDoubleAndEqual },
 	{ "&&", kRlcTokDoubleAnd },
 	{ "&=", kRlcTokAndEqual },

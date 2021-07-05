@@ -159,6 +159,8 @@ static void rlc_parsed_mask_print_impl(
 		out);
 	fputs(" { public:\n", out);
 
+	fputs("struct __rl_identifier {};\n", out);
+	fputs("virtual void const * __rl_get_derived(__rl_identifier const *) const = 0;\n", out);
 
 	fputs("template<class __rl_mask_type> static inline ", out);
 	rlc_src_string_print(
@@ -243,6 +245,28 @@ static void rlc_parsed_mask_print_impl(
 	}
 
 	fputs("{\n\tstd::decay_t<__rl_mask_type> __rl_mask_ptr;\n\tpublic:\n", out);
+	fputs("void const * __rl_get_derived(", out);
+	if(this->fTemplates.fChildCount)
+		fputs("typename ", out);
+	rlc_src_string_print(
+		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+		file,
+		out);
+	if(this->fTemplates.fChildCount)
+	{
+		fputs("<", out);
+		for(RlcSrcSize i = 0; i < this->fTemplates.fChildCount; i++)
+		{
+			if(i)
+				fputs(", ", out);
+			rlc_src_string_print(
+				&this->fTemplates.fChildren[i].fName,
+				file,
+				out);
+		}
+		fputs(">", out);
+	}
+	fputs("::__rl_identifier const *) const override { return this; }\n", out);
 
 	rlc_src_string_print(
 		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
