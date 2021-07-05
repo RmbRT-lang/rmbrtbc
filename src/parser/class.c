@@ -363,7 +363,31 @@ static void rlc_parsed_class_print_impl(
 			&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
 			file,
 			out);
-		fputs("() = default;", out);
+		fputs("() = default;\n", out);
+	}
+
+	// Default ctors and assignments for virtual classes.
+	if(this->fIsVirtual)
+	{
+		fputs("typedef ", out);
+		rlc_printer_print_ctx_symbol(printer, file, out);
+		fputs(" __rl_MY_T;\n", out);
+
+
+		rlc_src_string_print(
+			&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+			file,
+			out);
+		fputs("(__rl_MY_T&&) = default;\n", out);
+
+		rlc_src_string_print(
+			&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+			file,
+			out);
+		fputs("(__rl_MY_T const&) = default;\n", out);
+
+		fputs("__rl_MY_T& operator=(__rl_MY_T&&) = default;\n", out);
+		fputs("__rl_MY_T& operator=(__rl_MY_T const&) = default;\n", out);
 	}
 
 	////////////////////
