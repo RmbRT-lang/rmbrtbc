@@ -119,6 +119,8 @@ enum RlcParsedTypeNameValue
 {
 	/** The type name has a void type. */
 	kRlcParsedTypeNameValueVoid,
+	/** The type name is null pointer type. */
+	kRlcParsedTypeNameValueNull,
 	/** The type name is a name. */
 	kRlcParsedTypeNameValueName,
 	/** Symbol constant type. */

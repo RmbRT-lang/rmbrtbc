@@ -191,6 +191,7 @@ void rlc_parsed_type_name_destroy(
 			}
 		} break;
 	case kRlcParsedTypeNameValueVoid:
+	case kRlcParsedTypeNameValueNull:
 	case kRlcParsedTypeNameValueSymbolConstant: { ; }
 	}
 }
@@ -248,6 +249,12 @@ static int rlc_parsed_type_name_parse_impl(
 		NULL,
 		kRlcTokVoid))
 	{
+	} else if(rlc_parser_consume(
+		parser,
+		NULL,
+		kRlcTokNull))
+	{
+		out->fValue = kRlcParsedTypeNameValueNull;
 	} else if(rlc_parser_consume(
 		parser,
 		NULL,
@@ -452,6 +459,10 @@ void rlc_parsed_type_name_print(
 	case kRlcParsedTypeNameValueVoid:
 		{
 			fprintf(out, "void");
+		} break;
+	case kRlcParsedTypeNameValueNull:
+		{
+			fprintf(out, "nullptr_t");
 		} break;
 	case kRlcParsedTypeNameValueName:
 		{
