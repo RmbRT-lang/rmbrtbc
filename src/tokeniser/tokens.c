@@ -32,7 +32,7 @@ char const * rlc_token_type_name(
 		"'IF'",
 		"'INCLUDE'",
 		"'INLINE'",
-		"'NOINIT'",
+		"'NULL'",
 		"'NUMBER'",
 		"'OPERATOR'",
 		"'OVERRIDE'",
