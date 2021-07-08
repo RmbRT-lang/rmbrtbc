@@ -136,6 +136,28 @@ int rlc_parsed_constructor_parse(
 
 	out->fIsDefinition = 1;
 	rlc_parsed_block_statement_create(&out->fBody);
+
+	if(rlc_parser_consume(
+		parser,
+		NULL,
+		kRlcTokMinusGreater))
+	{
+		do {
+			struct RlcParsedInitialiser initialiser;
+
+			rlc_parsed_initialiser_parse(
+				&initialiser,
+				parser);
+
+			rlc_parsed_constructor_add_initialiser(
+				out,
+				&initialiser);
+		} while(rlc_parser_consume(
+			parser,
+			NULL,
+			kRlcTokComma));
+	}
+
 	if(rlc_parser_consume(
 		parser,
 		NULL,
