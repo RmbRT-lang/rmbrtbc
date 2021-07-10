@@ -105,7 +105,5 @@ char const * rlc_scope_include_statement(
 			this->fPath.fRaw);
 	}
 
-	printf("%s: includes %s\n", src->fName, resolved_path);
-
 	return resolved_path;
 }

@@ -1,8 +1,8 @@
-#include "concept.h"
+#include "mask.h"
 #include "../malloc.h"
 
-void rlc_parsed_concept_create(
-	struct RlcParsedConcept * this,
+void rlc_parsed_mask_create(
+	struct RlcParsedMask * this,
 	struct RlcSrcString const * name,
 	struct RlcParsedTemplateDecl const * templates)
 {
@@ -11,7 +11,7 @@ void rlc_parsed_concept_create(
 
 	rlc_parsed_scope_entry_create(
 		RLC_BASE_CAST(this, RlcParsedScopeEntry),
-		kRlcParsedConcept,
+		kRlcParsedMask,
 		name);
 
 	if(templates)
@@ -23,8 +23,8 @@ void rlc_parsed_concept_create(
 	this->fFunctionCount = 0;
 }
 
-void rlc_parsed_concept_destroy(
-	struct RlcParsedConcept * this)
+void rlc_parsed_mask_destroy(
+	struct RlcParsedMask * this)
 {
 	rlc_parsed_scope_entry_destroy_base(
 		RLC_BASE_CAST(this, RlcParsedScopeEntry));
@@ -41,19 +41,19 @@ void rlc_parsed_concept_destroy(
 	}
 }
 
-int rlc_parsed_concept_parse(
-	struct RlcParsedConcept * out,
+int rlc_parsed_mask_parse(
+	struct RlcParsedMask * out,
 	struct RlcParser * parser,
 	struct RlcParsedTemplateDecl const * templates)
 {
 	if(!rlc_parser_consume(
 		parser,
 		NULL,
-		kRlcTokConcept))
+		kRlcTokMask))
 		return 0;
 
 	struct RlcParserTracer t;
-	rlc_parser_trace(parser, "concept", &t);
+	rlc_parser_trace(parser, "mask", &t);
 
 	struct RlcToken name;
 	rlc_parser_expect(
@@ -62,7 +62,7 @@ int rlc_parsed_concept_parse(
 		1,
 		kRlcTokIdentifier);
 
-	rlc_parsed_concept_create(
+	rlc_parsed_mask_create(
 		out,
 		&name.content,
 		templates);
@@ -76,23 +76,23 @@ int rlc_parsed_concept_parse(
 	struct RlcParsedMemberCommon common;
 	rlc_parsed_member_common_create(&common, kRlcVisibilityPublic);
 	struct RlcParsedMemberFunction memfn;
-	int concept_fns = 0; // Number of functions that are not implemented.
+	int mask_fns = 0; // Number of functions that are not implemented.
 	for(int i = 0;; i++)
 	{
 		int expect = rlc_parsed_member_common_parse(&common, parser);
 		if(!rlc_parsed_member_function_parse(&memfn, parser, &common))
 		{
-			if(!i || expect || !concept_fns)
+			if(!i || expect || !mask_fns)
 				rlc_parser_fail(parser, "expected member function");
 			else
 				break;
 		}
 
 		if(memfn.fAbstractness != kRlcMemberFunctionAbstractnessNone)
-			rlc_parser_fail(parser, "concept function must be non-virtual, non-override");
+			rlc_parser_fail(parser, "mask function must be non-virtual, non-override");
 
 		if(!RLC_BASE(&memfn, RlcParsedFunction)->fHasBody)
-			++concept_fns;
+			++mask_fns;
 
 		rlc_realloc(
 			(void**)&out->fFunctions,
@@ -110,8 +110,8 @@ int rlc_parsed_concept_parse(
 	return 1;
 }
 
-static void rlc_parsed_concept_print_decl(
-	struct RlcParsedConcept const * this,
+static void rlc_parsed_mask_print_decl(
+	struct RlcParsedMask const * this,
 	struct RlcSrcFile const * file,
 	FILE * out)
 {
@@ -123,7 +123,7 @@ static void rlc_parsed_concept_print_decl(
 		out);
 	fputs(";\n", out);
 
-	fputs("template<class __rl_concept_type", out);
+	fputs("template<class __rl_mask_type", out);
 	for(RlcSrcSize i = 0; i < this->fTemplates.fChildCount; i++)
 	{
 		fputs(", ", out);
@@ -138,8 +138,8 @@ static void rlc_parsed_concept_print_decl(
 	fputs("_wrapper;\n", out);
 }
 
-static void rlc_parsed_concept_print_impl(
-	struct RlcParsedConcept const * this,
+static void rlc_parsed_mask_print_impl(
+	struct RlcParsedMask const * this,
 	struct RlcSrcFile const * file,
 	struct RlcPrinter * printer)
 {
@@ -159,13 +159,15 @@ static void rlc_parsed_concept_print_impl(
 		out);
 	fputs(" { public:\n", out);
 
+	fputs("struct __rl_identifier {};\n", out);
+	fputs("virtual void const * __rl_get_derived(__rl_identifier const *) const = 0;\n", out);
 
-	fputs("template<class __rl_concept_type> static inline ", out);
+	fputs("template<class __rl_mask_type> static inline ", out);
 	rlc_src_string_print(
 		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
 		file,
 		out);
-	fputs("_wrapper<__rl_concept_type",out);
+	fputs("_wrapper<__rl_mask_type",out);
 	for(RlcSrcSize i = 0; i < this->fTemplates.fChildCount; i++)
 	{
 		fputs(", ", out);
@@ -174,15 +176,15 @@ static void rlc_parsed_concept_print_impl(
 			file,
 			out);
 	}
-	fputs("> FROM(__rl_concept_type &&v);\n", out);
+	fputs("> FROM(__rl_mask_type &&v);\n", out);
 
 	rlc_printer_print_ctx_tpl(printer, file, printer->fFuncsImpl);
-	fputs("template<class __rl_concept_type> ", printer->fFuncsImpl);
+	fputs("template<class __rl_mask_type> ", printer->fFuncsImpl);
 	rlc_src_string_print(
 		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
 		file,
 		printer->fFuncsImpl);
-	fputs("_wrapper<__rl_concept_type", printer->fFuncsImpl);
+	fputs("_wrapper<__rl_mask_type", printer->fFuncsImpl);
 	for(RlcSrcSize i = 0; i < this->fTemplates.fChildCount; i++)
 	{
 		fputs(", ", printer->fFuncsImpl);
@@ -193,7 +195,7 @@ static void rlc_parsed_concept_print_impl(
 	}
 	fputs("> ", printer->fFuncsImpl);
 	rlc_printer_print_ctx_symbol(printer, file, printer->fFuncsImpl);
-	fputs("::FROM(__rl_concept_type &&v) { return (__rl_concept_type &&)(v); }\n", printer->fFuncsImpl);
+	fputs("::FROM(__rl_mask_type &&v) { return (__rl_mask_type &&)(v); }\n", printer->fFuncsImpl);
 
 
 	for(RlcSrcSize i = 0; i < this->fFunctionCount; i++)
@@ -210,7 +212,7 @@ static void rlc_parsed_concept_print_impl(
 	rlc_printer_pop_ctx(printer);
 	fputs("};\n", out);
 
-	fputs("template<class __rl_concept_type", out);
+	fputs("template<class __rl_mask_type", out);
 	for(RlcSrcSize i = 0; i < this->fTemplates.fChildCount; i++)
 	{
 		fputs(", ", out);
@@ -242,13 +244,35 @@ static void rlc_parsed_concept_print_impl(
 		fputs(">", out);
 	}
 
-	fputs("{\n\tstd::decay_t<__rl_concept_type> __rl_concept_ptr;\n\tpublic:\n", out);
+	fputs("{\n\tstd::decay_t<__rl_mask_type> __rl_mask_ptr;\n\tpublic:\n", out);
+	fputs("void const * __rl_get_derived(", out);
+	if(this->fTemplates.fChildCount)
+		fputs("typename ", out);
+	rlc_src_string_print(
+		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+		file,
+		out);
+	if(this->fTemplates.fChildCount)
+	{
+		fputs("<", out);
+		for(RlcSrcSize i = 0; i < this->fTemplates.fChildCount; i++)
+		{
+			if(i)
+				fputs(", ", out);
+			rlc_src_string_print(
+				&this->fTemplates.fChildren[i].fName,
+				file,
+				out);
+		}
+		fputs(">", out);
+	}
+	fputs("::__rl_identifier const *) const override { return this; }\n", out);
 
 	rlc_src_string_print(
 		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
 		file,
 		out);
-	fputs("_wrapper(__rl_concept_type p): __rl_concept_ptr(std::move(p)) {}\n", out);
+	fputs("_wrapper(__rl_mask_type p): __rl_mask_ptr(std::move(p)) {}\n", out);
 
 	for(RlcSrcSize i = 0; i < this->fFunctionCount; i++)
 	{
@@ -281,7 +305,7 @@ static void rlc_parsed_concept_print_impl(
 			if(fn->fReturnType.fValue != kRlcParsedTypeNameValueVoid
 			|| fn->fReturnType.fTypeModifierCount)
 				fputs("return ", out);
-			fputs("__rl::deref(__rl_concept_ptr).", out);
+			fputs("__rl::deref(__rl_mask_ptr).", out);
 			rlc_src_string_print(
 				&RLC_BASE_CAST(fn, RlcParsedScopeEntry)->fName,
 				file,
@@ -307,11 +331,11 @@ static void rlc_parsed_concept_print_impl(
 	fputs("};\n", out);
 }
 
-void rlc_parsed_concept_print(
-	struct RlcParsedConcept const * this,
+void rlc_parsed_mask_print(
+	struct RlcParsedMask const * this,
 	struct RlcSrcFile const * file,
 	struct RlcPrinter * printer)
 {
-	rlc_parsed_concept_print_decl(this, file, printer->fTypes);
-	rlc_parsed_concept_print_impl(this, file, printer);
+	rlc_parsed_mask_print_decl(this, file, printer->fTypes);
+	rlc_parsed_mask_print_impl(this, file, printer);
 }

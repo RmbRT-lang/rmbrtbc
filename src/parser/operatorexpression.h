@@ -28,6 +28,8 @@ enum RlcOperator
 	kPostIncrement, kPostDecrement,
 	kCount,
 
+	kRealAddr,
+
 	kAsync,
 	kFullAsync,
 	kExpectDynamic,

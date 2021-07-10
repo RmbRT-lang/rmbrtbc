@@ -92,7 +92,7 @@ void rlc_src_string_print(
 	RLC_DASSERT(out != NULL);
 
 	static char const * s_special_identifiers[] = {
-		"char", "int", "short", "double", "long", "float", "usigned", "bool",
+		"char", "int", "short", "double", "long", "float", "unsigned", "bool",
 		"auto",
 		"class",
 		"concept",

@@ -178,6 +178,14 @@ namespace __rl
 		new (self) T(std::forward<Args>(args)...);
 	}
 
+	template<class T, class ...Args>
+	inline void __rl_p_constructor(
+		T &self,
+		Args&&...args)
+	{
+		new (&*self) std::decay_t<decltype(*self)> (std::forward<Args>(args)...);
+	}
+
 	template<class T>
 	inline void __rl_destructor(T &v)
 	{
@@ -398,28 +406,43 @@ namespace __rl
 
 	template<class T>
 	inline auto count(T &&v) { return v.__rl_count(); }
+
+	inline void const * real_addr(signed const&v) { return &v; }
+	inline void const * real_addr(unsigned const&v) { return &v; }
+	inline void const * real_addr(signed short const&v) { return &v; }
+	inline void const * real_addr(unsigned short const&v) { return &v; }
+	inline void const * real_addr(signed long const&v) { return &v; }
+	inline void const * real_addr(unsigned long const&v) { return &v; }
+	inline void const * real_addr(signed char const&v) { return &v; }
+	inline void const * real_addr(unsigned char const&v) { return &v; }
+	inline void const * real_addr(float const&v) { return &v; }
+	inline void const * real_addr(double const&v) { return &v; }
+
+	template<class T> inline void const * real_addr(T const* const& v) { return &v; }
+	template<class T> inline void const * real_addr(T const&v)
+	{
+		return v.__rl_get_derived(static_cast<T::__rl_identifier const *>(nullptr));
+	}
 }
 
 // Declare special size types.
-typedef unsigned long int UM;
-typedef signed long int SM;
-
-// Allow some C++ keywords to be used as identifiers.
-typedef unsigned long ulong;
-typedef unsigned int uint;
-typedef unsigned short ushort;
-typedef unsigned char uchar;
-typedef char __rlc_char;
-typedef int __rlc_int;
-typedef short __rlc_short;
-typedef long __rlc_long;
-typedef float __rlc_float;
-typedef double __rlc_double;
-typedef bool __rlc_bool;
+#define UM unsigned long int
+#define SM signed long int
 #define BOOL bool
 #define CHAR char
+#define UCHAR unsigned char
 #define INT int
-#define UINT uint
+#define UINT unsigned
+#define SINGLE float
+#define DOUBLE double
+#define U1 ::uint8_t
+#define U2 ::uint16_t
+#define U4 ::uint32_t
+#define U8 ::uint64_t
+#define S1 ::int8_t
+#define S2 ::int16_t
+#define S4 ::int32_t
+#define S8 ::int64_t
 
 #define TRUE true
 #define FALSE false

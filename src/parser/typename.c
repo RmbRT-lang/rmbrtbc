@@ -129,6 +129,25 @@ int rlc_type_modifier_parse(
 	return indirection || qualifier || out->fArraySize;
 }
 
+int rlc_parsed_type_is_ptr(
+	struct RlcParsedTypeName const * this,
+	int * isNonNull)
+{
+	if(!isNonNull)
+		isNonNull = &(int){0};
+	*isNonNull = 0;
+	if(!this->fReferenceType == kRlcReferenceTypeNone
+	|| !this->fTypeModifierCount)
+		return 0;
+	struct RlcTypeModifier const * const lastMod =
+		&this->fTypeModifiers[this->fTypeModifierCount-1];
+
+	if(lastMod->fIsArray)
+		return 0;
+	*isNonNull = lastMod->fTypeIndirection == kRlcTypeIndirectionNotNull;
+	return *isNonNull || lastMod->fTypeIndirection == kRlcTypeIndirectionPointer;
+}
+
 void rlc_type_modifier_destroy(
 	struct RlcTypeModifier * this)
 {
@@ -191,6 +210,7 @@ void rlc_parsed_type_name_destroy(
 			}
 		} break;
 	case kRlcParsedTypeNameValueVoid:
+	case kRlcParsedTypeNameValueNull:
 	case kRlcParsedTypeNameValueSymbolConstant: { ; }
 	}
 }
@@ -248,6 +268,12 @@ static int rlc_parsed_type_name_parse_impl(
 		NULL,
 		kRlcTokVoid))
 	{
+	} else if(rlc_parser_consume(
+		parser,
+		NULL,
+		kRlcTokNull))
+	{
+		out->fValue = kRlcParsedTypeNameValueNull;
 	} else if(rlc_parser_consume(
 		parser,
 		NULL,
@@ -452,6 +478,10 @@ void rlc_parsed_type_name_print(
 	case kRlcParsedTypeNameValueVoid:
 		{
 			fprintf(out, "void");
+		} break;
+	case kRlcParsedTypeNameValueNull:
+		{
+			fprintf(out, "nullptr_t");
 		} break;
 	case kRlcParsedTypeNameValueName:
 		{

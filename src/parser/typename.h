@@ -119,6 +119,8 @@ enum RlcParsedTypeNameValue
 {
 	/** The type name has a void type. */
 	kRlcParsedTypeNameValueVoid,
+	/** The type name is null pointer type. */
+	kRlcParsedTypeNameValueNull,
 	/** The type name is a name. */
 	kRlcParsedTypeNameValueName,
 	/** Symbol constant type. */
@@ -165,6 +167,10 @@ struct RlcParsedTypeName
 	/** Whether the type is a reference. */
 	enum RlcReferenceType fReferenceType;
 };
+
+int rlc_parsed_type_is_ptr(
+	struct RlcParsedTypeName const * this,
+	int * isNonNull);
 
 
 /** Destroys a type name.
