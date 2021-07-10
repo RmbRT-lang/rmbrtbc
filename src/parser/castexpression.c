@@ -124,6 +124,9 @@ void rlc_parsed_cast_expression_print(
 	struct RlcSrcFile const * file,
 	FILE * out)
 {
+	int needDeRef = 0;
+	int needRef = 0;
+	fputc('(', out);
 	switch(this->fMethod)
 	{
 	case kRlcCastTypeStatic:
@@ -132,10 +135,20 @@ void rlc_parsed_cast_expression_print(
 		fputs(">", out);
 		break;
 	case kRlcCastTypeDynamic:
+		{
+		int isNonNull;
+		needDeRef = rlc_parsed_type_is_ptr(&this->fType, &isNonNull);
+		needRef = !isNonNull;
+		if(isNonNull)
+			fputs("&", out);
 		fputs("dynamic_cast<", out);
+		if(isNonNull)
+			fputs("std::remove_pointer_t<", out);
 		rlc_parsed_type_name_print(&this->fType, file, out);
+		if(isNonNull)
+			fputs("> &", out);
 		fputs(">", out);
-		break;
+		}break;
 	case kRlcCastTypeConcept:
 		rlc_parsed_type_name_print(&this->fType, file, out);
 		fputs("::FROM", out);
@@ -144,10 +157,14 @@ void rlc_parsed_cast_expression_print(
 		RLC_DASSERT(!"unhandled type");
 	}
 	fputs("(", out);
+	if(needRef) fputs("&(", out);
+	if(needDeRef) fputs("*(", out);
 	for(RlcSrcIndex i = 0; i < this->fValueCount; i++)
 	{
 		if(i) fputs(", ", out);
 		rlc_parsed_expression_print(this->fValues[i], file, out);
 	}
-	fputs(")", out);
+	if(needRef) fputc(')', out);
+	if(needDeRef) fputc(')', out);
+	fputs("))", out);
 }

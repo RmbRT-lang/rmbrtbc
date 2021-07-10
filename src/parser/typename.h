@@ -168,6 +168,10 @@ struct RlcParsedTypeName
 	enum RlcReferenceType fReferenceType;
 };
 
+int rlc_parsed_type_is_ptr(
+	struct RlcParsedTypeName const * this,
+	int * isNonNull);
+
 
 /** Destroys a type name.
 	Releases memory allocated by the given type name, but not the type name itself.
