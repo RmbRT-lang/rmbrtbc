@@ -394,7 +394,45 @@ static void rlc_parsed_class_print_impl(
 	// tuple ctor end //
 	////////////////////
 
+	///////////
+	// Visit //
+	///////////
 
+	for(int isConst = 0; isConst <= 1; isConst++)
+	{
+		fputs("template<class __rl_Fn, class ...__rl_Args>\n"
+			"void __rl_visit(__rl_Fn &&fn, __rl_Args&&... args)", out);
+		if(isConst) fputs(" const", out);
+		fputs(" {\n", out);
+		for(RlcSrcIndex i = 0; i < this->fMembers.fEntryCount; i++)
+		{
+			struct RlcParsedMember const * member = this->fMembers.fEntries[i];
+			if(member->fVisibility != kRlcVisibilityPublic)
+				continue;
+			struct RlcParsedMemberVariable * memVar;
+			if(!(memVar = RLC_DYNAMIC_CAST(member, RlcParsedMember, RlcParsedMemberVariable)))
+				continue;
+
+			struct RlcParsedScopeEntry const * scopeEntry =
+				RLC_BASE_CAST2(memVar, RlcParsedVariable, RlcParsedScopeEntry);
+			if(!scopeEntry->fName.length)
+				continue;
+
+			if(member->fVisibility == kRlcVisibilityPublic)
+			{
+				fputs("fn(\"", out);
+				rlc_src_string_print(&scopeEntry->fName, file, out);
+				fputs("\", this->", out);
+				rlc_src_string_print(&scopeEntry->fName, file, out);
+				fputs(", ::std::forward<__rl_Args>(args)...);\n", out);
+			}
+		}
+		fputs("}\n", out);
+	}
+
+	///////////////
+	// Visit end //
+	///////////////
 
 	for(RlcSrcIndex i = 0; i < this->fConstructors.fEntryCount; i++)
 	{

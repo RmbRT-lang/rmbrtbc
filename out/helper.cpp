@@ -423,6 +423,14 @@ namespace __rl
 	{
 		return v.__rl_get_derived(static_cast<T::__rl_identifier const *>(nullptr));
 	}
+
+
+	template<class Fn, class Obj, class ...Args>
+	inline Fn &&visit(Fn &&fn, Obj &&obj, Args &&... args)
+	{
+		obj.__rl_visit(std::forward<Fn>(fn), std::forward<Args>(args)...);
+		return std::forward<Fn>(fn);
+	}
 }
 
 // Declare special size types.

@@ -61,6 +61,7 @@ enum RlcTokenType
 	kRlcTokType,
 	kRlcTokUnion,
 	kRlcTokVirtual,
+	kRlcTokVisit,
 	kRlcTokVoid,
 	kRlcTokWhile,
 
