@@ -297,6 +297,7 @@ static void rlc_parsed_mask_print_impl(
 				if(i)
 					fputs(", ", out);
 				rlc_parsed_variable_print_argument(&fn->fArguments[i], file, out, 1);
+				fprintf(out, "__rlc_arg_%u", i);
 			}
 			fputs(") ", out);
 			if(member->fAttribute == kRlcMemberAttributeIsolated)
@@ -322,6 +323,7 @@ static void rlc_parsed_mask_print_impl(
 					&RLC_BASE_CAST(&fn->fArguments[i], RlcParsedScopeEntry)->fName,
 					file,
 					out);
+				fprintf(out, "__rlc_arg_%u", i);
 				fputs(")", out);
 			}
 			fputs("); }\n", out);
