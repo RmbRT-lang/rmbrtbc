@@ -431,6 +431,18 @@ namespace __rl
 		obj.__rl_visit(std::forward<Fn>(fn), std::forward<Args>(args)...);
 		return std::forward<Fn>(fn);
 	}
+
+	template<class T, class U>
+	inline T __rl_dynamic_cast(U *v) {
+		if constexpr(std::is_polymorphic<U>() || std::is_convertible<U*, T>())
+			return dynamic_cast<T>(v);
+		else
+			return nullptr;
+	}
+	template<class T, class U>
+	inline T __rl_dynamic_cast(U &v) {
+		return dynamic_cast<T>(v);
+	}
 }
 
 // Declare special size types.
