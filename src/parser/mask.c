@@ -176,7 +176,7 @@ static void rlc_parsed_mask_print_impl(
 			file,
 			out);
 	}
-	fputs("> FROM(__rl_mask_type &&v);\n", out);
+	fputs("> __rl_factory(__rl_mask_type &&v);\n", out);
 
 	rlc_printer_print_ctx_tpl(printer, file, printer->fFuncsImpl);
 	fputs("template<class __rl_mask_type> ", printer->fFuncsImpl);
@@ -195,7 +195,7 @@ static void rlc_parsed_mask_print_impl(
 	}
 	fputs("> ", printer->fFuncsImpl);
 	rlc_printer_print_ctx_symbol(printer, file, printer->fFuncsImpl);
-	fputs("::FROM(__rl_mask_type &&v) { return (__rl_mask_type &&)(v); }\n", printer->fFuncsImpl);
+	fputs("::__rl_factory(__rl_mask_type &&v) { return (__rl_mask_type &&)(v); }\n", printer->fFuncsImpl);
 
 
 	for(RlcSrcSize i = 0; i < this->fFunctionCount; i++)

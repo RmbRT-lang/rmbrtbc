@@ -151,7 +151,7 @@ void rlc_parsed_cast_expression_print(
 		}break;
 	case kRlcCastTypeConcept:
 		rlc_parsed_type_name_print(&this->fType, file, out);
-		fputs("::FROM", out);
+		fputs("::__rl_factory", out);
 		break;
 	default:
 		RLC_DASSERT(!"unhandled type");
