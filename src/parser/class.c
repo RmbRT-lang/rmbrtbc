@@ -229,12 +229,24 @@ static void rlc_parsed_class_print_impl(
 
 	rlc_parsed_member_list_print(&this->fMembers, file, printer);
 
+	//////////////////////
+	// Get base address //
+	//////////////////////
+
 	fputs("public: struct __rl_identifier {};\n", out);
+	static unsigned class_id = 1;
+	fprintf(out, "enum { __rl_type_number = __rl::last_native_type_number + %u };", class_id++);
 
 	if(this->fIsVirtual)
+	{
 		fputs("virtual void const * __rl_get_derived(__rl_identifier const *) const = 0;\n", out);
+		fputs("virtual unsigned __rl_type_id(__rl_identifier const *) const = 0;\n", out);
+	}
 	else
+	{
 		fputs("inline void const * __rl_get_derived(__rl_identifier const *) const { return this; }\n", out);
+		fputs("constexpr unsigned __rl_type_id(__rl_identifier const *) const { return __rl_type_number; }", out);
+	}
 
 	for(RlcSrcIndex i = 0; i < this->fInheritanceCount; i++)
 	{
@@ -245,8 +257,19 @@ static void rlc_parsed_class_print_impl(
 			out);
 
 		fputs("::__rl_identifier const *) const { return __rl::real_addr(*this); }\n", out);
+
+		fputs("unsigned __rl_type_id(", out);
+		rlc_parsed_symbol_print_no_template(
+			&this->fInheritances[i].fBase,
+			file,
+			out);
+
+		fputs("::__rl_identifier const *) const { return __rl::type_number(*this); }\n", out);
 	}
 
+	////////////////
+	// Destructor //
+	////////////////
 
 	if(this->fHasDestructor)
 	{
@@ -372,7 +395,6 @@ static void rlc_parsed_class_print_impl(
 		fputs("typedef ", out);
 		rlc_printer_print_ctx_symbol(printer, file, out);
 		fputs(" __rl_MY_T;\n", out);
-
 
 		rlc_src_string_print(
 			&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,

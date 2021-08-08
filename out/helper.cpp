@@ -443,6 +443,52 @@ namespace __rl
 	inline T __rl_dynamic_cast(U &v) {
 		return dynamic_cast<T>(v);
 	}
+
+	template<class T>
+	struct TypeNumber { enum { value = T::__rl_type_number }; };
+
+	template<> struct TypeNumber<uint8_t> { enum { value = 1 }; };
+	template<> struct TypeNumber<int8_t> { enum { value = 2 }; };
+	template<> struct TypeNumber<uint16_t> { enum { value = 3 }; };
+	template<> struct TypeNumber<int16_t> { enum { value = 4 }; };
+	template<> struct TypeNumber<uint32_t> { enum { value = 5 }; };
+	template<> struct TypeNumber<int32_t> { enum { value = 6 }; };
+	template<> struct TypeNumber<uint64_t> { enum { value = 7 }; };
+	template<> struct TypeNumber<int64_t> { enum { value = 8 }; };
+	template<> struct TypeNumber<float> { enum { value = 9 }; };
+	template<> struct TypeNumber<double> { enum { value = 10 }; };
+	template<> struct TypeNumber<long double> { enum { value = 11 }; };
+	template<> struct TypeNumber<nullptr_t> { enum { value = 12 }; };
+	template<> struct TypeNumber<bool> { enum { value = 13 }; };
+
+	enum { last_native_type_number = 13 };
+
+	template<class T>
+	constexpr unsigned type_number() { return TypeNumber<T>::value; }
+	template<class T> constexpr unsigned type_number(T const&) { return TypeNumber<T>::value; }
+	template<class T> constexpr unsigned type_number(T &) { return TypeNumber<T>::value; }
+	template<class T> constexpr unsigned type_number(T const*) { return TypeNumber<T>::value; }
+	template<class T> constexpr unsigned type_number(T *) { return TypeNumber<T>::value; }
+	template<class T> constexpr unsigned type_number(T const&&) { return TypeNumber<T>::value; }
+	template<class T> constexpr unsigned type_number(T &&) { return TypeNumber<T>::value; }
+
+	template<class T>
+	inline unsigned deriving_type_number(T const& type)
+	{
+		if constexpr(std::is_polymorphic<T>())
+			return type.__rl_type_id(static_cast<T::__rl_identifier const *>(nullptr));
+		else
+			return type_number<T>();
+	}
+
+	template<class T>
+	inline unsigned deriving_type_number(T const * type)
+	{
+		if constexpr(std::is_polymorphic<T>())
+			return type->__rl_type_id(static_cast<T::__rl_identifier const *>(nullptr));
+		else
+			return type_number<T>();
+	}
 }
 
 // Declare special size types.
