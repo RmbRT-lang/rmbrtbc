@@ -234,18 +234,25 @@ static void rlc_parsed_class_print_impl(
 	//////////////////////
 
 	fputs("public: struct __rl_identifier {};\n", out);
+
 	static unsigned class_id = 1;
-	fprintf(out, "enum { __rl_type_number = __rl::last_native_type_number + %u };", class_id++);
+	fprintf(out, "enum { __rl_type_number_v = __rl::last_native_type_number + %u };\n", class_id++);
+
+	fputs("static constexpr char const * __rl_type_name_v = \"", out);
+	rlc_printer_print_ctx_symbol_rl_flavour(printer, file, out);
+	fputs("\";\n", out);
 
 	if(this->fIsVirtual)
 	{
 		fputs("virtual void const * __rl_get_derived(__rl_identifier const *) const = 0;\n", out);
-		fputs("virtual unsigned __rl_type_id(__rl_identifier const *) const = 0;\n", out);
+		fputs("virtual char const * __rl_type_name(__rl_identifier const *) const = 0;\n", out);
+		fputs("virtual unsigned __rl_type_number(__rl_identifier const *) const = 0;\n", out);
 	}
 	else
 	{
 		fputs("inline void const * __rl_get_derived(__rl_identifier const *) const { return this; }\n", out);
-		fputs("constexpr unsigned __rl_type_id(__rl_identifier const *) const { return __rl_type_number; }", out);
+		fputs("constexpr char const * __rl_type_name(__rl_identifier const *) const { return __rl_type_name_v; }\n", out);
+		fputs("constexpr unsigned __rl_type_number(__rl_identifier const *) const { return __rl_type_number_v; }\n", out);
 	}
 
 	for(RlcSrcIndex i = 0; i < this->fInheritanceCount; i++)
@@ -258,7 +265,15 @@ static void rlc_parsed_class_print_impl(
 
 		fputs("::__rl_identifier const *) const { return __rl::real_addr(*this); }\n", out);
 
-		fputs("unsigned __rl_type_id(", out);
+		fputs("char const * __rl_type_name(", out);
+		rlc_parsed_symbol_print_no_template(
+			&this->fInheritances[i].fBase,
+			file,
+			out);
+
+		fputs("::__rl_identifier const *) const { return __rl::type_name(*this); }\n", out);
+
+		fputs("unsigned __rl_type_number(", out);
 		rlc_parsed_symbol_print_no_template(
 			&this->fInheritances[i].fBase,
 			file,

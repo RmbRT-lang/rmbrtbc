@@ -27,6 +27,10 @@ int rlc_parsed_variable_statement_parse(
 	struct RlcParsedVariableStatement * out,
 	struct RlcParser * parser)
 {
+	if(!rlc_parser_is_current(parser, kRlcTokIdentifier)
+	&& !rlc_parser_is_ahead(parser, kRlcTokIdentifier))
+		return 0;
+
 	int isStatic = rlc_parser_consume(
 		parser,
 		NULL,
@@ -42,6 +46,8 @@ int rlc_parsed_variable_statement_parse(
 		0,
 		1))
 	{
+		if(isStatic)
+			rlc_parser_fail(parser, "expected variable");
 		return 0;
 	}
 	rlc_parsed_variable_statement_create(out);

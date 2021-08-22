@@ -9,6 +9,7 @@
 #include "nullexpression.h"
 #include "castexpression.h"
 #include "sizeofexpression.h"
+#include "typeofexpression.h"
 #include "symbolconstantexpression.h"
 
 #include "../assert.h"
@@ -49,6 +50,7 @@ void rlc_parsed_expression_destroy_virtual(
 		(destructor_t)&rlc_parsed_null_expression_destroy,
 		(destructor_t)&rlc_parsed_cast_expression_destroy,
 		(destructor_t)&rlc_parsed_sizeof_expression_destroy,
+		(destructor_t)&rlc_parsed_typeof_expression_destroy,
 		(destructor_t)&rlc_parsed_symbol_constant_expression_destroy
 	};
 
@@ -65,6 +67,7 @@ void rlc_parsed_expression_destroy_virtual(
 		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcParsedNullExpression),
 		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcParsedCastExpression),
 		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcParsedSizeofExpression),
+		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcParsedTypeofExpression),
 		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcParsedSymbolConstantExpression),
 	};
 
@@ -90,6 +93,7 @@ union RlcExpressionStorage
 	struct RlcParsedThisExpression fRlcParsedNullExpression;
 	struct RlcParsedCastExpression fRlcParsedCastExpression;
 	struct RlcParsedSizeofExpression fRlcParsedSizeofExpression;
+	struct RlcParsedSizeofExpression fRlcParsedTypeofExpression;
 	struct RlcParsedSymbolConstantExpression fRlcParsedSymbolConstantExpression;
 };
 
@@ -136,9 +140,10 @@ struct RlcParsedExpression * rlc_parsed_expression_parse(
 		ENTRY(RlcParsedSymbolExpression, &rlc_parsed_symbol_expression_parse, 0),
 		ENTRY(RlcParsedSymbolChildExpression, &rlc_parsed_symbol_child_expression_parse, 0),
 		ENTRY(RlcParsedThisExpression, &rlc_parsed_this_expression_parse, 0),
-		ENTRY(RlcParsedThisExpression, &rlc_parsed_null_expression_parse, 0),
+		ENTRY(RlcParsedNullExpression, &rlc_parsed_null_expression_parse, 0),
 		ENTRY(RlcParsedCastExpression, &rlc_parsed_cast_expression_parse, 0),
 		ENTRY(RlcParsedSizeofExpression, &rlc_parsed_sizeof_expression_parse, 0),
+		ENTRY(RlcParsedTypeofExpression, &rlc_parsed_typeof_expression_parse, 0),
 		ENTRY(RlcParsedSymbolConstantExpression, &rlc_parsed_symbol_constant_expression_parse, 0)
 	};
 
@@ -240,6 +245,7 @@ void rlc_parsed_expression_print(
 		(print_fn_t)&rlc_parsed_null_expression_print,
 		(print_fn_t)&rlc_parsed_cast_expression_print,
 		(print_fn_t)&rlc_parsed_sizeof_expression_print,
+		(print_fn_t)&rlc_parsed_typeof_expression_print,
 		(print_fn_t)&rlc_parsed_symbol_constant_expression_print,
 	};
 
@@ -256,6 +262,7 @@ void rlc_parsed_expression_print(
 		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcParsedNullExpression),
 		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcParsedCastExpression),
 		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcParsedSizeofExpression),
+		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcParsedTypeofExpression),
 		RLC_DERIVE_OFFSET(RlcParsedExpression, struct RlcParsedSymbolConstantExpression),
 	};
 

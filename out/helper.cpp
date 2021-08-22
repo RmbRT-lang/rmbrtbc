@@ -445,7 +445,7 @@ namespace __rl
 	}
 
 	template<class T>
-	struct TypeNumber { enum { value = T::__rl_type_number }; };
+	struct TypeNumber { enum { value = T::__rl_type_number_v }; };
 
 	template<> struct TypeNumber<uint8_t> { enum { value = 1 }; };
 	template<> struct TypeNumber<int8_t> { enum { value = 2 }; };
@@ -476,7 +476,7 @@ namespace __rl
 	inline unsigned deriving_type_number(T const& type)
 	{
 		if constexpr(std::is_polymorphic<T>())
-			return type.__rl_type_id(static_cast<T::__rl_identifier const *>(nullptr));
+			return type.__rl_type_number(static_cast<T::__rl_identifier const *>(nullptr));
 		else
 			return type_number<T>();
 	}
@@ -485,9 +485,54 @@ namespace __rl
 	inline unsigned deriving_type_number(T const * type)
 	{
 		if constexpr(std::is_polymorphic<T>())
-			return type->__rl_type_id(static_cast<T::__rl_identifier const *>(nullptr));
+			return type->__rl_type_number(static_cast<T::__rl_identifier const *>(nullptr));
 		else
 			return type_number<T>();
+	}
+
+	template<class T> struct TypeName
+	{
+		static constexpr char const * value = T::__rl_type_name_v;
+	};
+	template<> struct TypeName<uint8_t> { static constexpr char const * value = "U1"; };
+	template<> struct TypeName<int8_t> { static constexpr char const * value = "S1"; };
+	template<> struct TypeName<uint16_t> { static constexpr char const * value = "U2"; };
+	template<> struct TypeName<int16_t> { static constexpr char const * value = "S2"; };
+	template<> struct TypeName<uint32_t> { static constexpr char const * value = "U4"; };
+	template<> struct TypeName<int32_t> { static constexpr char const * value = "S4"; };
+	template<> struct TypeName<uint64_t> { static constexpr char const * value = "U8"; };
+	template<> struct TypeName<int64_t> { static constexpr char const * value = "S8"; };
+	template<> struct TypeName<float> { static constexpr char const * value = "SINGLE"; };
+	template<> struct TypeName<double> { static constexpr char const * value = "DOUBLE"; };
+	template<> struct TypeName<long double> { static constexpr char const * value = "QUADRUPLE"; };
+	template<> struct TypeName<nullptr_t> { static constexpr char const * value = "NULL"; };
+	template<> struct TypeName<bool> { static constexpr char const * value = "BOOL"; };
+
+	template<class T>
+	constexpr char const * type_name() { return TypeName<T>::value; }
+	template<class T> constexpr char const * type_name(T const&) { return TypeName<T>::value; }
+	template<class T> constexpr char const * type_name(T &) { return TypeName<T>::value; }
+	template<class T> constexpr char const * type_name(T const*) { return TypeName<T>::value; }
+	template<class T> constexpr char const * type_name(T *) { return TypeName<T>::value; }
+	template<class T> constexpr char const * type_name(T const&&) { return TypeName<T>::value; }
+	template<class T> constexpr char const * type_name(T &&) { return TypeName<T>::value; }
+
+	template<class T>
+	inline char const * deriving_type_name(T const& type)
+	{
+		if constexpr(std::is_polymorphic<T>())
+			return type.__rl_type_name(static_cast<T::__rl_identifier const *>(nullptr));
+		else
+			return type_name<T>();
+	}
+
+	template<class T>
+	inline char const * deriving_type_name(T const * type)
+	{
+		if constexpr(std::is_polymorphic<T>())
+			return type->__rl_type_name(static_cast<T::__rl_identifier const *>(nullptr));
+		else
+			return type_name<T>();
 	}
 }
 

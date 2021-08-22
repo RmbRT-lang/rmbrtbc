@@ -36,6 +36,8 @@ enum RlcParsedExpressionType {
 	kRlcParsedCastExpression,
 	/** RlcParsedSizeofExpression. */
 	kRlcParsedSizeofExpression,
+	/** RlcParsedTypeofExpression. */
+	kRlcParsedTypeofExpression,
 	/** RlcParsedSymbolConstantExpression. */
 	kRlcParsedSymbolConstantExpression,
 

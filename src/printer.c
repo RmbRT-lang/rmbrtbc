@@ -77,3 +77,32 @@ void rlc_printer_print_ctx_symbol(
 		}
 	}
 }
+
+void rlc_printer_print_ctx_symbol_rl_flavour(
+	struct RlcPrinter const * p,
+	struct RlcSrcFile const * file,
+	FILE * out)
+{
+	int tail = 0;
+	for(struct RlcPrinterCtx * ctx = p->outerCtx; ctx != NULL; ctx = ctx->next)
+	{
+		if(tail)
+			fputs("::", out);
+		tail = 1;
+
+		if(ctx->tpl && rlc_parsed_template_decl_exists(ctx->tpl))
+		{
+			fputs("[", out);
+			for(RlcSrcIndex i = 0; i < ctx->tpl->fChildCount; i++)
+			{
+				if(i)
+					fputs(", ", out);
+
+				rlc_src_string_print_noreplace(&ctx->tpl->fChildren[i].fName, file, out);
+			}
+			fputs("]", out);
+		}
+
+		rlc_src_string_print_noreplace(ctx->str, file, out);
+	}
+}

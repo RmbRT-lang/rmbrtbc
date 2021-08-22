@@ -54,6 +54,11 @@ void rlc_printer_print_ctx_symbol(
 	struct RlcSrcFile const * file,
 	FILE * out);
 
+void rlc_printer_print_ctx_symbol_rl_flavour(
+	struct RlcPrinter const * p,
+	struct RlcSrcFile const * file,
+	FILE * out);
+
 #ifdef __cplusplus
 }
 #endif

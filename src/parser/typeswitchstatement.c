@@ -71,14 +71,16 @@ int rlc_parsed_type_switch_statement_parse(
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
 
-	if(!rlc_parser_consume(
+	if(!rlc_parser_is_ahead(parser, kRlcTokSwitch)
+	|| !rlc_parser_consume(
 		parser,
 		NULL,
 		kRlcTokType))
 		return 0;
+	rlc_parser_skip(parser);
+
 	struct RlcParserTracer ctx;
 	rlc_parser_trace(parser, "type switch", &ctx);
-	rlc_parser_expect(parser, NULL, 1, kRlcTokSwitch);
 
 	rlc_parsed_type_switch_statement_create(out);
 
