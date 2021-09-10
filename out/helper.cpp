@@ -518,6 +518,15 @@ namespace __rl
 			return type_number<T>();
 	}
 
+	template<class T>
+	inline unsigned deriving_type_number(T * type)
+	{
+		if constexpr(std::is_polymorphic<T>())
+			return type->__rl_type_number(static_cast<T::__rl_identifier const *>(nullptr));
+		else
+			return type_number<T>();
+	}
+
 	template<class T> struct TypeName
 	{
 		static constexpr char const * value = T::__rl_type_name_v;
@@ -556,6 +565,15 @@ namespace __rl
 
 	template<class T>
 	inline char const * deriving_type_name(T const * type)
+	{
+		if constexpr(std::is_polymorphic<T>())
+			return type->__rl_type_name(static_cast<T::__rl_identifier const *>(nullptr));
+		else
+			return type_name<T>();
+	}
+
+	template<class T>
+	inline char const * deriving_type_name(T * type)
 	{
 		if constexpr(std::is_polymorphic<T>())
 			return type->__rl_type_name(static_cast<T::__rl_identifier const *>(nullptr));
