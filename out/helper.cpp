@@ -424,6 +424,34 @@ namespace __rl
 		return v.__rl_get_derived(static_cast<T::__rl_identifier const *>(nullptr));
 	}
 
+	template<class T>
+	concept HasCustomValueOf = requires(T x) { x.__rl_value_of(); };
+
+	template<class T, bool = HasCustomValueOf<T>>
+	struct value_of_t { };
+
+	template<class T>
+	struct value_of_t<T, true> {
+		typedef typename value_of_t<
+			decltype(std::declval<T>().__rl_value_of())
+		>::type type;
+	};
+
+	template<class T>
+	struct value_of_t<T, false> {
+		typedef T type;
+	};
+
+	template<class T>
+	typename value_of_t<T&&>::type value_of(T &&v)
+	{
+		if constexpr(HasCustomValueOf<T>)
+		{
+			return value_of(v.__rl_value_of());
+		} else {
+			return (typename value_of_t<T>::type)v;
+		}
+	}
 
 	template<class Fn, class Obj, class ...Args>
 	inline Fn &&visit(Fn &&fn, Obj &&obj, Args &&... args)

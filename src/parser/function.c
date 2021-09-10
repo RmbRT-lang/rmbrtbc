@@ -390,9 +390,13 @@ static void rlc_parsed_function_print_head_2(
 			{
 				fputs("__rl_stream_feed", out);
 				break;
-			} else if (this->fOperatorName == kCount)
+			} else if(this->fOperatorName == kCount)
 			{
 				fputs("__rl_count", out);
+				break;
+			} else if(this->fOperatorName == kValueOf)
+			{
+				fputs("__rl_value_of", out);
 				break;
 			}
 

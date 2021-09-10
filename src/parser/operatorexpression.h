@@ -29,6 +29,7 @@ enum RlcOperator
 	kCount,
 
 	kRealAddr,
+	kValueOf,
 
 	kAsync,
 	kFullAsync,

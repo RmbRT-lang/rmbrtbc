@@ -70,7 +70,8 @@ const k_unary[] = {
 k_unary_postfix[] = {
 	{ kRlcTokDoublePlus, kPostIncrement },
 	{ kRlcTokDoubleMinus, kPostDecrement },
-	{ kRlcTokTripleDot, kVariadicExpand }
+	{ kRlcTokTripleDot, kVariadicExpand },
+	{ kRlcTokExclamationMark, kValueOf }
 },
 // binary operators.
 k_binary[] = {
@@ -665,6 +666,7 @@ void rlc_parsed_operator_expression_print(
 		{kPostIncrement, 2, "++",1}, {kPostDecrement, 2, "--",1},
 		{kCount, -1, NULL, 0},
 		{kRealAddr, -1, NULL, 0},
+		{kValueOf, -1, NULL, 0},
 
 		{kAsync, -1, NULL,1},
 		{kFullAsync, -1, NULL,1},
@@ -758,6 +760,10 @@ void rlc_parsed_operator_expression_print(
 				{
 					fputs("::__rl::real_addr(", out);
 				} break;
+			case kValueOf:
+				{
+					fputs("::__rl::value_of(", out);
+				} break;
 			case kVisit:
 				{
 					fputs("::__rl::visit(", out);
@@ -847,6 +853,7 @@ void rlc_parsed_operator_expression_print(
 			case kMove:
 			case kCount:
 			case kRealAddr:
+			case kValueOf:
 				{
 					for(RlcSrcIndex i = 1; i < this->fExpressionCount; i++)
 					{
