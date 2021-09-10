@@ -20,7 +20,12 @@ static void rlc_parsed_type_case_statement_destroy(
 	struct RlcParsedTypeCaseStatement * this)
 {
 	if(!this->fIsDefault)
-		rlc_parsed_symbol_destroy(&this->fTypeName);
+	{
+		for(RlcSrcIndex i = 0; i < this->fTypeNameCount; i++)
+			rlc_parsed_symbol_destroy(&this->fTypeNames[i]);
+		if(this->fTypeNames)
+			rlc_free((void**)&this->fTypeNames);
+	}
 	rlc_parsed_statement_destroy_virtual(this->fBodyStatement);
 	rlc_free((void**)&this->fBodyStatement);
 }
@@ -51,10 +56,21 @@ static void rlc_parsed_type_case_statement_parse(
 {
 	out->fIsDefault = kRlcTokDefault == rlc_parser_expect(parser, NULL, 2,
 		kRlcTokDefault, kRlcTokCase);
+	out->fTypeNames = NULL;
+	out->fTypeNameCount = 0;
 
 	if(!out->fIsDefault)
-		if(!rlc_parsed_symbol_parse(&out->fTypeName, parser, 0))
-			rlc_parser_fail(parser, "expected type name");
+		do
+		{
+			struct RlcParsedSymbol typeName;
+			if(!rlc_parsed_symbol_parse(&typeName, parser, 0))
+				rlc_parser_fail(parser, "expected type name");
+
+			rlc_realloc(
+				(void**)&out->fTypeNames,
+				sizeof(struct RlcParsedSymbol) * ++out->fTypeNameCount);
+			out->fTypeNames[out->fTypeNameCount-1] = typeName;
+		} while(rlc_parser_consume(parser, NULL, kRlcTokComma));
 	rlc_parser_expect(parser, NULL, 1, kRlcTokColon);
 	if(!(out->fBodyStatement = rlc_parsed_statement_parse(
 		parser,
@@ -126,10 +142,10 @@ void rlc_parsed_type_switch_statement_print(
 	{
 		if(this->fCases[i].fIsDefault)
 			fputs("default:", out);
-		else
+		else for(RlcSrcIndex j = 0; j<this->fCases[i].fTypeNameCount; j++)
 		{
 			fputs("case __rl::type_number<", out);
-			rlc_parsed_symbol_print(&this->fCases[i].fTypeName, file, out);
+			rlc_parsed_symbol_print(&this->fCases[i].fTypeNames[j], file, out);
 			fputs(">():", out);
 		}
 

@@ -35,7 +35,8 @@ struct RlcParsedTypeSwitchStatement
 struct RlcParsedTypeCaseStatement
 {
 	int fIsDefault;
-	struct RlcParsedSymbol fTypeName;
+	struct RlcParsedSymbol * fTypeNames;
+	RlcSrcSize fTypeNameCount;
 	struct RlcParsedStatement * fBodyStatement;
 };
 
