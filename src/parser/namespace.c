@@ -94,8 +94,14 @@ int rlc_parsed_namespace_parse(
 void rlc_parsed_namespace_print(
 	struct RlcParsedNamespace const * this,
 	struct RlcSrcFile const * file,
-	struct RlcPrinter const * printer)
+	struct RlcPrinter * printer)
 {
+	struct RlcPrinterNamespace ns;
+	rlc_printer_add_ns(
+		printer,
+		&ns,
+		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName);
+
 	FILE * out;
 	for(int i = 0; i<6; i++)
 	{
@@ -135,4 +141,6 @@ void rlc_parsed_namespace_print(
 		}
 		fputs("}\n", out);
 	}
+
+	rlc_printer_pop_ns(printer);
 }

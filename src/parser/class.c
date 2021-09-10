@@ -239,7 +239,7 @@ static void rlc_parsed_class_print_impl(
 	fprintf(out, "enum { __rl_type_number_v = __rl::last_native_type_number + %u };\n", class_id++);
 
 	fputs("static constexpr char const * __rl_type_name_v = \"", out);
-	rlc_printer_print_ctx_symbol_rl_flavour(printer, file, out);
+	rlc_printer_print_ctx_symbol_with_namespace_rl_flavour(printer, file, out);
 	fputs("\";\n", out);
 
 	if(this->fIsVirtual)

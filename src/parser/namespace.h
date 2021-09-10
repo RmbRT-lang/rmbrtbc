@@ -54,7 +54,7 @@ _Nodiscard int rlc_parsed_namespace_parse(
 void rlc_parsed_namespace_print(
 	struct RlcParsedNamespace const * this,
 	struct RlcSrcFile const * file,
-	struct RlcPrinter const * printer);
+	struct RlcPrinter * printer);
 
 #ifdef __cplusplus
 }
