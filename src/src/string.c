@@ -118,6 +118,7 @@ void rlc_src_string_print(
 		"namespace",
 		"using"
 		"volatile",
+		"register",
 		"std", // avoid having c++ std stuff appear in rl std.
 		"nullptr",
 		"nullptr_t",
