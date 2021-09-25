@@ -8,7 +8,6 @@
 #include <variant>
 #include <exception>
 
-#include <coroutine>
 #include <exception>
 #include <future>
 #include <thread>
@@ -439,6 +438,11 @@ namespace __rl
 
 	template<class T>
 	struct value_of_t<T, false> {
+		typedef T type;
+	};
+
+	template<class T>
+	struct value_of_t<T&&, false> {
 		typedef T type;
 	};
 
