@@ -141,7 +141,7 @@ void rlc_parsed_cast_expression_print(
 		needRef = !isNonNull;
 		if(isNonNull)
 			fputs("&", out);
-		fputs("dynamic_cast<", out);
+		fputs("::__rl::__rl_dynamic_cast<", out);
 		if(isNonNull)
 			fputs("std::remove_pointer_t<", out);
 		rlc_parsed_type_name_print(&this->fType, file, out);
@@ -151,7 +151,7 @@ void rlc_parsed_cast_expression_print(
 		}break;
 	case kRlcCastTypeConcept:
 		rlc_parsed_type_name_print(&this->fType, file, out);
-		fputs("::FROM", out);
+		fputs("::__rl_factory", out);
 		break;
 	default:
 		RLC_DASSERT(!"unhandled type");

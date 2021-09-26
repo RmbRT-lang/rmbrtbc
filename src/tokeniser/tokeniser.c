@@ -208,6 +208,7 @@ struct {
 	{"TYPE", kRlcTokType },
 	{"UNION", kRlcTokUnion },
 	{"VIRTUAL", kRlcTokVirtual },
+	{"VISIT", kRlcTokVisit },
 	{"VOID", kRlcTokVoid },
 	{"WHILE", kRlcTokWhile },
 }, s_operators [] = {

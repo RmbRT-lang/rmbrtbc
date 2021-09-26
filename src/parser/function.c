@@ -128,6 +128,12 @@ int rlc_parsed_function_parse(
 		kRlcTokThis))
 	{
 		fnType = kRlcFunctionTypeOperator;
+	} else if(rlc_parser_consume(
+		parser,
+		&name,
+		kRlcTokTripleLess))
+	{
+		fnType = kRlcFunctionTypeFactory;
 	} else
 		return 0;
 
@@ -149,6 +155,17 @@ int rlc_parsed_function_parse(
 				rlc_parser_fail(parser, "expected type name");
 
 			rlc_parser_expect(parser, NULL, 1, kRlcTokGreater);
+		} break;
+	case kRlcFunctionTypeFactory:
+		{
+			struct RlcParsedVariable arg;
+			do
+			{
+				if(!rlc_parsed_variable_parse(&arg, parser, NULL, 0, 0, 0, 0, 1))
+					rlc_parser_fail(parser, "expected argument");
+				rlc_parsed_function_add_argument(out, &arg);
+			} while(rlc_parser_consume(parser, NULL, kRlcTokComma));
+			rlc_parser_expect(parser, NULL, 1, kRlcTokTripleGreater);
 		} break;
 	// Expecting operator now (except '(' and '[')?
 	case kRlcFunctionTypeOperator:
@@ -364,15 +381,22 @@ static void rlc_parsed_function_print_head_2(
 			file,
 			out);
 		break;
+	case kRlcFunctionTypeFactory:
+		fputs("__rl_factory", out);
+		break;
 	case kRlcFunctionTypeOperator:
 		{
 			if(this->fOperatorName == kStreamFeed)
 			{
 				fputs("__rl_stream_feed", out);
 				break;
-			} else if (this->fOperatorName == kCount)
+			} else if(this->fOperatorName == kCount)
 			{
 				fputs("__rl_count", out);
+				break;
+			} else if(this->fOperatorName == kValueOf)
+			{
+				fputs("__rl_value_of", out);
 				break;
 			}
 
@@ -587,30 +611,36 @@ int rlc_parsed_member_function_parse(
 	RLC_DASSERT(parser != NULL);
 	RLC_DASSERT(member != NULL);
 
-	static struct {
-		enum RlcTokenType token;
-		enum RlcMemberFunctionAbstractness value;
-	} k_lookup[] = {
-		{ kRlcTokVirtual, kRlcMemberFunctionAbstractnessVirtual },
-		{ kRlcTokAbstract, kRlcMemberFunctionAbstractnessAbstract },
-		{ kRlcTokOverride, kRlcMemberFunctionAbstractnessOverride },
-		{ kRlcTokFinal, kRlcMemberFunctionAbstractnessFinal }
-	};
-
 	int any = 0;
-	for(size_t i = 0; i < _countof(k_lookup); i++)
-		if(rlc_parser_consume(
-			parser,
-			NULL,
-			k_lookup[i].token))
-		{
-			out->fAbstractness = k_lookup[i].value;
-			any = 1;
-			break;
-		}
-
-	if(!any)
+	if(rlc_parser_is_current(parser, kRlcTokTripleLess))
+	{
 		out->fAbstractness = kRlcMemberFunctionAbstractnessNone;
+	} else
+	{
+		static struct {
+			enum RlcTokenType token;
+			enum RlcMemberFunctionAbstractness value;
+		} k_lookup[] = {
+			{ kRlcTokVirtual, kRlcMemberFunctionAbstractnessVirtual },
+			{ kRlcTokAbstract, kRlcMemberFunctionAbstractnessAbstract },
+			{ kRlcTokOverride, kRlcMemberFunctionAbstractnessOverride },
+			{ kRlcTokFinal, kRlcMemberFunctionAbstractnessFinal }
+		};
+
+		for(size_t i = 0; i < _countof(k_lookup); i++)
+			if(rlc_parser_consume(
+				parser,
+				NULL,
+				k_lookup[i].token))
+			{
+				out->fAbstractness = k_lookup[i].value;
+				any = 1;
+				break;
+			}
+
+		if(!any)
+			out->fAbstractness = kRlcMemberFunctionAbstractnessNone;
+	}
 
 	if(!rlc_parsed_function_parse(
 		RLC_BASE_CAST(out, RlcParsedFunction),

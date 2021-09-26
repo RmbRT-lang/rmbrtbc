@@ -30,6 +30,7 @@ enum RlcFunctionType
 	kRlcFunctionTypeFunction,
 	kRlcFunctionTypeOperator,
 	kRlcFunctionTypeCast,
+	kRlcFunctionTypeFactory
 };
 
 /** A function as used in the parser.

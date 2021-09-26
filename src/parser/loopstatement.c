@@ -337,11 +337,6 @@ void rlc_parsed_loop_statement_print(
 			fputs("true", out);
 
 		fputs(");\n", out);
-		rlc_parsed_control_label_print(
-			&this->fLabel,
-			file,
-			out,
-			"_break");
 	} else
 	{
 		fputs("for(;", out);

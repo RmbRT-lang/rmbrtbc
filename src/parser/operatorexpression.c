@@ -70,7 +70,8 @@ const k_unary[] = {
 k_unary_postfix[] = {
 	{ kRlcTokDoublePlus, kPostIncrement },
 	{ kRlcTokDoubleMinus, kPostDecrement },
-	{ kRlcTokTripleDot, kVariadicExpand }
+	{ kRlcTokTripleDot, kVariadicExpand },
+	{ kRlcTokExclamationMark, kValueOf }
 },
 // binary operators.
 k_binary[] = {
@@ -293,6 +294,9 @@ static _Nodiscard struct RlcParsedExpression * parse_postfix(
 				continue;
 			}
 		}
+
+		int isVisit = 0;
+
 		// Subscript operator?
 		if(rlc_parser_consume(
 			parser,
@@ -324,14 +328,21 @@ static _Nodiscard struct RlcParsedExpression * parse_postfix(
 			continue;
 		}
 		// function call operator?
-		else if(rlc_parser_consume(
+		else if((
+			(isVisit = rlc_parser_consume(
+				parser,
+				NULL,
+				kRlcTokVisit))
+			&& (rlc_parser_expect(
+				parser, NULL, 1, kRlcTokParentheseOpen), 1))
+		|| rlc_parser_consume(
 			parser,
 			NULL,
 			kRlcTokParentheseOpen))
 		{
 			struct RlcParsedOperatorExpression * temp =
 				make_unary_expression(
-					kCall,
+					isVisit ? kVisit : kCall,
 					out,
 					out->fStart,
 					out->fStart);
@@ -339,7 +350,7 @@ static _Nodiscard struct RlcParsedExpression * parse_postfix(
 			out = RLC_BASE_CAST(temp, RlcParsedExpression);
 
 			int arguments = 0;
-			while(!rlc_parser_consume(
+			while((isVisit && !arguments) || !rlc_parser_consume(
 				parser,
 				&out->fEnd,
 				kRlcTokParentheseClose))
@@ -647,7 +658,7 @@ void rlc_parsed_operator_expression_print(
 		{kShiftLeft, 1, "<<",1}, {kShiftRight, 1, ">>",1},
 		{kRotateLeft, -1, NULL,1}, {kRotateRight, -1, NULL,1},
 		{kNeg, 0, "-",1}, {kPos, 0, "+",1},
-		{kSubscript, -1, NULL,0}, {kCall, -1, NULL,0}, {kConditional, -1, NULL,1},
+		{kSubscript, -1, NULL,0}, {kCall, -1, NULL,0}, {kVisit, -1, NULL, 0}, {kConditional, -1, NULL,1},
 		{kMemberReference, -1, ".",0}, {kMemberPointer, -1, "->",0},
 		{kBindReference, 1, ".*",1}, {kBindPointer, 1, "->*",1},
 		{kDereference, 0, "*",1}, {kAddress, 0, "&",1}, {kMove, -1, NULL,0},
@@ -655,6 +666,7 @@ void rlc_parsed_operator_expression_print(
 		{kPostIncrement, 2, "++",1}, {kPostDecrement, 2, "--",1},
 		{kCount, -1, NULL, 0},
 		{kRealAddr, -1, NULL, 0},
+		{kValueOf, -1, NULL, 0},
 
 		{kAsync, -1, NULL,1},
 		{kFullAsync, -1, NULL,1},
@@ -748,6 +760,14 @@ void rlc_parsed_operator_expression_print(
 				{
 					fputs("::__rl::real_addr(", out);
 				} break;
+			case kValueOf:
+				{
+					fputs("::__rl::value_of(", out);
+				} break;
+			case kVisit:
+				{
+					fputs("::__rl::visit(", out);
+				}  break;
 			default: { ; }
 			}
 		} break;
@@ -792,8 +812,9 @@ void rlc_parsed_operator_expression_print(
 			case kCall:
 			case kAsync:
 			case kFullAsync:
+			case kVisit:
 				{
-					fputc('(', out);
+					fputc(this->fOperator == kVisit ? ',' : '(', out);
 					for(RlcSrcIndex i = 1; i < this->fExpressionCount; i++)
 					{
 						if(i>1)
@@ -801,7 +822,7 @@ void rlc_parsed_operator_expression_print(
 						rlc_parsed_expression_print(this->fExpressions[i], file, out);
 					}
 					fputc(')', out);
-					if(this->fOperator != kCall)
+					if(this->fOperator == kAsync || this->fOperator == kFullAsync)
 						fputs("; })", out);
 				} break;
 			case kConditional:
@@ -832,6 +853,7 @@ void rlc_parsed_operator_expression_print(
 			case kMove:
 			case kCount:
 			case kRealAddr:
+			case kValueOf:
 				{
 					for(RlcSrcIndex i = 1; i < this->fExpressionCount; i++)
 					{

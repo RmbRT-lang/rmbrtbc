@@ -166,8 +166,8 @@ int main(
 		open_memstream(&typesImplBuf, &typesImplLen),
 		open_memstream(&varsImplBuf, &varsImplLen),
 		open_memstream(&funcsImplBuf, &funcsImplLen),
-		NULL,
-		NULL
+		NULL, NULL,
+		NULL, NULL
 	};
 
 	int status = 1;

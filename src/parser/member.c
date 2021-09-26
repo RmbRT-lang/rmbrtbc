@@ -203,7 +203,10 @@ enum RlcMemberAttribute rlc_member_attribute_parse(
 		kRlcTokHash))
 	{
 		return kRlcMemberAttributeIsolated;
-	} else if(rlc_parser_consume(
+	} else if(rlc_parser_is_current(
+		parser,
+		kRlcTokTripleLess)
+	|| rlc_parser_consume(
 		parser,
 		NULL,
 		kRlcTokStatic))

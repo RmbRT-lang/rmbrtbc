@@ -19,6 +19,12 @@ struct RlcPrinterCtx
 	struct RlcPrinterCtx * next, * prev;
 };
 
+struct RlcPrinterNamespace
+{
+	struct RlcSrcString const * str;
+	struct RlcPrinterNamespace * next, * prev;
+};
+
 struct RlcPrinter
 {
 	/** The number of the current compilation unit. */
@@ -34,6 +40,9 @@ struct RlcPrinter
 
 	struct RlcPrinterCtx * outerCtx;
 	struct RlcPrinterCtx * innerCtx;
+
+	struct RlcPrinterNamespace * outerNs;
+	struct RlcPrinterNamespace * innerNs;
 };
 
 void rlc_printer_add_ctx(
@@ -44,12 +53,24 @@ void rlc_printer_add_ctx(
 void rlc_printer_pop_ctx(
 	struct RlcPrinter * printer);
 
+void rlc_printer_add_ns(
+	struct RlcPrinter * printer,
+	struct RlcPrinterNamespace * ns,
+	struct RlcSrcString const * str);
+void rlc_printer_pop_ns(
+	struct RlcPrinter * printer);
+
 void rlc_printer_print_ctx_tpl(
 	struct RlcPrinter const * p,
 	struct RlcSrcFile const * file,
 	FILE * out);
 
 void rlc_printer_print_ctx_symbol(
+	struct RlcPrinter const * p,
+	struct RlcSrcFile const * file,
+	FILE * out);
+
+void rlc_printer_print_ctx_symbol_with_namespace_rl_flavour(
 	struct RlcPrinter const * p,
 	struct RlcSrcFile const * file,
 	FILE * out);

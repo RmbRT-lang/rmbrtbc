@@ -7,6 +7,7 @@
 #include "loopstatement.h"
 #include "variablestatement.h"
 #include "returnstatement.h"
+#include "typeswitchstatement.h"
 #include "switchstatement.h"
 #include "breakstatement.h"
 #include "continuestatement.h"
@@ -58,6 +59,7 @@ void rlc_parsed_statement_destroy_virtual(
 		ENTRY(LoopStatement, rlc_parsed_loop_statement_destroy),
 		ENTRY(VariableStatement, rlc_parsed_variable_statement_destroy),
 		ENTRY(ReturnStatement, rlc_parsed_return_statement_destroy),
+		ENTRY(TypeSwitchStatement, rlc_parsed_type_switch_statement_destroy),
 		ENTRY(SwitchStatement, rlc_parsed_switch_statement_destroy),
 		ENTRY(CaseStatement, rlc_parsed_case_statement_destroy),
 		ENTRY(BreakStatement, rlc_parsed_break_statement_destroy),
@@ -85,6 +87,7 @@ union RlcStatementStorage
 	struct RlcParsedLoopStatement fRlcParsedLoopStatement;
 	struct RlcParsedVariableStatement fRlcParsedVariableStatement;
 	struct RlcParsedReturnStatement fRlcParsedReturnStatement;
+	struct RlcParsedTypeSwitchStatement fRlcParsedTypeSwitchStatement;
 	struct RlcParsedSwitchStatement fRlcParsedSwitchStatement;
 	struct RlcParsedCaseStatement fRlcParsedCaseStatement;
 	struct RlcParsedBreakStatement fRlcParsedBreakStatement;
@@ -126,6 +129,7 @@ struct RlcParsedStatement * rlc_parsed_statement_parse(
 		ENTRY(RlcParsedIfStatement, &rlc_parsed_if_statement_parse),
 		ENTRY(RlcParsedLoopStatement, &rlc_parsed_loop_statement_parse),
 		ENTRY(RlcParsedVariableStatement, &rlc_parsed_variable_statement_parse),
+		ENTRY(RlcParsedTypeSwitchStatement, &rlc_parsed_type_switch_statement_parse),
 		ENTRY(RlcParsedSwitchStatement, &rlc_parsed_switch_statement_parse),
 		NOENTRY(RlcParsedCaseStatement),
 		ENTRY(RlcParsedBreakStatement, &rlc_parsed_break_statement_parse),
@@ -237,6 +241,7 @@ void rlc_parsed_statement_print(
 		ENTRY(LoopStatement, rlc_parsed_loop_statement_print),
 		ENTRY(VariableStatement, rlc_parsed_variable_statement_print),
 		ENTRY(ReturnStatement, rlc_parsed_return_statement_print),
+		ENTRY(SwitchStatement, rlc_parsed_type_switch_statement_print),
 		ENTRY(SwitchStatement, rlc_parsed_switch_statement_print),
 		ENTRY(CaseStatement, NULL), // non-standard signature.
 		ENTRY(BreakStatement, rlc_parsed_break_statement_print),

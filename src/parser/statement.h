@@ -21,6 +21,7 @@ enum RlcParsedStatementType
 	kRlcParsedLoopStatement,
 	kRlcParsedVariableStatement,
 	kRlcParsedReturnStatement,
+	kRlcParsedTypeSwitchStatement,
 	kRlcParsedSwitchStatement,
 	kRlcParsedCaseStatement,
 	kRlcParsedBreakStatement,
