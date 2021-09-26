@@ -148,7 +148,7 @@ struct RlcParsedTemplateDecl const * rlc_parsed_member_templates(
 {
 	#define WITH_TEMPLATES(Prefix, Type, tplName) \
 	{ \
-		kRlcParsed ## Type, \
+		kRlcParsedMember ## Type, \
 		1, \
 		RLC_DERIVE_OFFSET(RlcParsedMember, struct RlcParsed##Prefix##Type) \
 			+ RLC_BASE_OFFSET(RlcParsed##Type, struct RlcParsed##Prefix##Type) \
@@ -167,7 +167,7 @@ struct RlcParsedTemplateDecl const * rlc_parsed_member_templates(
 		WITH_TEMPLATES(Member,Rawtype, fTemplates),
 		WITH_TEMPLATES(Member,Union, fTemplates),
 		WITH_TEMPLATES(Member,Class, fTemplateDecl),
-		WITHOUT_TEMPLATES(RlcParsedEnum),
+		WITHOUT_TEMPLATES(RlcParsedMemberEnum),
 		WITH_TEMPLATES(Member,Typedef, fTemplates),
 		{
 			kRlcParsedConstructor,
