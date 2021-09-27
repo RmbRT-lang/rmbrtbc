@@ -18,7 +18,7 @@ typedef uint16_t RlcSrcIndex;
 typedef uint16_t RlcSrcSize;
 
 /** A string inside a source file. */
-struct RlcSrcString
+extern struct RlcSrcString
 {
 	RlcSrcIndex start;
 	RlcSrcSize length;

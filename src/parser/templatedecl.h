@@ -39,7 +39,7 @@ struct RlcParsedTemplateDeclChild
 };
 
 /** Multiple template arguemnt declaration. */
-struct RlcParsedTemplateDecl
+extern struct RlcParsedTemplateDecl
 {
 	/** The arguments. */
 	struct RlcParsedTemplateDeclChild * fChildren;

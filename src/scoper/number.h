@@ -17,7 +17,7 @@ struct RlcResolverFailContext;
 
 /** Internal number type.
 	This type is used for compile-time calculations (such as constant expressions or numeric template arguments). This is implemented as a 64-bit signed integer. Any operations that result in an over/underflow will result in a compilation error. */
-struct RlcNumber
+extern struct RlcNumber
 {
 	/** The integer's value. */
 	int64_t value;
