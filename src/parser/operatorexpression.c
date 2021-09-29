@@ -60,6 +60,7 @@ const k_unary[] = {
 	{ kRlcTokDoubleMinus, kPreDecrement },
 	{ kRlcTokDoubleDotExclamationMark, kExpectDynamic },
 	{ kRlcTokDoubleDotQuestionMark, kMaybeDynamic },
+	{ kRlcTokCircumflex, kFork },
 	{ kRlcTokAt, kAsync },
 	{ kRlcTokDoubleAt, kFullAsync },
 	{ kRlcTokLessMinus, kAwait },
@@ -493,14 +494,25 @@ static struct RlcParsedExpression * parse_prefix(
 			&start,
 			k_unary[i].fTok))
 		{
-			int isAsync = k_unary[i].fOp == kAsync || k_unary[i].fOp == kFullAsync;
+			int isAsync;
+			switch(k_unary[i].fOp)
+			{
+			case kAsync:
+			case kFullAsync:
+			case kFork:
+				isAsync = 1;
+				break;
+			default:
+				isAsync = 0;
+			}
+
 			struct RlcParserTracer trace;
 			if(isAsync)
 				rlc_parser_trace(parser, "asynchronous call", &trace);
 
 			struct RlcParsedExpression * operand = parse_prefix(parser);
 
-			if(k_unary[i].fOp == kAsync || k_unary[i].fOp == kFullAsync)
+			if(isAsync)
 			{
 				struct RlcParsedOperatorExpression * op;
 				if((op = RLC_DYNAMIC_CAST(operand, RlcParsedExpression, RlcParsedOperatorExpression)))
@@ -670,6 +682,7 @@ void rlc_parsed_operator_expression_print(
 
 		{kAsync, -1, NULL,1},
 		{kFullAsync, -1, NULL,1},
+		{kFork, -1, NULL,1},
 		{kExpectDynamic, -1, NULL,1},
 		{kMaybeDynamic, -1, NULL,1},
 		{kAwait, 0, " co_await ", 1},
@@ -776,6 +789,8 @@ void rlc_parsed_operator_expression_print(
 
 	if(this->fOperator == kAsync || this->fOperator == kFullAsync)
 		fputs("::std::async([&]{ return ", out);
+	else if(this->fOperator == kFork)
+		fputs("::__rl::spawn_process([&]{ return ", out);
 
 	rlc_parsed_expression_print(
 		this->fExpressions[0],
@@ -812,6 +827,7 @@ void rlc_parsed_operator_expression_print(
 			case kCall:
 			case kAsync:
 			case kFullAsync:
+			case kFork:
 			case kVisit:
 				{
 					fputc(this->fOperator == kVisit ? ',' : '(', out);
@@ -822,8 +838,12 @@ void rlc_parsed_operator_expression_print(
 						rlc_parsed_expression_print(this->fExpressions[i], file, out);
 					}
 					fputc(')', out);
-					if(this->fOperator == kAsync || this->fOperator == kFullAsync)
+					switch(this->fOperator)
+					{
+					case kAsync: case kFullAsync: case kFork:
 						fputs("; })", out);
+					default:;
+					}
 				} break;
 			case kConditional:
 				{

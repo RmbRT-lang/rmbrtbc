@@ -33,6 +33,7 @@ enum RlcOperator
 
 	kAsync,
 	kFullAsync,
+	kFork,
 	kExpectDynamic,
 	kMaybeDynamic,
 	kAwait,

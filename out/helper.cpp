@@ -108,6 +108,78 @@ namespace __rl
 		}
 	};
 
+	struct timeout_throw_t{};
+
+	template<class Result>
+	class ProcessHandle : std::future<Result>
+	{
+	public:
+		ProcessHandle(std::future<Result> &&f): std::future<Result>(std::move(f))
+		{
+		}
+
+		inline operator bool() const
+		{
+			using namespace std::chrono_literals;
+			return this->wait_for(0s) != std::future_status::timeout;
+		}
+		inline bool operator[](double seconds) const
+		{
+			return this->wait_for(std::chrono::duration<double>(seconds)) != std::future_status::timeout;
+		}
+
+		inline Result operator()()
+		{
+			return this->get();
+		}
+
+		Result operator()(double seconds)
+		{
+			if(!(*this)[seconds])
+				throw timeout_throw_t{};
+			return this->get();
+		}
+	};
+
+	template<>
+	class ProcessHandle<void> : std::future<void>
+	{
+	public:
+		ProcessHandle(std::future<void> &&f): std::future<void>(std::move(f))
+		{
+		}
+
+		inline operator bool() const
+		{
+			using namespace std::chrono_literals;
+			return this->wait_for(0s) != std::future_status::timeout;
+		}
+		bool operator[](double seconds) const
+		{
+			return this->wait_for(std::chrono::duration<double>(seconds)) != std::future_status::timeout;
+		}
+
+		inline void operator()()
+		{
+			this->get();
+		}
+		inline void operator()(double seconds) {
+			if(!(*this)[seconds])
+				throw timeout_throw_t{};
+		}
+	};
+
+	template<class Fn, class ...Args>
+	[[nodiscard]]
+	inline auto spawn_process(Fn &&fn, Args&&...args) ->
+		ProcessHandle<
+			std::invoke_result_t<std::decay_t<Fn>, std::decay_t<Args>...>>
+	{
+		return std::async(
+			std::launch::async,
+			std::forward<Fn>(fn), std::forward<Args>(args)...);
+	}
+
 	template<class PEnum, class IEnum>
 	class EnumConstant {
 	public:
