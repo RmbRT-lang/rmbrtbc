@@ -453,6 +453,16 @@ namespace __rl
 	};
 
 	struct TupleCtorHelper {} const tupleCtorHelper {};
+
+	namespace constant
+	{
+		struct __t_less : public __rl::SymbolBase<__t_less> {} const __v_less{};
+		struct __t_greater : public __rl::SymbolBase<__t_greater> {} const __v_greater{};
+		struct __t_less_greater : public __rl::SymbolBase<__t_less_greater> {} const __v_less_greater{};
+		struct __t_question_mark : public __rl::SymbolBase<__t_question_mark> {} const __v_question_mark{};
+		struct __t_exclamation_mark : public __rl::SymbolBase<__t_exclamation_mark> {} const __v_exclamation_mark{};
+		struct __t_less_minus : public __rl::SymbolBase<__t_less_minus> {} const __v_less_minus{};
+	}
 }
 #define __rl_assert_stringify_code(code...) #code
 #define __rl_assert(expr, code, file, line, col) do { \

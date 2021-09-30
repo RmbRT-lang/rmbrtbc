@@ -19,7 +19,7 @@ struct RlcParsedSymbolConstantExpression
 {
 	RLC_DERIVE(struct,RlcParsedExpression);
 
-	struct RlcSrcString fName;
+	struct RlcToken fName;
 };
 
 void rlc_parsed_symbol_constant_expression_create(
