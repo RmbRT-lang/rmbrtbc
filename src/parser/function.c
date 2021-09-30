@@ -561,9 +561,15 @@ static void rlc_parsed_function_print_body(
 	}
 
 	if(this->fIsAsync)
-		fputs("\n#define _return co_return\n", out);
+		fputs(
+			"\n"
+			"#define _return co_return\n"
+			"#define __rl_sleep co_await ::__rl::sleep_coroutine\n", out);
 	else
-		fputs("\n#define _return return\n", out);
+		fputs(
+			"\n"
+			"#define _return return\n"
+			"#define __rl_sleep ::__rl::sleep_thread\n", out);
 
 	if(this->fIsShortHandBody)
 	{
@@ -575,7 +581,9 @@ static void rlc_parsed_function_print_body(
 		rlc_parsed_block_statement_print(&this->fBodyStatement, file, out);
 	}
 
-	fputs("\n#undef _return\n", out);
+	fputs("\n"
+		"#undef _return\n"
+		"#undef __rl_sleep\n", out);
 }
 
 void rlc_parsed_function_print(

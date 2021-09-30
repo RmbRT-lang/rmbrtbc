@@ -78,10 +78,19 @@ void rlc_parsed_test_print(
 	if(printer->fIsTest)
 	{
 		FILE * out = printer->fFuncsImpl;
+		fputs(
+			"\n"
+			"#define _return return\n"
+			"#define __rl_sleep ::__rl::sleep_thread\n", out);
 		fputs("__RL_TEST(", out);
 		rlc_src_string_print(&this->fName, file, out);
 		fputs(")", out);
 
 		rlc_parsed_block_statement_print(&this->fBody, file, out);
+
+		fputs(
+			"\n"
+			"#undef _return\n"
+			"#undef __rl_sleep\n", out);
 	}
 }

@@ -108,6 +108,43 @@ namespace __rl
 		}
 	};
 
+	inline void sleep_thread() { std::this_thread::yield(); }
+	inline void sleep_thread(double seconds) {
+		std::this_thread::sleep_for(std::chrono::duration<double>(seconds));
+	}
+
+	inline auto sleep_coroutine() {
+		struct yielder {
+			bool await_ready() { return false; }
+			void await_suspend(std::coroutine_handle<> cont) const {
+				std::thread([cont] {
+					cont();
+				}).detach();
+			}
+			void await_resume() {}
+		};
+		return yielder{};
+	}
+
+	inline auto sleep_coroutine(double seconds) {
+		struct sleeper {
+			double m_seconds;
+			sleeper(double seconds): m_seconds(seconds)
+			{}
+
+			bool await_ready() { return m_seconds <= 0; }
+			void await_suspend(std::coroutine_handle<> cont) const {
+				std::thread([this, cont] {
+					std::this_thread::sleep_for(std::chrono::duration<double>(m_seconds));
+					cont();
+				}).detach();
+			}
+			void await_resume() {}
+		};
+
+		return sleeper{seconds};
+	}
+
 	struct timeout_throw_t{};
 
 	template<class Result>
