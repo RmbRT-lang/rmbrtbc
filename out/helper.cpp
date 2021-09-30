@@ -463,6 +463,41 @@ namespace __rl
 		struct __t_exclamation_mark : public __rl::SymbolBase<__t_exclamation_mark> {} const __v_exclamation_mark{};
 		struct __t_less_minus : public __rl::SymbolBase<__t_less_minus> {} const __v_less_minus{};
 	}
+
+	template<class T>
+	class atomic : std::atomic<T>
+	{
+	public:
+		using std::atomic<T>::atomic;
+
+		inline T operator()(constant::__t_less) const
+		{ return this->load(std::memory_order_acquire); }
+		inline T operator()(constant::__t_greater) const
+		{ return this->load(std::memory_order_release); }
+		inline T operator()(constant::__t_question_mark) const
+		{ return this->load(std::memory_order_relaxed); }
+		inline T operator()(constant::__t_exclamation_mark) const
+		{ return this->load(std::memory_order_seq_cst); }
+		inline T operator()(constant::__t_less_minus) const
+		{ return this->load(std::memory_order_consume); }
+
+		inline void operator=(std::tuple<constant::__t_greater, T const&> v)
+		{ this->store(std::get<1>(v), std::memory_order_release); }
+		inline void operator=(std::tuple<constant::__t_question_mark, T const&> v)
+		{ this->store(std::get<1>(v), std::memory_order_relaxed); }
+		inline void operator=(std::tuple<constant::__t_exclamation_mark, T const&> v)
+		{ this->store(std::get<1>(v), std::memory_order_seq_cst); }
+
+		inline T operator()(std::tuple<constant::__t_greater, T const&> v)
+		{ return this->exchange(std::get<1>(v), std::memory_order_release); }
+		inline T operator()(std::tuple<constant::__t_less_greater, T const&> v)
+		{ return this->exchange(std::get<1>(v), std::memory_order_acq_rel); }
+		inline T operator()(std::tuple<constant::__t_question_mark, T const&> v)
+		{ return this->exchange(std::get<1>(v), std::memory_order_relaxed); }
+		inline T operator()(std::tuple<constant::__t_exclamation_mark, T const&> v)
+		{ return this->exchange(std::get<1>(v), std::memory_order_seq_cst); }
+	};
+
 }
 #define __rl_assert_stringify_code(code...) #code
 #define __rl_assert(expr, code, file, line, col) do { \

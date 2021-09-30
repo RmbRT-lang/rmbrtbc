@@ -42,6 +42,12 @@ int rlc_type_indirection_parse(
 		kRlcTokDoubleDotQuestionMark))
 	{
 		*out = kRlcTypeIndirectionMaybeDynamic;
+	} else if(rlc_parser_consume(
+		parser,
+		NULL,
+		kRlcTokDot))
+	{
+		*out = kRlcTypeIndirectionAtomic;
 	} else
 	{
 		*out = kRlcTypeIndirectionPlain;
@@ -478,8 +484,16 @@ void rlc_parsed_type_name_print(
 			else
 				fputs("typename ::__rl::template unsized_array<", out);
 		}
-		if(this->fTypeModifiers[i].fTypeIndirection == kRlcTypeIndirectionFuture)
+		switch(this->fTypeModifiers[i].fTypeIndirection)
+		{
+		case kRlcTypeIndirectionFuture:
 			fputs("::std::future<", out);
+			break;
+		case kRlcTypeIndirectionAtomic:
+			fputs("::__rl::atomic<", out);
+			break;
+		default:;
+		}
 	}
 
 	switch(this->fValue)
@@ -580,7 +594,10 @@ void rlc_parsed_type_name_print(
 			{
 				fprintf(out, " *");
 			} break;
-		case kRlcTypeIndirectionFuture: break;
+		case kRlcTypeIndirectionFuture:
+		case kRlcTypeIndirectionAtomic:
+			fputs(">", out);
+			break;
 		default:
 			RLC_ASSERT(!"not implemented");
 		}
@@ -602,8 +619,6 @@ void rlc_parsed_type_name_print(
 			}
 			fputs(">", out);
 		}
-		if(this->fTypeModifiers[i].fTypeIndirection == kRlcTypeIndirectionFuture)
-			fputs(">", out);
 	}
 
 	if(this->fReferenceType == kRlcReferenceTypeReference)

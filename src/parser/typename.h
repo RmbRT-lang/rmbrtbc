@@ -39,6 +39,8 @@ enum RlcTypeIndirection
 	kRlcTypeIndirectionMaybeDynamic,
 	/** Future qualifier. */
 	kRlcTypeIndirectionFuture,
+	/** Atomic qualifier. */
+	kRlcTypeIndirectionAtomic,
 
 	RLC_ENUM_END(RlcTypeIndirection)
 };
