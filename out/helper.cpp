@@ -108,6 +108,115 @@ namespace __rl
 		}
 	};
 
+	inline void sleep_thread() { std::this_thread::yield(); }
+	inline void sleep_thread(double seconds) {
+		std::this_thread::sleep_for(std::chrono::duration<double>(seconds));
+	}
+
+	inline auto sleep_coroutine() {
+		struct yielder {
+			bool await_ready() { return false; }
+			void await_suspend(std::coroutine_handle<> cont) const {
+				std::thread([cont] {
+					cont();
+				}).detach();
+			}
+			void await_resume() {}
+		};
+		return yielder{};
+	}
+
+	inline auto sleep_coroutine(double seconds) {
+		struct sleeper {
+			double m_seconds;
+			sleeper(double seconds): m_seconds(seconds)
+			{}
+
+			bool await_ready() { return m_seconds <= 0; }
+			void await_suspend(std::coroutine_handle<> cont) const {
+				std::thread([this, cont] {
+					std::this_thread::sleep_for(std::chrono::duration<double>(m_seconds));
+					cont();
+				}).detach();
+			}
+			void await_resume() {}
+		};
+
+		return sleeper{seconds};
+	}
+
+	struct timeout_throw_t{};
+
+	template<class Result>
+	class ProcessHandle : std::future<Result>
+	{
+	public:
+		ProcessHandle(std::future<Result> &&f): std::future<Result>(std::move(f))
+		{
+		}
+
+		inline operator bool() const
+		{
+			using namespace std::chrono_literals;
+			return this->wait_for(0s) != std::future_status::timeout;
+		}
+		inline bool operator[](double seconds) const
+		{
+			return this->wait_for(std::chrono::duration<double>(seconds)) != std::future_status::timeout;
+		}
+
+		inline Result operator()()
+		{
+			return this->get();
+		}
+
+		Result operator()(double seconds)
+		{
+			if(!(*this)[seconds])
+				throw timeout_throw_t{};
+			return this->get();
+		}
+	};
+
+	template<>
+	class ProcessHandle<void> : std::future<void>
+	{
+	public:
+		ProcessHandle(std::future<void> &&f): std::future<void>(std::move(f))
+		{
+		}
+
+		inline operator bool() const
+		{
+			using namespace std::chrono_literals;
+			return this->wait_for(0s) != std::future_status::timeout;
+		}
+		bool operator[](double seconds) const
+		{
+			return this->wait_for(std::chrono::duration<double>(seconds)) != std::future_status::timeout;
+		}
+
+		inline void operator()()
+		{
+			this->get();
+		}
+		inline void operator()(double seconds) {
+			if(!(*this)[seconds])
+				throw timeout_throw_t{};
+		}
+	};
+
+	template<class Fn, class ...Args>
+	[[nodiscard]]
+	inline auto spawn_process(Fn &&fn, Args&&...args) ->
+		ProcessHandle<
+			std::invoke_result_t<std::decay_t<Fn>, std::decay_t<Args>...>>
+	{
+		return std::async(
+			std::launch::async,
+			std::forward<Fn>(fn), std::forward<Args>(args)...);
+	}
+
 	template<class PEnum, class IEnum>
 	class EnumConstant {
 	public:
@@ -344,6 +453,51 @@ namespace __rl
 	};
 
 	struct TupleCtorHelper {} const tupleCtorHelper {};
+
+	namespace constant
+	{
+		struct __t_less : public __rl::SymbolBase<__t_less> {} const __v_less{};
+		struct __t_greater : public __rl::SymbolBase<__t_greater> {} const __v_greater{};
+		struct __t_less_greater : public __rl::SymbolBase<__t_less_greater> {} const __v_less_greater{};
+		struct __t_question_mark : public __rl::SymbolBase<__t_question_mark> {} const __v_question_mark{};
+		struct __t_exclamation_mark : public __rl::SymbolBase<__t_exclamation_mark> {} const __v_exclamation_mark{};
+		struct __t_less_minus : public __rl::SymbolBase<__t_less_minus> {} const __v_less_minus{};
+	}
+
+	template<class T>
+	class atomic : std::atomic<T>
+	{
+	public:
+		using std::atomic<T>::atomic;
+
+		inline T operator()(constant::__t_less) const
+		{ return this->load(std::memory_order_acquire); }
+		inline T operator()(constant::__t_greater) const
+		{ return this->load(std::memory_order_release); }
+		inline T operator()(constant::__t_question_mark) const
+		{ return this->load(std::memory_order_relaxed); }
+		inline T operator()(constant::__t_exclamation_mark) const
+		{ return this->load(std::memory_order_seq_cst); }
+		inline T operator()(constant::__t_less_minus) const
+		{ return this->load(std::memory_order_consume); }
+
+		inline void operator=(std::tuple<constant::__t_greater, T const&> v)
+		{ this->store(std::get<1>(v), std::memory_order_release); }
+		inline void operator=(std::tuple<constant::__t_question_mark, T const&> v)
+		{ this->store(std::get<1>(v), std::memory_order_relaxed); }
+		inline void operator=(std::tuple<constant::__t_exclamation_mark, T const&> v)
+		{ this->store(std::get<1>(v), std::memory_order_seq_cst); }
+
+		inline T operator()(std::tuple<constant::__t_greater, T const&> v)
+		{ return this->exchange(std::get<1>(v), std::memory_order_release); }
+		inline T operator()(std::tuple<constant::__t_less_greater, T const&> v)
+		{ return this->exchange(std::get<1>(v), std::memory_order_acq_rel); }
+		inline T operator()(std::tuple<constant::__t_question_mark, T const&> v)
+		{ return this->exchange(std::get<1>(v), std::memory_order_relaxed); }
+		inline T operator()(std::tuple<constant::__t_exclamation_mark, T const&> v)
+		{ return this->exchange(std::get<1>(v), std::memory_order_seq_cst); }
+	};
+
 }
 #define __rl_assert_stringify_code(code...) #code
 #define __rl_assert(expr, code, file, line, col) do { \

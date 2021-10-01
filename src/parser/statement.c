@@ -13,6 +13,7 @@
 #include "continuestatement.h"
 #include "trystatement.h"
 #include "throwstatement.h"
+#include "sleepstatement.h"
 
 #include "../assert.h"
 #include "../malloc.h"
@@ -66,7 +67,8 @@ void rlc_parsed_statement_destroy_virtual(
 		ENTRY(ContinueStatement, rlc_parsed_continue_statement_destroy),
 		ENTRY(TryStatement, rlc_parsed_try_statement_destroy),
 		ENTRY(ThrowStatement, rlc_parsed_throw_statement_destroy),
-		ENTRY(CatchStatement, rlc_parsed_catch_statement_destroy)
+		ENTRY(CatchStatement, rlc_parsed_catch_statement_destroy),
+		ENTRY(SleepStatement, rlc_parsed_sleep_statement_destroy)
 	};
 #undef ENTRY
 
@@ -92,7 +94,9 @@ union RlcStatementStorage
 	struct RlcParsedCaseStatement fRlcParsedCaseStatement;
 	struct RlcParsedBreakStatement fRlcParsedBreakStatement;
 	struct RlcParsedTryStatement fRlcParsedTryStatement;
-	struct RlcParsedTryStatement fRlcParsedThrowStatement;
+	struct RlcParsedThrowStatement fRlcParsedThrowStatement;
+	struct RlcParsedCatchStatement fRlcParsedCatchStatement;
+	struct RlcParsedSleepStatement fRlcParsedSleepStatement;
 };
 
 struct RlcParsedStatement * rlc_parsed_statement_parse(
@@ -136,6 +140,7 @@ struct RlcParsedStatement * rlc_parsed_statement_parse(
 		ENTRY(RlcParsedContinueStatement, &rlc_parsed_continue_statement_parse),
 		ENTRY(RlcParsedTryStatement, &rlc_parsed_try_statement_parse),
 		ENTRY(RlcParsedThrowStatement, &rlc_parsed_throw_statement_parse),
+		ENTRY(RlcParsedSleepStatement, &rlc_parsed_sleep_statement_parse),
 		// expression has to come after variable.
 		ENTRY(RlcParsedExpressionStatement, &rlc_parsed_expression_statement_parse),
 		NOENTRY(RlcParsedCatchStatement)
@@ -248,7 +253,8 @@ void rlc_parsed_statement_print(
 		ENTRY(ContinueStatement, rlc_parsed_continue_statement_print),
 		ENTRY(TryStatement, rlc_parsed_try_statement_print),
 		ENTRY(ThrowStatement, rlc_parsed_throw_statement_print),
-		ENTRY(CatchStatement, NULL) // must not appear globally.
+		ENTRY(CatchStatement, NULL), // must not appear globally.
+		ENTRY(SleepStatement, rlc_parsed_sleep_statement_print)
 	};
 #undef ENTRY
 

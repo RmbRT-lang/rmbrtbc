@@ -39,6 +39,8 @@ enum RlcTypeIndirection
 	kRlcTypeIndirectionMaybeDynamic,
 	/** Future qualifier. */
 	kRlcTypeIndirectionFuture,
+	/** Atomic qualifier. */
+	kRlcTypeIndirectionAtomic,
 
 	RLC_ENUM_END(RlcTypeIndirection)
 };
@@ -148,7 +150,7 @@ struct RlcParsedTypeName
 		/** The name of the type. */
 		struct RlcParsedSymbol * fName;
 		/** The symbol constant name. */
-		struct RlcSrcString fSymbolConstant;
+		struct RlcToken fSymbolConstant;
 		/** The function signature type. */
 		struct RlcParsedFunctionSignature * fFunction;
 		/** The expression (for type-of). */

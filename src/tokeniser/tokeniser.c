@@ -286,6 +286,7 @@ struct {
 	{ "<<", kRlcTokDoubleLess },
 	{ "<=", kRlcTokLessEqual },
 	{ "<-", kRlcTokLessMinus },
+	{ "<>", kRlcTokLessGreater },
 	{ "<", kRlcTokLess },
 
 	{ ">>>=", kRlcTokTripleGreaterEqual },
