@@ -96,7 +96,7 @@ namespace __rl
 	template<class T>
 	class Deferrer
 	{
-		T const& m_fn;
+		T m_fn;
 	public:
 		inline Deferrer(T const& fn):
 			m_fn(fn)
