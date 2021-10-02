@@ -596,18 +596,24 @@ namespace __rl
 	};
 
 	template<class T>
-	struct value_of_t<T&&, false> {
-		typedef T type;
-	};
-
+	concept is_plain = std::is_same_v<T, std::decay_t<T>>;
 	template<class T>
-	typename value_of_t<T&&>::type value_of(T &&v)
+	concept is_plain_value_of = is_plain<decltype(std::declval<T&&>().__rl_value_of())>;
+
+	template<bool decay, class T>
+	using decay_if_t = std::conditional_t<decay, std::decay_t<T>, T>;
+
+	template<class T, bool decay = false>
+	decay_if_t<
+		!HasCustomValueOf<T> && decay,
+		typename value_of_t<T&&>::type
+	> value_of(T &&v)
 	{
 		if constexpr(HasCustomValueOf<T>)
 		{
-			return value_of(v.__rl_value_of());
+			return value_of<decltype(v.__rl_value_of()), is_plain_value_of<T>>(v.__rl_value_of());
 		} else {
-			return (typename value_of_t<T>::type)v;
+			return std::forward<T>(v);
 		}
 	}
 
