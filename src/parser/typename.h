@@ -39,6 +39,8 @@ enum RlcTypeIndirection
 	kRlcTypeIndirectionMaybeDynamic,
 	/** Future qualifier. */
 	kRlcTypeIndirectionFuture,
+	/** Process handle qualifier. */
+	kRlcTypeIndirectionProcessHandle,
 	/** Atomic qualifier. */
 	kRlcTypeIndirectionAtomic,
 

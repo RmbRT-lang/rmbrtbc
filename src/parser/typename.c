@@ -33,6 +33,12 @@ int rlc_type_indirection_parse(
 	} else if(rlc_parser_consume(
 		parser,
 		NULL,
+		kRlcTokCircumflex))
+	{
+		*out = kRlcTypeIndirectionProcessHandle;
+	} else if(rlc_parser_consume(
+		parser,
+		NULL,
 		kRlcTokDoubleDotExclamationMark))
 	{
 		*out = kRlcTypeIndirectionExpectDynamic;
@@ -489,6 +495,9 @@ void rlc_parsed_type_name_print(
 		case kRlcTypeIndirectionFuture:
 			fputs("::std::future<", out);
 			break;
+		case kRlcTypeIndirectionProcessHandle:
+			fputs("::__rl::ProcessHandle<", out);
+			break;
 		case kRlcTypeIndirectionAtomic:
 			fputs("::__rl::atomic<", out);
 			break;
@@ -595,6 +604,7 @@ void rlc_parsed_type_name_print(
 				fprintf(out, " *");
 			} break;
 		case kRlcTypeIndirectionFuture:
+		case kRlcTypeIndirectionProcessHandle:
 		case kRlcTypeIndirectionAtomic:
 			fputs(">", out);
 			break;
