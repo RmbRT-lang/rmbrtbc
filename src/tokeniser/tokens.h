@@ -27,7 +27,6 @@ enum RlcTokenType
 	kRlcTokAbstract,
 	kRlcTokAssert,
 	kRlcTokBreak,
-	kRlcTokCase,
 	kRlcTokCatch,
 	kRlcTokMask,
 	kRlcTokContinue,

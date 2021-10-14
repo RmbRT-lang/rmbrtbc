@@ -174,7 +174,6 @@ struct {
 	{"ABSTRACT", kRlcTokAbstract },
 	{"ASSERT", kRlcTokAssert },
 	{"BREAK", kRlcTokBreak },
-	{"CASE", kRlcTokCase },
 	{"CATCH", kRlcTokCatch },
 	{"MASK", kRlcTokMask },
 	{"CONTINUE", kRlcTokContinue },

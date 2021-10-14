@@ -55,10 +55,7 @@ int rlc_parsed_case_statement_parse(
 		rlc_parsed_control_label_parse(
 			&out->fControlLabel,
 			parser);
-	} else if(rlc_parser_consume(
-		parser,
-		NULL,
-		kRlcTokCase))
+	} else
 	{
 		rlc_parsed_control_label_parse(
 			&out->fControlLabel,
@@ -76,7 +73,7 @@ int rlc_parsed_case_statement_parse(
 			parser,
 			NULL,
 			kRlcTokComma));
-	} else return 0;
+	}
 
 	rlc_parser_expect(
 		parser,

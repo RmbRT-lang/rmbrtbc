@@ -54,8 +54,7 @@ static void rlc_parsed_type_case_statement_parse(
 	struct RlcParsedTypeCaseStatement * out,
 	struct RlcParser * parser)
 {
-	out->fIsDefault = kRlcTokDefault == rlc_parser_expect(parser, NULL, 2,
-		kRlcTokDefault, kRlcTokCase);
+	out->fIsDefault = rlc_parser_consume(parser, NULL, kRlcTokDefault);
 	out->fTypeNames = NULL;
 	out->fTypeNameCount = 0;
 
