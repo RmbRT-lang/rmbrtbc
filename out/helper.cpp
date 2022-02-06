@@ -423,6 +423,52 @@ namespace __rl
 		{
 			static_assert(std::is_constructible_v<std::tuple<Types...>, std::tuple<Types2...> &&>);
 		}
+
+		template<class Visitor, class ...Args>
+		inline void __rl_visit(Visitor &&v, Args&&...args)
+		{ this->template __rl_visit_all<0>(v, args...); }
+		template<class Visitor, class ...Args>
+		inline void __rl_visit(Visitor &&v, Args&&...args) const
+		{ this->template __rl_visit_all<0>(v, args...); }
+
+		template<class Visitor, class ...Args>
+		inline void __rl_visit_reflect(Visitor &&v, Args&&...args)
+		{ this->template __rl_visit_all_reflect<0>(v, args...); }
+		template<class Visitor, class ...Args>
+		inline void __rl_visit_reflect(Visitor &&v, Args&&...args) const
+		{ this->template __rl_visit_all_reflect<0>(v, args...); }
+
+	private:
+		template<unsigned i, class Visitor, class ...Args>
+		inline void __rl_visit_all(Visitor &&visit, Args&&...args)
+		{
+			visit(std::get<i>(*this), args...);
+			if constexpr(i+1 < sizeof...(Types))
+				__rl_visit_all<i+1>(visit, args...);
+		}
+
+		template<unsigned i, class Visitor, class ...Args>
+		inline void __rl_visit_all(Visitor &&visit, Args&&...args) const
+		{
+			visit(std::get<i>(*this), args...);
+			if constexpr(i+1 < sizeof...(Types))
+				__rl_visit_all<i+1>(visit, args...);
+		}
+
+		template<unsigned i, class Visitor, class ...Args>
+		inline void __rl_visit_all_reflect(Visitor &&visit, Args&&...args)
+		{
+			visit(i, std::get<i>(*this), args...);
+			if constexpr(i+1 < sizeof...(Types))
+				__rl_visit_all_reflect<i+1>(visit, args...);
+		}
+		template<unsigned i, class Visitor, class ...Args>
+		inline void __rl_visit_all_reflect(Visitor &&visit, Args&&...args) const
+		{
+			visit(i, std::get<i>(*this), args...);
+			if constexpr(i+1 < sizeof...(Types))
+				__rl_visit_all_reflect<i+1>(visit, args...);
+		}
 	};
 
 	template<class ...Types>
@@ -621,6 +667,13 @@ namespace __rl
 	inline Fn &&visit(Fn &&fn, Obj &&obj, Args &&... args)
 	{
 		obj.__rl_visit(std::forward<Fn>(fn), std::forward<Args>(args)...);
+		return std::forward<Fn>(fn);
+	}
+
+	template<class Fn, class Obj, class ...Args>
+	inline Fn &&visit_reflect(Fn &&fn, Obj &&obj, Args &&... args)
+	{
+		obj.__rl_visit_reflect(std::forward<Fn>(fn), std::forward<Args>(args)...);
 		return std::forward<Fn>(fn);
 	}
 

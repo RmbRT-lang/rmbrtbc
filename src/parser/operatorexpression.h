@@ -20,7 +20,7 @@ enum RlcOperator
 	kLogAnd, kLogOr, kLogNot,
 	kShiftLeft, kShiftRight, kRotateLeft, kRotateRight,
 	kNeg, kPos,
-	kSubscript, kCall, kVisit, kConditional,
+	kSubscript, kCall, kVisit, kVisitReflect, kConditional,
 	kMemberReference, kMemberPointer,
 	kBindReference, kBindPointer,
 	kDereference, kAddress, kMove,

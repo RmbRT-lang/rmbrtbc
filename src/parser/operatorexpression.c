@@ -297,6 +297,7 @@ static _Nodiscard struct RlcParsedExpression * parse_postfix(
 		}
 
 		int isVisit = 0;
+		int isReflectVisit = 0;
 
 		// Subscript operator?
 		if(rlc_parser_consume(
@@ -334,8 +335,13 @@ static _Nodiscard struct RlcParsedExpression * parse_postfix(
 				parser,
 				NULL,
 				kRlcTokVisit))
-			&& (rlc_parser_expect(
-				parser, NULL, 1, kRlcTokParentheseOpen), 1))
+			&& ((isReflectVisit = rlc_parser_consume(
+					parser,
+					NULL,
+					kRlcTokAsterisk)),
+				rlc_parser_expect(
+					parser, NULL, 1, kRlcTokParentheseOpen),
+				1))
 		|| rlc_parser_consume(
 			parser,
 			NULL,
@@ -343,7 +349,7 @@ static _Nodiscard struct RlcParsedExpression * parse_postfix(
 		{
 			struct RlcParsedOperatorExpression * temp =
 				make_unary_expression(
-					isVisit ? kVisit : kCall,
+					isVisit ? isReflectVisit ? kVisitReflect : kVisit : kCall,
 					out,
 					out->fStart,
 					out->fStart);
@@ -670,7 +676,7 @@ void rlc_parsed_operator_expression_print(
 		{kShiftLeft, 1, "<<",1}, {kShiftRight, 1, ">>",1},
 		{kRotateLeft, -1, NULL,1}, {kRotateRight, -1, NULL,1},
 		{kNeg, 0, "-",1}, {kPos, 0, "+",1},
-		{kSubscript, -1, NULL,0}, {kCall, -1, NULL,0}, {kVisit, -1, NULL, 0}, {kConditional, -1, NULL,1},
+		{kSubscript, -1, NULL,0}, {kCall, -1, NULL,0}, {kVisit, -1, NULL, 0}, {kVisitReflect, -1, NULL, 0}, {kConditional, -1, NULL,1},
 		{kMemberReference, -1, ".",0}, {kMemberPointer, -1, "->",0},
 		{kBindReference, 1, ".*",1}, {kBindPointer, 1, "->*",1},
 		{kDereference, 0, "*",1}, {kAddress, 0, "&",1}, {kMove, -1, NULL,0},
@@ -781,6 +787,10 @@ void rlc_parsed_operator_expression_print(
 				{
 					fputs("::__rl::visit(", out);
 				}  break;
+			case kVisitReflect:
+				{
+					fputs("::__rl::visit_reflect(", out);
+				}  break;
 			default: { ; }
 			}
 		} break;
@@ -829,8 +839,9 @@ void rlc_parsed_operator_expression_print(
 			case kFullAsync:
 			case kFork:
 			case kVisit:
+			case kVisitReflect:
 				{
-					fputc(this->fOperator == kVisit ? ',' : '(', out);
+					fputc(this->fOperator == kVisit || this->fOperator == kVisitReflect ? ',' : '(', out);
 					for(RlcSrcIndex i = 1; i < this->fExpressionCount; i++)
 					{
 						if(i>1)
