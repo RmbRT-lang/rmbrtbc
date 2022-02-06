@@ -271,6 +271,7 @@ struct {
 	{ ",", kRlcTokComma },
 	{ ";", kRlcTokSemicolon },
 	{ "==", kRlcTokDoubleEqual },
+	{ "=", kRlcTokReturn }, // Broken hack for "statement return values".
 
 	{ "[", kRlcTokBracketOpen },
 	{ "]", kRlcTokBracketClose },
