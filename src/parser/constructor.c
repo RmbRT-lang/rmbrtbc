@@ -17,8 +17,7 @@ void rlc_parsed_constructor_create(
 
 	this->fTemplates = member->templates;
 
-	this->fArguments = NULL;
-	this->fArgumentCount = 0;
+	this->fType = kRlcDefaultConstructor;
 	this->fIsDefinition = 0;
 	this->fInitialisers = NULL;
 	this->fInitialiserCount = 0;
@@ -33,7 +32,7 @@ void rlc_parsed_constructor_destroy(
 
 	rlc_parsed_template_decl_destroy(&this->fTemplates);
 
-	if(this->fArguments)
+	if(this->fType == kRlcCustomConstructor)
 	{
 		for(size_t i = this->fArgumentCount; i--;)
 			rlc_parsed_variable_destroy(&this->fArguments[i]);
@@ -72,20 +71,33 @@ int rlc_parsed_constructor_parse(
 	rlc_parsed_constructor_create(
 		out,
 		member);
-	if(rlc_parser_is_current(
-		parser,
-		kRlcTokVoid)
-	&& rlc_parser_is_ahead(
-		parser,
-		kRlcTokBraceClose))
+
+	struct RlcToken argNameToken;
+	if(rlc_parser_consume(parser, NULL, kRlcTokDoubleAnd))
 	{
-		rlc_parser_skip(parser);
-		rlc_parser_skip(parser);
-	} else if(!rlc_parser_consume(
-		parser,
-		NULL,
-		kRlcTokBraceClose))
+		out->fType = kRlcMoveConstructor;
+		if(rlc_parser_consume(parser, &argNameToken, kRlcTokIdentifier))
+			out->fArgName = argNameToken.content;
+		else
+			out->fArgName = kRlcSrcStringEmpty;
+	}
+	else if(rlc_parser_consume(parser, NULL, kRlcTokHash))
 	{
+		rlc_parser_expect(parser, NULL, 1, kRlcTokAnd);
+		out->fType = kRlcCopyConstructor;
+		if(rlc_parser_consume(parser, &argNameToken, kRlcTokIdentifier))
+			out->fArgName = argNameToken.content;
+		else
+			out->fArgName = kRlcSrcStringEmpty;
+	} else if(rlc_parser_is_current(parser, kRlcTokBraceClose))
+	{
+		out->fType = kRlcDefaultConstructor;
+	} else
+	{
+		out->fType = kRlcCustomConstructor;
+		out->fArguments = NULL;
+		out->fArgumentCount = 0;
+
 		do {
 			struct RlcParsedVariable argument;
 
@@ -109,13 +121,13 @@ int rlc_parsed_constructor_parse(
 			parser,
 			NULL,
 			kRlcTokComma));
-
-		rlc_parser_expect(
-			parser,
-			NULL,
-			1,
-			kRlcTokBraceClose);
 	}
+
+	rlc_parser_expect(
+		parser,
+		NULL,
+		1,
+		kRlcTokBraceClose);
 
 	if(rlc_parser_consume(
 		parser,

@@ -404,13 +404,13 @@ static void rlc_parsed_class_print_impl(
 		fputs("() = default;\n", out);
 	}
 
+	fputs("typedef ", out);
+	rlc_printer_print_ctx_symbol(printer, file, out);
+	fputs(" __rl_MY_T;\n", out);
+
 	// Default ctors and assignments for virtual classes.
 	if(this->fIsVirtual)
 	{
-		fputs("typedef ", out);
-		rlc_printer_print_ctx_symbol(printer, file, out);
-		fputs(" __rl_MY_T;\n", out);
-
 		rlc_src_string_print(
 			&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
 			file,
@@ -499,16 +499,33 @@ static void rlc_parsed_class_print_impl(
 			out);
 		fputc('(', out);
 
-		for(RlcSrcIndex j = 0; j < ctor->fArgumentCount; j++)
+		switch(ctor->fType)
 		{
-			if(j)
-				fputs(", ", out);
-			rlc_parsed_variable_print_argument(
-				&ctor->fArguments[j],
-				file,
-				out,
-				1);
+		case kRlcDefaultConstructor: break;
+		case kRlcCopyConstructor:
+		case kRlcMoveConstructor:
+			{
+				fputs("__rl_MY_T ", out);
+				fputs(ctor->fType == kRlcCopyConstructor ? "const" : "&", out);
+				fputc('&', out);
+
+				rlc_src_string_print(&ctor->fArgName, file, out);
+			} break;
+		case kRlcCustomConstructor:
+			{
+				for(RlcSrcIndex j = 0; j < ctor->fArgumentCount; j++)
+				{
+					if(j)
+						fputs(", ", out);
+					rlc_parsed_variable_print_argument(
+						&ctor->fArguments[j],
+						file,
+						out,
+						1);
+				}
+			} break;
 		}
+
 		fputc(')', out);
 		if(!ctor->fIsDefinition
 		&& !ctor->fArgumentCount
@@ -531,16 +548,33 @@ static void rlc_parsed_class_print_impl(
 			out);
 		fputc('(', out);
 
-		for(RlcSrcIndex j = 0; j < ctor->fArgumentCount; j++)
+		switch(ctor->fType)
 		{
-			if(j)
-				fputs(", ", out);
-			rlc_parsed_variable_print_argument(
-				&ctor->fArguments[j],
-				file,
-				out,
-				1);
+		case kRlcDefaultConstructor: break;
+		case kRlcCopyConstructor:
+		case kRlcMoveConstructor:
+			{
+				fputs("__rl_MY_T ", out);
+				fputs(ctor->fType == kRlcCopyConstructor ? "const" : "&", out);
+				fputc('&', out);
+
+				rlc_src_string_print(&ctor->fArgName, file, out);
+			} break;
+		case kRlcCustomConstructor:
+			{
+				for(RlcSrcIndex j = 0; j < ctor->fArgumentCount; j++)
+				{
+					if(j)
+						fputs(", ", out);
+					rlc_parsed_variable_print_argument(
+						&ctor->fArguments[j],
+						file,
+						out,
+						1);
+				}
+			} break;
 		}
+
 		fputs(")\n", out);
 		for(RlcSrcIndex j = 0; j < ctor->fInitialiserCount; j++)
 		{

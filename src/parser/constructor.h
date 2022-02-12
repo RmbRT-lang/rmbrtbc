@@ -15,6 +15,15 @@
 extern "C" {
 #endif
 
+/** Identifies the kind of a constructor. */
+enum RlcConstructorType
+{
+	kRlcDefaultConstructor,
+	kRlcCopyConstructor,
+	kRlcMoveConstructor,
+	kRlcCustomConstructor
+};
+
 /** A constructor as used in the parser.
 @extends RlcParsedMember */
 struct RlcParsedConstructor
@@ -24,10 +33,19 @@ struct RlcParsedConstructor
 	/** The template parameters. */
 	struct RlcParsedTemplateDecl fTemplates;
 
-	/** The arguments. */
-	struct RlcParsedVariable * fArguments;
-	/** The argument count. */
-	size_t fArgumentCount;
+	/** The constructor type. */
+	enum RlcConstructorType fType;
+
+	union {
+		struct {
+			/** The arguments. */
+			struct RlcParsedVariable * fArguments;
+			/** The argument count. */
+			size_t fArgumentCount;
+		};
+		/** For copy and move constructors, the argument's name. */
+		struct RlcSrcString fArgName;
+	};
 
 	/** Whether the constructor is a definition. */
 	int fIsDefinition;
