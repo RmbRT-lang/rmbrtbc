@@ -1,6 +1,7 @@
 #include "constructor.h"
 #include "../assert.h"
 #include "../malloc.h"
+#include "symbolconstantexpression.h"
 
 void rlc_parsed_constructor_create(
 	struct RlcParsedConstructor * this,
@@ -36,7 +37,8 @@ void rlc_parsed_constructor_destroy(
 	{
 		for(size_t i = this->fArgumentCount; i--;)
 			rlc_parsed_variable_destroy(&this->fArguments[i]);
-		rlc_free((void**)&this->fArguments);
+		if(this->fArguments)
+			rlc_free((void**)&this->fArguments);
 		this->fArgumentCount = 0;
 	}
 
@@ -61,19 +63,37 @@ int rlc_parsed_constructor_parse(
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
 
-	if(member->attribute != kRlcMemberAttributeNone
-	|| !rlc_parser_consume(
-		parser,
-		NULL,
-		kRlcTokBraceOpen))
+	if(member->attribute != kRlcMemberAttributeNone)
 		return 0;
 
 	rlc_parsed_constructor_create(
 		out,
 		member);
 
+	if((out->fIsVariant = rlc_parser_consume(parser, NULL, kRlcTokColon)))
+	{
+		if(rlc_parser_expect(parser, &out->fVariant, 7,
+			kRlcTokIdentifier,
+			kRlcTokLess, // acquire
+			kRlcTokGreater, // release
+			kRlcTokLessGreater, // acq_rel
+			kRlcTokQuestionMark, // relaxed
+			kRlcTokExclamationMark, // seq_cst
+			kRlcTokLessMinus // consume
+		) == kRlcTokIdentifier)
+			rlc_parsed_symbol_constant_register(
+				rlc_parser_file(parser),
+				&out->fVariant.content);
+	}
+
+	if(!rlc_parser_consume(
+		parser,
+		NULL,
+		kRlcTokBraceOpen))
+		return 0;
+
 	struct RlcToken argNameToken;
-	if(rlc_parser_consume(parser, NULL, kRlcTokDoubleAnd))
+	if(!out->fIsVariant && rlc_parser_consume(parser, NULL, kRlcTokDoubleAnd))
 	{
 		out->fType = kRlcMoveConstructor;
 		if(rlc_parser_consume(parser, &argNameToken, kRlcTokIdentifier))
@@ -81,7 +101,7 @@ int rlc_parsed_constructor_parse(
 		else
 			out->fArgName = kRlcSrcStringEmpty;
 	}
-	else if(rlc_parser_consume(parser, NULL, kRlcTokHash))
+	else if(!out->fIsVariant && rlc_parser_consume(parser, NULL, kRlcTokHash))
 	{
 		rlc_parser_expect(parser, NULL, 1, kRlcTokAnd);
 		out->fType = kRlcCopyConstructor;
@@ -89,7 +109,7 @@ int rlc_parsed_constructor_parse(
 			out->fArgName = argNameToken.content;
 		else
 			out->fArgName = kRlcSrcStringEmpty;
-	} else if(rlc_parser_is_current(parser, kRlcTokBraceClose))
+	} else if(!out->fIsVariant && rlc_parser_is_current(parser, kRlcTokBraceClose))
 	{
 		out->fType = kRlcDefaultConstructor;
 	} else
@@ -98,29 +118,30 @@ int rlc_parsed_constructor_parse(
 		out->fArguments = NULL;
 		out->fArgumentCount = 0;
 
-		do {
-			struct RlcParsedVariable argument;
+		if(!out->fIsVariant || !rlc_parser_is_current(parser, kRlcTokBraceClose))
+			do {
+				struct RlcParsedVariable argument;
 
-			if(!rlc_parsed_variable_parse(
-				&argument,
+				if(!rlc_parsed_variable_parse(
+					&argument,
+					parser,
+					NULL,
+					0,
+					0,
+					0,
+					0,
+					1))
+				{
+					rlc_parser_fail(parser, "expected argument");
+				}
+
+				rlc_parsed_constructor_add_argument(
+					out,
+					&argument);
+			} while(rlc_parser_consume(
 				parser,
 				NULL,
-				0,
-				0,
-				0,
-				0,
-				1))
-			{
-				rlc_parser_fail(parser, "expected argument");
-			}
-
-			rlc_parsed_constructor_add_argument(
-				out,
-				&argument);
-		} while(rlc_parser_consume(
-			parser,
-			NULL,
-			kRlcTokComma));
+				kRlcTokComma));
 	}
 
 	rlc_parser_expect(
