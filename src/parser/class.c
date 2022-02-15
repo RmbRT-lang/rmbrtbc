@@ -513,6 +513,42 @@ static void rlc_parsed_class_print_impl(
 			} break;
 		case kRlcCustomConstructor:
 			{
+				if(ctor->fIsVariant)
+				{
+					switch(ctor->fVariant.type)
+					{
+					case kRlcTokIdentifier:
+						fputs("::__rl::constant::_t_", out);
+						rlc_src_string_print_noreplace(
+							&ctor->fVariant.content,
+							file,
+							out);
+						break;
+					case kRlcTokLess:
+						fputs("::__rl::constant::__t_less", out);
+						break;
+					case kRlcTokGreater:
+						fputs("::__rl::constant::__t_greater", out);
+						break;
+					case kRlcTokLessGreater:
+						fputs("::__rl::constant::__t_less_greater", out);
+						break;
+					case kRlcTokQuestionMark:
+						fputs("::__rl::constant::__t_question_mark", out);
+						break;
+					case kRlcTokExclamationMark:
+						fputs("::__rl::constant::__t_exclamation_mark", out);
+						break;
+					case kRlcTokLessMinus:
+						fputs("::__rl::constant::__t_less_minus", out);
+						break;
+					default:
+						RLC_DASSERT(!"unhandled symbol constant");
+					}
+					if(ctor->fArgumentCount)
+						fputs(", ", out);
+				}
+
 				for(RlcSrcIndex j = 0; j < ctor->fArgumentCount; j++)
 				{
 					if(j)
@@ -562,6 +598,42 @@ static void rlc_parsed_class_print_impl(
 			} break;
 		case kRlcCustomConstructor:
 			{
+				if(ctor->fIsVariant)
+				{
+					switch(ctor->fVariant.type)
+					{
+					case kRlcTokIdentifier:
+						fputs("::__rl::constant::_t_", out);
+						rlc_src_string_print_noreplace(
+							&ctor->fVariant.content,
+							file,
+							out);
+						break;
+					case kRlcTokLess:
+						fputs("::__rl::constant::__t_less", out);
+						break;
+					case kRlcTokGreater:
+						fputs("::__rl::constant::__t_greater", out);
+						break;
+					case kRlcTokLessGreater:
+						fputs("::__rl::constant::__t_less_greater", out);
+						break;
+					case kRlcTokQuestionMark:
+						fputs("::__rl::constant::__t_question_mark", out);
+						break;
+					case kRlcTokExclamationMark:
+						fputs("::__rl::constant::__t_exclamation_mark", out);
+						break;
+					case kRlcTokLessMinus:
+						fputs("::__rl::constant::__t_less_minus", out);
+						break;
+					default:
+						RLC_DASSERT(!"unhandled symbol constant");
+					}
+					if(ctor->fArgumentCount)
+						fputs(", ", out);
+				}
+
 				for(RlcSrcIndex j = 0; j < ctor->fArgumentCount; j++)
 				{
 					if(j)
