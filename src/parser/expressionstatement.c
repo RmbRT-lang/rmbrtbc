@@ -1,4 +1,5 @@
 #include "expressionstatement.h"
+#include "operatorexpression.h"
 
 #include "../assert.h"
 #include "../malloc.h"
@@ -64,6 +65,19 @@ void rlc_parsed_expression_statement_print(
 	struct RlcSrcFile const * file,
 	FILE * out)
 {
-	rlc_parsed_expression_print(this->fExpression, file, out);
+	// Treat top-level variadic expansion expressions as folding expressions.
+	struct RlcParsedOperatorExpression * e;
+	if((e = RLC_DYNAMIC_CAST(
+		this->fExpression,
+		RlcParsedExpression,
+		RlcParsedOperatorExpression))
+	&& e->fOperator == kVariadicExpand)
+	{
+		RLC_DASSERT(e->fExpressionCount == 1);
+		fputs("(", out);
+		rlc_parsed_expression_print(e->fExpressions[0], file, out);
+		fputs(", ...)", out);
+	} else
+		rlc_parsed_expression_print(this->fExpression, file, out);
 	fputs(";\n", out);
 }
