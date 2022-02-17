@@ -14,6 +14,8 @@
 
 #include <string.h>
 
+int rlc_const_context = 0;
+
 void rlc_visibility_print(
 	enum RlcVisibility this,
 	int printColon,
@@ -202,7 +204,10 @@ enum RlcMemberAttribute rlc_member_attribute_parse(
 		NULL,
 		kRlcTokHash))
 	{
-		return kRlcMemberAttributeIsolated;
+		if(rlc_parser_consume(parser, NULL, kRlcTokQuestionMark))
+			return kRlcMemberAttributeMaybeIsolated;
+		else
+			return kRlcMemberAttributeIsolated;
 	} else if(rlc_parser_is_current(
 		parser,
 		kRlcTokTripleLess)

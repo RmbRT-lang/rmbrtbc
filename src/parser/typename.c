@@ -1,6 +1,7 @@
 #include "typename.h"
 #include "expression.h"
 #include "symbolconstantexpression.h"
+#include "member.h"
 #include "../malloc.h"
 #include "../assert.h"
 #include "../printer.h"
@@ -71,31 +72,40 @@ int rlc_type_qualifier_parse(
 
 	int ret = 0;
 
+	*out = 0;
+
 	if(rlc_parser_consume(
 		parser,
 		NULL,
 		kRlcTokHash))
 	{
+		if(rlc_parser_consume(parser, NULL, kRlcTokQuestionMark))
+			*out |= kRlcTypeQualifierMaybeConst;
+		else
+			*out |= kRlcTypeQualifierConst;
+
 		if(rlc_parser_consume(
 			parser,
 			NULL,
 			kRlcTokDollar))
-			*out = kRlcTypeQualifierConst | kRlcTypeQualifierVolatile;
-		else
-			*out = kRlcTypeQualifierConst;
+			*out |= kRlcTypeQualifierVolatile;
 		ret = 1;
 	} else if(rlc_parser_consume(
 		parser,
 		NULL,
 		kRlcTokDollar))
 	{
+			*out |= kRlcTypeQualifierVolatile;
 		if(rlc_parser_consume(
 			parser,
 			NULL,
 			kRlcTokHash))
-			*out = kRlcTypeQualifierConst | kRlcTypeQualifierVolatile;
-		else
-			*out = kRlcTypeQualifierVolatile;
+		{
+			if(rlc_parser_consume(parser, NULL, kRlcTokQuestionMark))
+				*out |= kRlcTypeQualifierMaybeConst;
+			else
+				*out |= kRlcTypeQualifierConst;
+		}
 		ret = 1;
 	} else
 		*out = kRlcTypeQualifierNone;
@@ -612,7 +622,8 @@ void rlc_parsed_type_name_print(
 			RLC_ASSERT(!"not implemented");
 		}
 
-		if(this->fTypeModifiers[i].fTypeQualifier & kRlcTypeQualifierConst)
+		if((this->fTypeModifiers[i].fTypeQualifier & kRlcTypeQualifierDefinitiveConst)
+		|| (rlc_const_context && (this->fTypeModifiers[i].fTypeQualifier & kRlcTypeQualifierMaybeConst)))
 			fprintf(out, " const");
 		if(this->fTypeModifiers[i].fTypeQualifier & kRlcTypeQualifierVolatile)
 			fprintf(out, " volatile");
