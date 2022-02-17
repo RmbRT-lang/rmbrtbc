@@ -565,7 +565,8 @@ static void rlc_parsed_class_print_impl(
 		fputc(')', out);
 		if(!ctor->fIsDefinition
 		&& !ctor->fArgumentCount
-		&& !ctor->fInitialiserCount)
+		&& !ctor->fInitialiserCount
+		&& !ctor->fIsVariant)
 		{
 			fputs(" = default;\n", out);
 			continue;
