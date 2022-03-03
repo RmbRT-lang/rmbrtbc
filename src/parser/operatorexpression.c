@@ -173,6 +173,10 @@ int rlc_operator_parse_binary(
 	enum RlcOperator * op,
 	struct RlcParser * parser)
 {
+	// Forbid custom assignment operator.
+	if(rlc_parser_is_current(parser, kRlcTokColonEqual))
+		return 0;
+
 	for(unsigned i = 0; i < _countof(k_binary); i++)
 		if(rlc_parser_consume(parser, NULL, k_binary[i].fTok))
 		{

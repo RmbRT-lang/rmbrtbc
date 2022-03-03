@@ -66,10 +66,13 @@ enum RlcTypeQualifier
 {
 	/** No qualifier. */
 	kRlcTypeQualifierNone = 0,
+	/** Maybe const qualifier. */
+	kRlcTypeQualifierMaybeConst = 1,
+	kRlcTypeQualifierDefinitiveConst = 2,
 	/** Const qualifier. */
-	kRlcTypeQualifierConst = 1,
+	kRlcTypeQualifierConst = 3,
 	/** Volatile qualifier. */
-	kRlcTypeQualifierVolatile = 2,
+	kRlcTypeQualifierVolatile = 4,
 
 	RLC_ENUM_END(RlcTypeQualifier)
 };

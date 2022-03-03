@@ -620,7 +620,8 @@ int rlc_parsed_member_function_parse(
 	RLC_DASSERT(member != NULL);
 
 	int any = 0;
-	if(rlc_parser_is_current(parser, kRlcTokTripleLess))
+	if(member->attribute == kRlcMemberAttributeStatic
+	&& rlc_parser_is_current(parser, kRlcTokTripleLess))
 	{
 		out->fAbstractness = kRlcMemberFunctionAbstractnessNone;
 	} else
@@ -681,11 +682,15 @@ void rlc_parsed_member_function_destroy(
 		RLC_BASE_CAST(this, RlcParsedMember));
 }
 
-void rlc_parsed_member_function_print(
+
+void rlc_parsed_member_function_print_impl(
 	struct RlcParsedMemberFunction const * this,
 	struct RlcSrcFile const * file,
-	struct RlcPrinter const * printer)
+	struct RlcPrinter const * printer,
+	int isConst)
 {
+	rlc_const_context = isConst;
+
 	struct RlcParsedMember const * member = RLC_BASE_CAST(
 		this,
 		RlcParsedMember);
@@ -725,7 +730,7 @@ void rlc_parsed_member_function_print(
 		file,
 		out);
 
-	if(member->fAttribute == kRlcMemberAttributeIsolated)
+	if(isConst)
 		fputs(" const", out);
 
 	rlc_parsed_function_print_head_3(
@@ -774,7 +779,8 @@ void rlc_parsed_member_function_print(
 			file,
 			out);
 
-		if(member->fAttribute == kRlcMemberAttributeIsolated)
+		if(member->fAttribute == kRlcMemberAttributeIsolated
+		|| (isConst && member->fAttribute == kRlcMemberAttributeMaybeIsolated))
 			fputs(" const", out);
 
 		rlc_parsed_function_print_head_3(
@@ -797,9 +803,25 @@ void rlc_parsed_member_function_print(
 				fprintf(
 					printer->fTypesImpl,
 					"\ninline auto operator->() %s { return & * *this; }\n",
-					member->fAttribute == kRlcMemberAttributeIsolated ? "const" : "");
+					member->fAttribute == kRlcMemberAttributeIsolated
+					|| (isConst && member->fAttribute == kRlcMemberAttributeMaybeIsolated) ? "const" : "");
 			} break;
 		default:;
 		}
 	}
+
+	rlc_const_context = 0;
+}
+
+void rlc_parsed_member_function_print(
+	struct RlcParsedMemberFunction const * this,
+	struct RlcSrcFile const * file,
+	struct RlcPrinter const * printer)
+{
+	struct RlcParsedMember const * member = RLC_BASE_CAST(this, RlcParsedMember);
+	if(member->fAttribute != kRlcMemberAttributeIsolated)
+		rlc_parsed_member_function_print_impl(this, file, printer, 0);
+	if(member->fAttribute == kRlcMemberAttributeIsolated
+	|| member->fAttribute == kRlcMemberAttributeMaybeIsolated)
+		rlc_parsed_member_function_print_impl(this, file, printer, 1);
 }

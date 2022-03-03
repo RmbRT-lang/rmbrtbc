@@ -17,6 +17,8 @@ extern "C" {
 
 struct RlcPrinter;
 
+extern int rlc_const_context;
+
 /** The protection level of a member. */
 enum RlcVisibility
 {
@@ -66,6 +68,7 @@ enum RlcMemberAttribute
 {
 	kRlcMemberAttributeNone,
 	kRlcMemberAttributeIsolated,
+	kRlcMemberAttributeMaybeIsolated,
 	kRlcMemberAttributeStatic,
 
 	RLC_ENUM_END(RlcMemberAttribute)

@@ -257,7 +257,7 @@ static void rlc_parsed_class_print_impl(
 
 	for(RlcSrcIndex i = 0; i < this->fInheritanceCount; i++)
 	{
-		fputs("void const * __rl_get_derived(", out);
+		fputs("void const * __rl_get_derived(typename ", out);
 		rlc_parsed_symbol_print_no_template(
 			&this->fInheritances[i].fBase,
 			file,
@@ -265,7 +265,7 @@ static void rlc_parsed_class_print_impl(
 
 		fputs("::__rl_identifier const *) const { return __rl::real_addr(*this); }\n", out);
 
-		fputs("char const * __rl_type_name(", out);
+		fputs("char const * __rl_type_name(typename ", out);
 		rlc_parsed_symbol_print_no_template(
 			&this->fInheritances[i].fBase,
 			file,
@@ -273,7 +273,7 @@ static void rlc_parsed_class_print_impl(
 
 		fputs("::__rl_identifier const *) const { return __rl::type_name(*this); }\n", out);
 
-		fputs("unsigned __rl_type_number(", out);
+		fputs("unsigned __rl_type_number(typename ", out);
 		rlc_parsed_symbol_print_no_template(
 			&this->fInheritances[i].fBase,
 			file,
@@ -425,7 +425,25 @@ static void rlc_parsed_class_print_impl(
 
 		fputs("__rl_MY_T& operator=(__rl_MY_T&&) = default;\n", out);
 		fputs("__rl_MY_T& operator=(__rl_MY_T const&) = default;\n", out);
+	} else {
+		struct RlcSrcPosition definitionLoc;
+		rlc_src_file_position(
+			file,
+			&definitionLoc,
+			RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName.start);
+
+		fprintf(out, "template<class _tpl_type_1> __rl_MY_T& operator=(_tpl_type_1 &&_rhs)\n{\n"
+			"	if constexpr(std::is_same<__rl_MY_T, std::decay_t<_tpl_type_1>>())\n"
+			"		__rl_assert(this != &_rhs, (self-assignments are forbidden!), \"%s\", %u, %u);\n"
+			"	__rl_destructor();\n"
+			"	__rl::__rl_p_constructor(this, std::forward<_tpl_type_1>(_rhs));\n"
+			"	return *this;\n"
+			"}\n",
+			file->fName,
+			definitionLoc.line,
+			definitionLoc.column);
 	}
+
 
 	////////////////////
 	// tuple ctor end //
@@ -565,7 +583,8 @@ static void rlc_parsed_class_print_impl(
 		fputc(')', out);
 		if(!ctor->fIsDefinition
 		&& !ctor->fArgumentCount
-		&& !ctor->fInitialiserCount)
+		&& !ctor->fInitialiserCount
+		&& !ctor->fIsVariant)
 		{
 			fputs(" = default;\n", out);
 			continue;
