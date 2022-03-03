@@ -257,7 +257,7 @@ static void rlc_parsed_class_print_impl(
 
 	for(RlcSrcIndex i = 0; i < this->fInheritanceCount; i++)
 	{
-		fputs("void const * __rl_get_derived(", out);
+		fputs("void const * __rl_get_derived(typename ", out);
 		rlc_parsed_symbol_print_no_template(
 			&this->fInheritances[i].fBase,
 			file,
@@ -265,7 +265,7 @@ static void rlc_parsed_class_print_impl(
 
 		fputs("::__rl_identifier const *) const { return __rl::real_addr(*this); }\n", out);
 
-		fputs("char const * __rl_type_name(", out);
+		fputs("char const * __rl_type_name(typename ", out);
 		rlc_parsed_symbol_print_no_template(
 			&this->fInheritances[i].fBase,
 			file,
@@ -273,7 +273,7 @@ static void rlc_parsed_class_print_impl(
 
 		fputs("::__rl_identifier const *) const { return __rl::type_name(*this); }\n", out);
 
-		fputs("unsigned __rl_type_number(", out);
+		fputs("unsigned __rl_type_number(typename ", out);
 		rlc_parsed_symbol_print_no_template(
 			&this->fInheritances[i].fBase,
 			file,
