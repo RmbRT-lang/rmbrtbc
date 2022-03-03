@@ -425,7 +425,25 @@ static void rlc_parsed_class_print_impl(
 
 		fputs("__rl_MY_T& operator=(__rl_MY_T&&) = default;\n", out);
 		fputs("__rl_MY_T& operator=(__rl_MY_T const&) = default;\n", out);
+	} else {
+		struct RlcSrcPosition definitionLoc;
+		rlc_src_file_position(
+			file,
+			&definitionLoc,
+			RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName.start);
+
+		fprintf(out, "template<class _tpl_type_1> __rl_MY_T& operator=(_tpl_type_1 &&_rhs)\n{\n"
+			"	if constexpr(std::is_same<__rl_MY_T, std::decay_t<_tpl_type_1>>())\n"
+			"		__rl_assert(this != &_rhs, (self-assignments are forbidden!), \"%s\", %u, %u);\n"
+			"	__rl_destructor();\n"
+			"	__rl::__rl_p_constructor(this, std::forward<_tpl_type_1>(_rhs));\n"
+			"	return *this;\n"
+			"}\n",
+			file->fName,
+			definitionLoc.line,
+			definitionLoc.column);
 	}
+
 
 	////////////////////
 	// tuple ctor end //
