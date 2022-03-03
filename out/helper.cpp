@@ -588,9 +588,6 @@ namespace __rl::test
 			} catch(char const * e)
 			{
 				fprintf(stderr, "FAILURE \"%s\":\n%s\n", name, e);
-			} catch(...)
-			{
-				fprintf(stderr, "FAILURE \"%s\"\n", name);
 			}
 			++detail::failures;
 			return 0;
