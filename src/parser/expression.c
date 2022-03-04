@@ -210,10 +210,8 @@ struct RlcParsedExpression * rlc_parsed_expression_parse(
 			kRlcTokComma));
 
 		if(opexp)
-		{
 			ret = RLC_BASE_CAST(opexp, RlcParsedExpression);
-			ret->fEnd = tok;
-		}
+		ret->fEnd = tok;
 		return ret;
 	}
 
