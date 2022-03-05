@@ -133,23 +133,65 @@ void rlc_parsed_type_switch_statement_print(
 	struct RlcSrcFile const * file,
 	FILE * out)
 {
-	fprintf(out, "switch(__rl::%s(",
-		this->fIsStatic ? "type_number" : "deriving_type_number");
-	rlc_parsed_expression_print(this->fExpression, file, out);
-	fputs("))\n{", out);
-	for(RlcSrcSize i = 0; i < this->fCaseCount; i++)
+	if(this->fIsStatic)
 	{
-		if(this->fCases[i].fIsDefault)
-			fputs("default:", out);
-		else for(RlcSrcIndex j = 0; j<this->fCases[i].fTypeNameCount; j++)
+		fputs("{auto const& __rl_type_switch_var = ", out);
+		rlc_parsed_expression_print(this->fExpression, file, out);
+		fputs(";\n", out);
+
+		int defaultIdx = -1;
+		for(RlcSrcSize i = 0; i < this->fCaseCount; i++)
 		{
-			fputs("case __rl::type_number<", out);
-			rlc_parsed_symbol_print(&this->fCases[i].fTypeNames[j], file, out);
-			fputs(">():", out);
+			if(this->fCases[i].fIsDefault)
+			{
+				RLC_ASSERT(defaultIdx == -1
+					&& "duplicate default case in static type switch");
+
+				defaultIdx = i;
+				continue;
+			}
+
+			if(i) fputs(" else ", out);
+			fputs("if constexpr(", out);
+			for(RlcSrcIndex j = 0; j<this->fCases[i].fTypeNameCount; j++)
+			{
+				if(j) fputs("\n|| ", out);
+				fputs("::std::is_same<::std::decay_t<decltype(__rl_type_switch_var)>, ", out);
+				rlc_parsed_symbol_print(&this->fCases[i].fTypeNames[j], file, out);
+				fputs(">()", out);
+			}
+			fputs(")\n", out);
+
+			rlc_parsed_statement_print(this->fCases[i].fBodyStatement, file, out);
 		}
 
-		rlc_parsed_statement_print(this->fCases[i].fBodyStatement, file, out);
-		fputs("break;\n", out);
+		if(defaultIdx != -1)
+		{
+			if(this->fCaseCount > 1)
+				fputs(" else\n", out);
+			rlc_parsed_statement_print(this->fCases[defaultIdx].fBodyStatement, file, out);
+		}
+
+		fputs("}\n", out);
+	} else
+	{
+		fprintf(out, "switch(__rl::deriving_type_number(");
+		rlc_parsed_expression_print(this->fExpression, file, out);
+		fputs("))\n{", out);
+		for(RlcSrcSize i = 0; i < this->fCaseCount; i++)
+		{
+			if(this->fCases[i].fIsDefault)
+				fputs("default:", out);
+			else for(RlcSrcIndex j = 0; j<this->fCases[i].fTypeNameCount; j++)
+			{
+				fputs("case __rl::type_number<", out);
+				rlc_parsed_symbol_print(&this->fCases[i].fTypeNames[j], file, out);
+				fputs(">():", out);
+			}
+
+			rlc_parsed_statement_print(this->fCases[i].fBodyStatement, file, out);
+			fputs("break;\n", out);
+		}
+		fputs("}\n", out);
 	}
-	fputs("}\n", out);
 }
