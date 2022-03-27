@@ -52,15 +52,25 @@ struct RlcParsedConstructor
 	/** Whether the constructor is a definition. */
 	int fIsDefinition;
 
-	/** The base initialisers. */
-	struct RlcParsedBaseInit * fBaseInits;
-	/** The base initialiser count. */
-	size_t fBaseInitCount;
+	/** Whether this constructor calls another constructor. */
+	int fCallsOtherCtor;
+	union {
+		struct {
+			/** The base initialisers. */
+			struct RlcParsedBaseInit * fBaseInits;
+			/** The base initialiser count. */
+			size_t fBaseInitCount;
 
-	/** The initialisers. */
-	struct RlcParsedInitialiser * fInitialisers;
-	/** The initialiser count. */
-	size_t fInitialiserCount;
+			/** The initialisers. */
+			struct RlcParsedInitialiser * fInitialisers;
+			/** The initialiser count. */
+			size_t fInitialiserCount;
+		} fInits;
+		struct {
+			struct RlcParsedExpression ** fOtherCtorCallArgs;
+			RlcSrcSize fOtherCtorCallArgCount;
+		};
+	} fInit;
 
 	/** The body statement. */
 	struct RlcParsedBlockStatement fBody;
@@ -152,9 +162,6 @@ struct RlcParsedInitialiser
 @related RlcParsedConstructor */
 struct RlcParsedBaseInit
 {
-	/** The base class' name. */
-	struct RlcParsedSymbol fBase;
-
 	int fIsNoInit;
 	/** The arguments. */
 	struct RlcParsedExpression ** fArguments;
