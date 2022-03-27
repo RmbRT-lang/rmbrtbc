@@ -680,17 +680,30 @@ namespace __rl
 	}
 
 	template<class Fn, class Obj, class ...Args>
-	inline Fn &&visit(Fn &&fn, Obj &&obj, Args &&... args)
+	inline Fn &&visit(Fn &&fn, Obj &&obj, Args &&... args) requires requires {
+		obj.__rl_visit(std::forward<Fn>(fn), std::forward<Args>(args)...);
+	}
 	{
 		obj.__rl_visit(std::forward<Fn>(fn), std::forward<Args>(args)...);
 		return std::forward<Fn>(fn);
 	}
 
 	template<class Fn, class Obj, class ...Args>
-	inline Fn &&visit_reflect(Fn &&fn, Obj &&obj, Args &&... args)
+	inline Fn &&visit(Fn &&fn, Obj &&obj, Args &&... args) { throw "VISIT invalid"; }
+
+	template<class Fn, class Obj, class ...Args>
+	inline Fn &&visit_reflect(Fn &&fn, Obj &&obj, Args &&... args) requires requires {
+		obj.__rl_visit_reflect(std::forward<Fn>(fn), std::forward<Args>(args)...);
+	}
 	{
 		obj.__rl_visit_reflect(std::forward<Fn>(fn), std::forward<Args>(args)...);
 		return std::forward<Fn>(fn);
+	}
+
+	template<class Fn, class Obj, class ...Args>
+	inline Fn &&visit_reflect(Fn &&fn, Obj &&obj, Args &&... args)
+	{
+		throw "VISIT invalid";
 	}
 
 	template<class T, class U>
