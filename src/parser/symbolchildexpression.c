@@ -45,8 +45,7 @@ int rlc_parsed_symbol_child_expression_parse(
 	struct RlcToken first = *rlc_parser_current(parser);
 	if(!rlc_parsed_symbol_child_parse(
 		RLC_BASE_CAST(out, RlcParsedSymbolChild),
-		parser,
-		1))
+		parser))
 	{
 		return 0;
 	}

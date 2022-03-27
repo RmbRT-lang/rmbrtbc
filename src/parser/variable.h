@@ -36,6 +36,8 @@ struct RlcParsedVariable
 			enum RlcReferenceType fReference;
 		};
 	};
+	/** Whether the variable is uninitialised. */
+	int fIsNoInit;
 	/** The initialising arguments, or null. */
 	struct RlcParsedExpression ** fInitArgs;
 	/** The initialising argument count. */

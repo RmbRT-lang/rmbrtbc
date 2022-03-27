@@ -52,6 +52,11 @@ struct RlcParsedConstructor
 	/** Whether the constructor is a definition. */
 	int fIsDefinition;
 
+	/** The base initialisers. */
+	struct RlcParsedBaseInit * fBaseInits;
+	/** The base initialiser count. */
+	size_t fBaseInitCount;
+
 	/** The initialisers. */
 	struct RlcParsedInitialiser * fInitialisers;
 	/** The initialiser count. */
@@ -125,12 +130,32 @@ void rlc_parsed_constructor_add_initialiser(
 	struct RlcParsedConstructor * this,
 	struct RlcParsedInitialiser * initialiser);
 
+void rlc_parsed_constructor_add_base_init(
+	struct RlcParsedConstructor * this,
+	struct RlcParsedBaseInit * initialiser);
+
 /** A member initaliser inside a constructor as used by the parser.
 @related RlcParsedConstructor */
 struct RlcParsedInitialiser
 {
-	/** The member's name. */
-	struct RlcParsedSymbol fMember;
+	/** The meber's name. */
+	struct RlcSrcString fMember;
+
+	int fIsNoInit;
+	/** The arguments. */
+	struct RlcParsedExpression ** fArguments;
+	/** The argument count. */
+	size_t fArgumentCount;
+};
+
+/** A member initaliser inside a constructor as used by the parser.
+@related RlcParsedConstructor */
+struct RlcParsedBaseInit
+{
+	/** The base class' name. */
+	struct RlcParsedSymbol fBase;
+
+	int fIsNoInit;
 	/** The arguments. */
 	struct RlcParsedExpression ** fArguments;
 	/** The argument count. */
@@ -176,6 +201,48 @@ void rlc_parsed_initialiser_parse(
 	@dassert @nonnull */
 void rlc_parsed_initialiser_add_argument(
 	struct RlcParsedInitialiser * this,
+	struct RlcParsedExpression * argument);
+
+
+/** Creates an initialiser.
+@memberof RlcParsedBaseInit
+@param[out] this:
+	The initialiser to create.
+	@dassert @nonnull */
+void rlc_parsed_base_init_create(
+	struct RlcParsedBaseInit * this);
+
+/** Destroys an initialiser.
+@memberof RlcParsedBaseInit
+@param[in,out] this:
+	The initialiser to destroy.
+	@dassert @nonnull */
+void rlc_parsed_base_init_destroy(
+	struct RlcParsedBaseInit * this);
+
+/** Parses an initialiser.
+@memberof RlcParsedBaseInit
+@param[out] out:
+	The initialiser to parse into.
+	@dassert @nonnull
+@param[in,out] parser:
+	The parser data.
+	@dassert @nonnull */
+void rlc_parsed_base_init_parse(
+	struct RlcParsedBaseInit * out,
+	struct RlcParser * parser);
+
+/** Adds an argument to an initaliser.
+@memberof RlcParsedBaseInit
+@param[in,out] this:
+	The intialiser to add an argument to.
+	@dassert @nonnul
+@param[in] argument:
+	The argument to add.
+	@pass_pointer_ownership
+	@dassert @nonnull */
+void rlc_parsed_base_init_add_argument(
+	struct RlcParsedBaseInit * this,
 	struct RlcParsedExpression * argument);
 
 #ifdef __cplusplus

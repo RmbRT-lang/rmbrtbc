@@ -21,6 +21,7 @@ void rlc_parsed_variable_create(
 	else
 		this->fTemplates = *templates;
 
+	this->fIsNoInit = 0;
 	this->fHasType = 0;
 	this->fInitArgs = NULL;
 	this->fInitArgCount = 0;
@@ -262,19 +263,26 @@ int rlc_parsed_variable_parse(
 					NULL,
 					kRlcTokParentheseClose))
 				{
-					do {
-						struct RlcParsedExpression * arg = rlc_parsed_expression_parse(
-							parser,
-							RLC_ALL_FLAGS(RlcParsedExpressionType));
-
-						if(!arg)
-							rlc_parser_fail(parser, "expected expression");
-
-						rlc_parsed_variable_add_arg(out, arg);
-					} while(isParenthese && rlc_parser_consume(
+					if(!(out->fIsNoInit = rlc_parser_consume(
 						parser,
 						NULL,
-						kRlcTokComma));
+						kRlcTokNoinit)))
+					{
+						do {
+							struct RlcParsedExpression * arg =
+								rlc_parsed_expression_parse(
+									parser,
+									RLC_ALL_FLAGS(RlcParsedExpressionType));
+
+							if(!arg)
+								rlc_parser_fail(parser, "expected expression");
+
+							rlc_parsed_variable_add_arg(out, arg);
+						} while(isParenthese && rlc_parser_consume(
+							parser,
+							NULL,
+							kRlcTokComma));
+					}
 
 					if(isParenthese)
 						rlc_parser_expect(
@@ -358,24 +366,33 @@ static void rlc_parsed_variable_print_argument_2(
 	if(!print_initialiser)
 		return;
 
-	if(this->fInitArgCount == 1)
+	switch(this->fInitArgCount)
 	{
-		fprintf(out, " = ");
-		if(!this->fHasType)
-			fputs("__rl::mk_auto(", out);
-		rlc_parsed_expression_print(this->fInitArgs[0], file, out);
-		if(!this->fHasType)
-			fputs(")", out);
-	} else if(this->fInitArgCount > 1)
-	{
-		fputc('{', out);
-		for(RlcSrcIndex i = 0; i < this->fInitArgCount; i++)
+	case 0:
 		{
-			if(i)
-				fprintf(out, ", ");
-			rlc_parsed_expression_print(this->fInitArgs[i], file, out);
-		}
-		fputc('}', out);
+			if(!this->fIsNoInit)
+				fputs(" = __rl::default_init", out);
+		} break;
+	case 1:
+		{
+			fputs(" = ", out);
+			if(!this->fHasType)
+				fputs("__rl::mk_auto(", out);
+			rlc_parsed_expression_print(this->fInitArgs[0], file, out);
+			if(!this->fHasType)
+				fputs(")", out);
+		} break;
+	default:
+		{
+			fputc('{', out);
+			for(RlcSrcIndex i = 0; i < this->fInitArgCount; i++)
+			{
+				if(i)
+					fprintf(out, ", ");
+				rlc_parsed_expression_print(this->fInitArgs[i], file, out);
+			}
+			fputc('}', out);
+		} break;
 	}
 }
 

@@ -265,6 +265,24 @@ namespace __rl
 
 	nullptr_t const null {};
 
+	struct default_init_t
+	{
+		constexpr operator bool() const { return false; }
+		constexpr operator char() const { return 0; }
+		constexpr operator float() const { return 0; }
+		constexpr operator double() const { return 0; }
+		constexpr operator uint8_t() const { return 0; }
+		constexpr operator uint16_t() const { return 0; }
+		constexpr operator uint32_t() const { return 0; }
+		constexpr operator uint64_t() const { return 0; }
+		constexpr operator int8_t() const { return 0; }
+		constexpr operator int16_t() const { return 0; }
+		constexpr operator int32_t() const { return 0; }
+		constexpr operator int64_t() const { return 0; }
+		template<class T> constexpr operator T*() const { return NULL; }
+	} const default_init;
+
+	template<class T> inline T __rl_cast() { return ::__rl::default_init; }
 	template<class T, class ...Args>
 	inline T __rl_cast(Args&&...args)
 	{
@@ -603,6 +621,7 @@ namespace __rl
 	template<class T>
 	inline auto count(T &&v) { return v.__rl_count(); }
 
+	inline void const * real_addr(char const&v) { return &v; }
 	inline void const * real_addr(signed const&v) { return &v; }
 	inline void const * real_addr(unsigned const&v) { return &v; }
 	inline void const * real_addr(signed short const&v) { return &v; }
@@ -661,17 +680,30 @@ namespace __rl
 	}
 
 	template<class Fn, class Obj, class ...Args>
-	inline Fn &&visit(Fn &&fn, Obj &&obj, Args &&... args)
+	inline Fn &&visit(Fn &&fn, Obj &&obj, Args &&... args) requires requires {
+		obj.__rl_visit(std::forward<Fn>(fn), std::forward<Args>(args)...);
+	}
 	{
 		obj.__rl_visit(std::forward<Fn>(fn), std::forward<Args>(args)...);
 		return std::forward<Fn>(fn);
 	}
 
 	template<class Fn, class Obj, class ...Args>
-	inline Fn &&visit_reflect(Fn &&fn, Obj &&obj, Args &&... args)
+	inline Fn &&visit(Fn &&fn, Obj &&obj, Args &&... args) { throw "VISIT invalid"; }
+
+	template<class Fn, class Obj, class ...Args>
+	inline Fn &&visit_reflect(Fn &&fn, Obj &&obj, Args &&... args) requires requires {
+		obj.__rl_visit_reflect(std::forward<Fn>(fn), std::forward<Args>(args)...);
+	}
 	{
 		obj.__rl_visit_reflect(std::forward<Fn>(fn), std::forward<Args>(args)...);
 		return std::forward<Fn>(fn);
+	}
+
+	template<class Fn, class Obj, class ...Args>
+	inline Fn &&visit_reflect(Fn &&fn, Obj &&obj, Args &&... args)
+	{
+		throw "VISIT invalid";
 	}
 
 	template<class T, class U>

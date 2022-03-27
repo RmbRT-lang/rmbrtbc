@@ -189,6 +189,7 @@ struct {
 	{"IF", kRlcTokIf },
 	{"INCLUDE", kRlcTokInclude },
 	{"INLINE", kRlcTokInline },
+	{"NOINIT", kRlcTokNoinit },
 	{"NULL", kRlcTokNull },
 	{"NUMBER", kRlcTokNumber },
 	{"OPERATOR", kRlcTokOperator },

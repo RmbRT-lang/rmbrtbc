@@ -20,6 +20,8 @@ void rlc_parsed_constructor_create(
 
 	this->fType = kRlcDefaultConstructor;
 	this->fIsDefinition = 0;
+	this->fBaseInits = NULL;
+	this->fBaseInitCount = 0;
 	this->fInitialisers = NULL;
 	this->fInitialiserCount = 0;
 }
@@ -42,6 +44,13 @@ void rlc_parsed_constructor_destroy(
 		this->fArgumentCount = 0;
 	}
 
+	if(this->fBaseInits)
+	{
+		for(size_t i = this->fBaseInitCount; i--;)
+			rlc_parsed_base_init_destroy(&this->fBaseInits[i]);
+		rlc_free((void**)&this->fBaseInits);
+		this->fBaseInitCount = 0;
+	}
 	if(this->fInitialisers)
 	{
 		for(size_t i = this->fInitialiserCount; i--;)
@@ -176,13 +185,13 @@ int rlc_parsed_constructor_parse(
 		kRlcTokMinusGreater))
 	{
 		do {
-			struct RlcParsedInitialiser initialiser;
+			struct RlcParsedBaseInit initialiser;
 
-			rlc_parsed_initialiser_parse(
+			rlc_parsed_base_init_parse(
 				&initialiser,
 				parser);
 
-			rlc_parsed_constructor_add_initialiser(
+			rlc_parsed_constructor_add_base_init(
 				out,
 				&initialiser);
 		} while(rlc_parser_consume(
@@ -240,6 +249,20 @@ void rlc_parsed_constructor_add_argument(
 	this->fArguments[this->fArgumentCount-1] = *argument;
 }
 
+void rlc_parsed_constructor_add_base_init(
+	struct RlcParsedConstructor * this,
+	struct RlcParsedBaseInit * base_init)
+{
+	RLC_DASSERT(this != NULL);
+	RLC_DASSERT(base_init != NULL);
+
+	rlc_realloc(
+		(void**)&this->fBaseInits,
+		sizeof(struct RlcParsedBaseInit) * ++this->fBaseInitCount);
+
+	this->fBaseInits[this->fBaseInitCount-1] = *base_init;
+}
+
 void rlc_parsed_constructor_add_initialiser(
 	struct RlcParsedConstructor * this,
 	struct RlcParsedInitialiser * initialiser)
@@ -249,7 +272,7 @@ void rlc_parsed_constructor_add_initialiser(
 
 	rlc_realloc(
 		(void**)&this->fInitialisers,
-		sizeof(struct RlcParsedVariable) * ++this->fInitialiserCount);
+		sizeof(struct RlcParsedInitialiser) * ++this->fInitialiserCount);
 
 	this->fInitialisers[this->fInitialiserCount-1] = *initialiser;
 }
@@ -259,6 +282,7 @@ void rlc_parsed_initialiser_create(
 {
 	RLC_DASSERT(this != NULL);
 
+	this->fIsNoInit = 0;
 	this->fArguments = NULL;
 	this->fArgumentCount = 0;
 }
@@ -268,8 +292,6 @@ void rlc_parsed_initialiser_destroy(
 	struct RlcParsedInitialiser * this)
 {
 	RLC_DASSERT(this != NULL);
-
-	rlc_parsed_symbol_destroy(&this->fMember);
 
 	if(this->fArguments)
 	{
@@ -292,19 +314,28 @@ void rlc_parsed_initialiser_parse(
 
 	rlc_parsed_initialiser_create(out);
 
-	if(!rlc_parsed_symbol_parse(&out->fMember, parser, 0))
-		rlc_parser_fail(parser, "expected symbol");
+	struct RlcToken name;
+	rlc_parser_expect(parser, &name, 1, kRlcTokIdentifier);
+	out->fMember = name.content;
 
 	if(rlc_parser_consume(
 		parser,
 		NULL,
 		kRlcTokColonEqual))
 	{
-		rlc_parsed_initialiser_add_argument(
-			out,
-			rlc_parsed_expression_parse(
+		if(!(out->fIsNoInit = rlc_parser_consume(
+			parser,
+			NULL,
+			kRlcTokNoinit)))
+		{
+			struct RlcParsedExpression * arg = rlc_parsed_expression_parse(
 				parser,
-				RLC_ALL_FLAGS(RlcParsedExpressionType)));
+				RLC_ALL_FLAGS(RlcParsedExpressionType));
+			if(!arg)
+				rlc_parser_fail(parser, "expected expression or 'NOINIT'");
+
+			rlc_parsed_initialiser_add_argument(out, arg);
+		}
 		return;
 	}
 
@@ -319,16 +350,24 @@ void rlc_parsed_initialiser_parse(
 		NULL,
 		kRlcTokParentheseClose))
 	{
-		do {
-			rlc_parsed_initialiser_add_argument(
-				out,
-				rlc_parsed_expression_parse(
-					parser,
-					RLC_ALL_FLAGS(RlcParsedExpressionType)));
-		} while(rlc_parser_consume(
+		if(!(out->fIsNoInit = rlc_parser_consume(
 			parser,
 			NULL,
-			kRlcTokComma));
+			kRlcTokNoinit)))
+		{
+			do {
+				struct RlcParsedExpression * arg = rlc_parsed_expression_parse(
+					parser,
+					RLC_ALL_FLAGS(RlcParsedExpressionType));
+				if(!arg)
+					rlc_parser_fail(parser, "expected expression");
+
+				rlc_parsed_initialiser_add_argument(out, arg);
+			} while(rlc_parser_consume(
+				parser,
+				NULL,
+				kRlcTokComma));
+		}
 
 		rlc_parser_expect(
 			parser,
@@ -340,6 +379,123 @@ void rlc_parsed_initialiser_parse(
 
 void rlc_parsed_initialiser_add_argument(
 	struct RlcParsedInitialiser * this,
+	struct RlcParsedExpression * argument)
+{
+	RLC_DASSERT(this != NULL);
+	RLC_DASSERT(argument != NULL);
+
+	rlc_realloc(
+		(void**)&this->fArguments,
+		sizeof(struct RlcParsedExpression*) * ++this->fArgumentCount);
+
+	this->fArguments[this->fArgumentCount-1] = argument;
+}
+
+
+
+void rlc_parsed_base_init_create(
+	struct RlcParsedBaseInit * this)
+{
+	RLC_DASSERT(this != NULL);
+
+	this->fIsNoInit = 0;
+	this->fArguments = NULL;
+	this->fArgumentCount = 0;
+}
+
+
+void rlc_parsed_base_init_destroy(
+	struct RlcParsedBaseInit * this)
+{
+	RLC_DASSERT(this != NULL);
+
+	rlc_parsed_symbol_destroy(&this->fBase);
+
+	if(this->fArguments)
+	{
+		while(this->fArgumentCount--)
+		{
+			rlc_parsed_expression_destroy_virtual(this->fArguments[this->fArgumentCount]);
+			rlc_free((void**)&this->fArguments[this->fArgumentCount]);
+		}
+
+		rlc_free((void**)&this->fArguments);
+	}
+}
+
+void rlc_parsed_base_init_parse(
+	struct RlcParsedBaseInit * out,
+	struct RlcParser * parser)
+{
+	RLC_DASSERT(out != NULL);
+	RLC_DASSERT(parser != NULL);
+
+	rlc_parsed_base_init_create(out);
+
+	if(!rlc_parsed_symbol_parse(&out->fBase, parser))
+		rlc_parser_fail(parser, "expected symbol");
+
+	if(rlc_parser_consume(
+		parser,
+		NULL,
+		kRlcTokColonEqual))
+	{
+		if(!(out->fIsNoInit = rlc_parser_consume(
+			parser,
+			NULL,
+			kRlcTokNoinit)))
+		{
+			struct RlcParsedExpression * arg = rlc_parsed_expression_parse(
+				parser,
+				RLC_ALL_FLAGS(RlcParsedExpressionType));
+			if(!arg)
+				rlc_parser_fail(parser, "expected expression or 'NOINIT'");
+
+			rlc_parsed_base_init_add_argument(out, arg);
+		}
+		return;
+	}
+
+	rlc_parser_expect(
+		parser,
+		NULL,
+		1,
+		kRlcTokParentheseOpen);
+
+	if(!rlc_parser_consume(
+		parser,
+		NULL,
+		kRlcTokParentheseClose))
+	{
+		if(!(out->fIsNoInit = rlc_parser_consume(
+			parser,
+			NULL,
+			kRlcTokNoinit)))
+		{
+			do {
+				struct RlcParsedExpression * arg = rlc_parsed_expression_parse(
+					parser,
+					RLC_ALL_FLAGS(RlcParsedExpressionType));
+				if(!arg)
+					rlc_parser_fail(parser, "expected expression");
+
+				rlc_parsed_base_init_add_argument(out, arg);
+			} while(rlc_parser_consume(
+				parser,
+				NULL,
+				kRlcTokComma));
+		}
+
+		rlc_parser_expect(
+			parser,
+			NULL,
+			1,
+			kRlcTokParentheseClose);
+	}
+}
+
+void rlc_parsed_base_init_add_argument(
+	struct RlcParsedBaseInit * this,
 	struct RlcParsedExpression * argument)
 {
 	RLC_DASSERT(this != NULL);

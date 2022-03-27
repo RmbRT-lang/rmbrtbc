@@ -306,7 +306,7 @@ static void rlc_parsed_enum_print_to_file(
 	}
 	fputs("\n};\n"
 		"if(this->valid())\n\t"
-			"return names[(int_t)this->value];\n"
+			"return names[(int)this->value];\n"
 		"else\n\t"
 			"return \"<unknown ", out);
 	rlc_src_string_print(
