@@ -621,6 +621,7 @@ namespace __rl
 	template<class T>
 	inline auto count(T &&v) { return v.__rl_count(); }
 
+	inline void const * real_addr(char const&v) { return &v; }
 	inline void const * real_addr(signed const&v) { return &v; }
 	inline void const * real_addr(unsigned const&v) { return &v; }
 	inline void const * real_addr(signed short const&v) { return &v; }
