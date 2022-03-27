@@ -137,11 +137,12 @@ int rlc_parsed_class_parse(
 			rlc_free((void**)&member);
 		} else if(RLC_DERIVING_TYPE(member) == kRlcParsedConstructor)
 		{
-			if(RLC_DERIVE_CAST(
+			RlcSrcSize init_count = RLC_DERIVE_CAST(
 				member,
 				RlcParsedMember,
-				struct RlcParsedConstructor)->fBaseInitCount
-			!= out->fInheritanceCount)
+				struct RlcParsedConstructor)->fBaseInitCount;
+
+			if(init_count && init_count != out->fInheritanceCount)
 				rlc_parser_fail(parser,
 					"constructor has wrong number of base initialisers");
 
@@ -791,28 +792,38 @@ static void rlc_parsed_class_print_impl(
 			}
 		}
 
-		for(RlcSrcIndex j = 0; j < ctor->fBaseInitCount; j++)
-		{
-			struct RlcParsedBaseInit * init = &ctor->fBaseInits[j];
-			if(init->fIsNoInit)
-				continue;
+		if(ctor->fBaseInitCount)
+			for(RlcSrcIndex j = 0; j < ctor->fBaseInitCount; j++)
+			{
+				struct RlcParsedBaseInit * init = &ctor->fBaseInits[j];
+				if(init->fIsNoInit)
+					continue;
 
-			fputs(printed_init ? ", " : ": ", out);
-			printed_init = 1;
+				fputs(printed_init ? ", " : ": ", out);
+				printed_init = 1;
 
-			rlc_parsed_symbol_print(&init->fBase, file, out);
-			fputc('(', out);
-			if(!init->fArgumentCount)
-				fputs("::__rl::default_init", out);
-			else
-				for(RlcSrcIndex k = 0; k < init->fArgumentCount; k++)
-				{
-					if(k)
-						fputs(", ", out);
-					rlc_parsed_expression_print(init->fArguments[k], file, out);
-				}
-			fputs(")\n", out);
-		}
+				rlc_parsed_symbol_print(&init->fBase, file, out);
+				fputc('(', out);
+				if(!init->fArgumentCount)
+					fputs("::__rl::default_init", out);
+				else
+					for(RlcSrcIndex k = 0; k < init->fArgumentCount; k++)
+					{
+						if(k)
+							fputs(", ", out);
+						rlc_parsed_expression_print(init->fArguments[k], file, out);
+					}
+				fputs(")\n", out);
+			}
+		else
+			for(RlcSrcIndex j = 0; j < this->fInheritanceCount; j++)
+			{
+				fputs(printed_init ? ", " : ": ", out);
+				printed_init = 1;
+
+				rlc_parsed_symbol_print(&this->fInheritances[j].fBase, file, out);
+				fputs("(::__rl::default_init)", out);
+			}
 
 		for(RlcSrcIndex j = 0; j < ctor->fInitialiserCount; j++)
 		{
