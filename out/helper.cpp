@@ -324,14 +324,9 @@ namespace __rl
 	}
 
 	template<class T>
-	inline void __rl_p_destructor(T *v)
+	inline void __rl_p_destructor(T const& v)
 	{
-		v->~T();
-	}
-	template<class T>
-	inline void __rl_p_destructor(T const * v)
-	{
-		v.~T();
+		__rl_destructor(*v);
 	}
 
 	template<class T>
