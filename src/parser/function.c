@@ -482,10 +482,11 @@ static void rlc_parsed_function_print_head_2(
 			0);
 	}
 
-	// THIS++/THIS-- needs (int) as dummy argument.
-	if(this->fOperatorName == kPostIncrement
-	|| this->fOperatorName == kPostDecrement)
-		fputs("int", out);
+	if(this->fType == kRlcFunctionTypeOperator)
+		// THIS++/THIS-- needs (int) as dummy argument.
+		if(this->fOperatorName == kPostIncrement
+		|| this->fOperatorName == kPostDecrement)
+			fputs("int", out);
 
 	fprintf(out, ")");
 }
