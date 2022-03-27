@@ -505,6 +505,9 @@ namespace __rl
 	template<class Symbol>
 	struct SymbolBase
 	{
+		inline constexpr Symbol operator()() const {
+			return Symbol{};
+		}
 		template<class T, class ...Ts>
 		inline Tuple<Symbol, T&&, Ts&&...> operator()(T&& arg, Ts&&...args) const {
 			return mk_tuple(Symbol(), std::forward<T>(arg), std::forward<Ts>(args)...);
