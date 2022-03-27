@@ -62,7 +62,7 @@ static void rlc_parsed_type_case_statement_parse(
 		do
 		{
 			struct RlcParsedSymbol typeName;
-			if(!rlc_parsed_symbol_parse(&typeName, parser, 0))
+			if(!rlc_parsed_symbol_parse(&typeName, parser))
 				rlc_parser_fail(parser, "expected type name");
 
 			rlc_realloc(

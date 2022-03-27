@@ -14,13 +14,6 @@
 extern "C" {
 #endif
 
-enum RlcParsedSymbolChildType
-{
-	kRlcParsedSymbolChildTypeIdentifier,
-	kRlcParsedSymbolChildTypeConstructor,
-	kRlcParsedSymbolChildTypeDestructor
-};
-
 struct RlcParsedSymbolChildTemplate
 {
 	int fIsExpression;
@@ -36,8 +29,6 @@ struct RlcParsedSymbolChildTemplate
 @relates RlcParsedSymbol */
 struct RlcParsedSymbolChild
 {
-	/** The name token type. */
-	enum RlcParsedSymbolChildType fType;
 	/** The name token's index. */
 	struct RlcSrcString fName;
 	/** The template arguments. */
@@ -76,8 +67,7 @@ void rlc_parsed_symbol_child_add_template(
 
 int rlc_parsed_symbol_child_parse(
 	struct RlcParsedSymbolChild * out,
-	struct RlcParser * parser,
-	int allowSpecialIdentifiers);
+	struct RlcParser * parser);
 
 void rlc_parsed_symbol_child_print(
 	struct RlcParsedSymbolChild const * this,
@@ -136,8 +126,7 @@ void rlc_parsed_symbol_create(
 	@dassert @nonnull */
 int rlc_parsed_symbol_parse(
 	struct RlcParsedSymbol * out,
-	struct RlcParser * parser,
-	int allowSpecialIdentifiers);
+	struct RlcParser * parser);
 
 void rlc_parsed_symbol_print(
 	struct RlcParsedSymbol const * this,

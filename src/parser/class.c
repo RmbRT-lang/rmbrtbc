@@ -107,7 +107,7 @@ int rlc_parsed_class_parse(
 				parser,
 				NULL,
 				kRlcTokVirtual);
-			if(!rlc_parsed_symbol_parse(&in->fBase, parser, 0))
+			if(!rlc_parsed_symbol_parse(&in->fBase, parser))
 				rlc_parser_fail(parser, "expected symbol");
 		} while(kRlcTokComma == rlc_parser_expect(
 			parser,
@@ -137,6 +137,14 @@ int rlc_parsed_class_parse(
 			rlc_free((void**)&member);
 		} else if(RLC_DERIVING_TYPE(member) == kRlcParsedConstructor)
 		{
+			if(RLC_DERIVE_CAST(
+				member,
+				RlcParsedMember,
+				struct RlcParsedConstructor)->fBaseInitCount
+			!= out->fInheritanceCount)
+				rlc_parser_fail(parser,
+					"constructor has wrong number of base initialisers");
+
 			rlc_parsed_member_list_add(
 				&out->fConstructors,
 				member);
@@ -401,8 +409,50 @@ static void rlc_parsed_class_print_impl(
 			&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
 			file,
 			out);
-		fputs("() = default;\n", out);
+		fputs("(__rl::default_init_t)\n", out);
+
+		int printed = 0;
+		for(RlcSrcIndex i = 0; i < this->fInheritanceCount; i++)
+		{
+			fputs(printed ? ",\n" : ":\n", out);
+			printed = 1;
+			fputc('\t', out);
+			rlc_parsed_symbol_print(&this->fInheritances[i].fBase, file, out);
+			fputs("(__rl::default_init)", out);
+		}
+		for(RlcSrcIndex i = 0; i < this->fMembers.fEntryCount; i++)
+		{
+			struct RlcParsedMemberVariable * v;
+			if((v = RLC_DYNAMIC_CAST(
+				this->fMembers.fEntries[i],
+				RlcParsedMember,
+				RlcParsedMemberVariable)))
+			{
+				struct RlcSrcString * name = &RLC_BASE_CAST(
+						RLC_BASE_CAST(v, RlcParsedVariable),
+						RlcParsedScopeEntry)->fName;
+				if(!name->length)
+					continue;
+				fputs(printed ? ",\n" : ":\n", out);
+				printed = 1;
+				fputc('\t', out);
+				rlc_src_string_print(name, file, out);
+				fputs("(__rl::default_init)", out);
+			}
+		}
+		fputs("\n{}\n", out);
 	}
+
+	////////////////////////
+	// NOINIT constructor //
+	////////////////////////
+
+	rlc_src_string_print(
+		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+		file,
+		out);
+	fputs("() = default;\n", out);
+
 
 	fputs("typedef ", out);
 	rlc_printer_print_ctx_symbol(printer, file, out);
@@ -519,7 +569,7 @@ static void rlc_parsed_class_print_impl(
 
 		switch(ctor->fType)
 		{
-		case kRlcDefaultConstructor: break;
+		case kRlcDefaultConstructor: fputs("::__rl::default_init_t", out); break;
 		case kRlcCopyConstructor:
 		case kRlcMoveConstructor:
 			{
@@ -575,18 +625,54 @@ static void rlc_parsed_class_print_impl(
 						&ctor->fArguments[j],
 						file,
 						out,
-						1);
+						0);
 				}
 			} break;
 		}
 
 		fputc(')', out);
-		if(!ctor->fIsDefinition
-		&& !ctor->fArgumentCount
-		&& !ctor->fInitialiserCount
-		&& !ctor->fIsVariant)
+		if(ctor->fType != kRlcCustomConstructor
+		&& !ctor->fIsDefinition
+		&& !ctor->fInitialiserCount)
 		{
-			fputs(" = default;\n", out);
+			if(ctor->fType == kRlcDefaultConstructor)
+			{
+				int printed = 0;
+				for(RlcSrcIndex i = 0; i < this->fInheritanceCount; i++)
+				{
+					fputs(printed ? ", ": ": ", out);
+					printed = 1;
+
+					rlc_parsed_symbol_print(
+						&this->fInheritances[i].fBase, file, out);
+					fputs("(::__rl::default_init)", out);
+				}
+				for(RlcSrcIndex i = 0; i < this->fMembers.fEntryCount; i++)
+				{
+					struct RlcParsedMemberVariable * v;
+					if((v = RLC_DYNAMIC_CAST(
+						this->fMembers.fEntries[i],
+						RlcParsedMember,
+						RlcParsedMemberVariable)))
+					{
+						struct RlcSrcString * field = &RLC_BASE_CAST(
+							RLC_BASE_CAST(v, RlcParsedVariable),
+							RlcParsedScopeEntry)->fName;
+
+						if(!field->length)
+							continue;
+
+						fputs(printed ? ", ": ": ", out);
+						printed = 1;
+
+						rlc_src_string_print(field, file, out);
+						fputs("(::__rl::default_init)", out);
+					}
+				}
+				fputs("{}\n", out);
+			} else {
+				fputs(" = default;\n", out);
+			}
 			continue;
 		}
 
@@ -605,7 +691,7 @@ static void rlc_parsed_class_print_impl(
 
 		switch(ctor->fType)
 		{
-		case kRlcDefaultConstructor: break;
+		case kRlcDefaultConstructor: fputs("::__rl::default_init_t", out); break;
 		case kRlcCopyConstructor:
 		case kRlcMoveConstructor:
 			{
@@ -661,24 +747,92 @@ static void rlc_parsed_class_print_impl(
 						&ctor->fArguments[j],
 						file,
 						out,
-						1);
+						0);
 				}
 			} break;
 		}
 
 		fputs(")\n", out);
+
+		int printed_init = 0;
+		for(RlcSrcIndex m = 0; m < this->fMembers.fEntryCount; m++)
+		{
+			struct RlcParsedMemberVariable * v;
+			if((v = RLC_DYNAMIC_CAST(
+				this->fMembers.fEntries[m],
+				RlcParsedMember,
+				RlcParsedMemberVariable)))
+			{
+				struct RlcSrcString * field = &RLC_BASE_CAST(
+					RLC_BASE_CAST(v, RlcParsedVariable),
+					RlcParsedScopeEntry)->fName;
+
+				if(!field->length)
+					continue;
+
+				int has_init = 0;
+				for(RlcSrcIndex init = 0; init < ctor->fInitialiserCount; init++)
+					if(!rlc_src_string_cmp(
+						file, field, &ctor->fInitialisers[init].fMember))
+					{
+						has_init = 1;
+						break;
+					}
+
+				if(!has_init)
+				{
+					fputs(printed_init ? ",\n" : ":\n", out);
+					printed_init = 1;
+					fputc('\t', out);
+
+					rlc_src_string_print(field, file, out);
+					fputs("(::__rl::default_init)", out);
+				}
+			}
+		}
+
+		for(RlcSrcIndex j = 0; j < ctor->fBaseInitCount; j++)
+		{
+			struct RlcParsedBaseInit * init = &ctor->fBaseInits[j];
+			if(init->fIsNoInit)
+				continue;
+
+			fputs(printed_init ? ", " : ": ", out);
+			printed_init = 1;
+
+			rlc_parsed_symbol_print(&init->fBase, file, out);
+			fputc('(', out);
+			if(!init->fArgumentCount)
+				fputs("::__rl::default_init", out);
+			else
+				for(RlcSrcIndex k = 0; k < init->fArgumentCount; k++)
+				{
+					if(k)
+						fputs(", ", out);
+					rlc_parsed_expression_print(init->fArguments[k], file, out);
+				}
+			fputs(")\n", out);
+		}
+
 		for(RlcSrcIndex j = 0; j < ctor->fInitialiserCount; j++)
 		{
 			struct RlcParsedInitialiser * init = &ctor->fInitialisers[j];
-			fputs(j ? ", " : ": ", out);
-			rlc_parsed_symbol_print(&init->fMember, file, out);
+			if(init->fIsNoInit)
+				continue;
+
+			fputs(printed_init ? ", " : ": ", out);
+			printed_init = 1;
+			rlc_src_string_print(&init->fMember, file, out);
 			fputc('(', out);
-			for(RlcSrcIndex k = 0; k < init->fArgumentCount; k++)
-			{
-				if(k)
-					fputs(", ", out);
-				rlc_parsed_expression_print(init->fArguments[k], file, out);
-			}
+			if(!init->fArgumentCount)
+				fputs("::__rl::default_init", out);
+			else
+				for(RlcSrcIndex k = 0; k < init->fArgumentCount; k++)
+				{
+					if(k)
+						fputs(", ", out);
+					rlc_parsed_expression_print(init->fArguments[k], file, out);
+				}
 			fputs(")\n", out);
 		}
 

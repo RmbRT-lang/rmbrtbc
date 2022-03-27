@@ -126,7 +126,7 @@ void rlc_parsed_try_statement_print(
 				&this->fCatches[i].fException,
 				file,
 				out,
-				1);
+				0);
 		fputs(") {\n\t", out);
 		rlc_parsed_statement_print(this->fCatches[i].fBody, file, out);
 		fputs("}", out);

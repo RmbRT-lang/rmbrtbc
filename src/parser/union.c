@@ -137,6 +137,12 @@ static void rlc_parsed_union_print_impl(
 		out);
 	fputs("() {}\n", out);
 
+	rlc_src_string_print(
+		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+		file,
+		out);
+	fputs("(::__rl::default_init_t) {}\n", out);
+
 	rlc_parsed_member_list_print(&this->fMembers, file, printer);
 
 	fprintf(out, " };\n");

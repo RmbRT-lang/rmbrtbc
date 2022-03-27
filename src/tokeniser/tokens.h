@@ -42,6 +42,7 @@ enum RlcTokenType
 	kRlcTokIf,
 	kRlcTokInclude,
 	kRlcTokInline,
+	kRlcTokNoinit,
 	kRlcTokNull,
 	kRlcTokNumber,
 	kRlcTokOperator,

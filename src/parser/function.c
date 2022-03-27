@@ -479,7 +479,7 @@ static void rlc_parsed_function_print_head_2(
 			&this->fArguments[i],
 			file,
 			out,
-			1);
+			0);
 	}
 
 	// THIS++/THIS-- needs (int) as dummy argument.

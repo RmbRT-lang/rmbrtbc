@@ -265,6 +265,24 @@ namespace __rl
 
 	nullptr_t const null {};
 
+	struct default_init_t
+	{
+		constexpr operator bool() const { return false; }
+		constexpr operator char() const { return 0; }
+		constexpr operator float() const { return 0; }
+		constexpr operator double() const { return 0; }
+		constexpr operator uint8_t() const { return 0; }
+		constexpr operator uint16_t() const { return 0; }
+		constexpr operator uint32_t() const { return 0; }
+		constexpr operator uint64_t() const { return 0; }
+		constexpr operator int8_t() const { return 0; }
+		constexpr operator int16_t() const { return 0; }
+		constexpr operator int32_t() const { return 0; }
+		constexpr operator int64_t() const { return 0; }
+		template<class T> constexpr operator T*() const { return NULL; }
+	} const default_init;
+
+	template<class T> inline T __rl_cast() { return ::__rl::default_init; }
 	template<class T, class ...Args>
 	inline T __rl_cast(Args&&...args)
 	{

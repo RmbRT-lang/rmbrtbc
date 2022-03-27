@@ -96,8 +96,7 @@ static int rlc_parsed_symbol_child_template_parse(
 
 int rlc_parsed_symbol_child_parse(
 	struct RlcParsedSymbolChild * out,
-	struct RlcParser * parser,
-	int allowSpecialIdentifiers)
+	struct RlcParser * parser)
 {
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
@@ -111,22 +110,12 @@ int rlc_parsed_symbol_child_parse(
 		&name,
 		kRlcTokIdentifier))
 	{
-		out->fType = kRlcParsedSymbolChildTypeIdentifier;
-	} else if(allowSpecialIdentifiers
-	&& !hasTemplate
-	&& rlc_parser_consume(
-		parser,
-		&name,
-		kRlcTokDestructor))
-	{
-		out->fType = kRlcParsedSymbolChildTypeDestructor;
+		out->fName = name.content;
 	} else if(hasTemplate)
 	{
 		rlc_parser_fail(parser, "expected name");
 	} else
 		return 0;
-
-	out->fName = name.content;
 
 	return 1;
 }
@@ -184,21 +173,8 @@ void rlc_parsed_symbol_child_print(
 {
 	if(this->fTemplateCount && templateAllowed)
 		fprintf(out, "template ");
-	switch(this->fType)
-	{
-	case kRlcParsedSymbolChildTypeIdentifier:
-		{
-			rlc_src_string_print(&this->fName, file, out);
-		} break;
-	case kRlcParsedSymbolChildTypeConstructor:
-		{
-			fprintf(out, " __rl_constructor ");
-		} break;
-	case kRlcParsedSymbolChildTypeDestructor:
-		{
-			fprintf(out, " __rl_destructor ");
-		} break;
-	}
+
+	rlc_src_string_print(&this->fName, file, out);
 
 	if(this->fTemplateCount)
 	{
@@ -279,8 +255,7 @@ void rlc_parsed_symbol_create(
 
 int rlc_parsed_symbol_parse(
 	struct RlcParsedSymbol * out,
-	struct RlcParser * parser,
-	int allowSpecialIdentifiers)
+	struct RlcParser * parser)
 {
 	RLC_DASSERT(out != NULL);
 	RLC_DASSERT(parser != NULL);
@@ -298,8 +273,7 @@ int rlc_parsed_symbol_parse(
 		struct RlcParsedSymbolChild child;
 		if(rlc_parsed_symbol_child_parse(
 			&child,
-			parser,
-			allowSpecialIdentifiers))
+			parser))
 		{
 			parsed_any = 1;
 			rlc_parsed_symbol_add_child(

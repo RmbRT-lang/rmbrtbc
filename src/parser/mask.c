@@ -159,6 +159,18 @@ static void rlc_parsed_mask_print_impl(
 		out);
 	fputs(" { public:\n", out);
 
+	rlc_src_string_print(
+		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+		file,
+		out);
+	fputs("() = default;\n", out);
+
+	rlc_src_string_print(
+		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+		file,
+		out);
+	fputs("(::__rl::default_init_t) {}\n", out);
+
 	fputs("struct __rl_identifier {};\n", out);
 	fputs("virtual void const * __rl_get_derived(__rl_identifier const *) const = 0;\n", out);
 
@@ -296,7 +308,7 @@ static void rlc_parsed_mask_print_impl(
 			{
 				if(i)
 					fputs(", ", out);
-				rlc_parsed_variable_print_argument(&fn->fArguments[i], file, out, 1);
+				rlc_parsed_variable_print_argument(&fn->fArguments[i], file, out, 0);
 				fprintf(out, "__rlc_arg_%u", i);
 			}
 			fputs(") ", out);
