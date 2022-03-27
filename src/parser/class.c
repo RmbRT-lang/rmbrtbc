@@ -439,6 +439,11 @@ static void rlc_parsed_class_print_impl(
 						RlcParsedScopeEntry)->fName;
 				if(!name->length)
 					continue;
+
+				if(RLC_BASE_CAST(v, RlcParsedMember)->fAttribute
+				== kRlcMemberAttributeStatic)
+					continue;
+
 				fputs(printed ? ",\n" : ":\n", out);
 				printed = 1;
 				fputc('\t', out);
@@ -777,6 +782,10 @@ static void rlc_parsed_class_print_impl(
 						RlcParsedScopeEntry)->fName;
 
 					if(!field->length)
+						continue;
+
+					if(RLC_BASE_CAST(v, RlcParsedMember)->fAttribute
+					== kRlcMemberAttributeStatic)
 						continue;
 
 					int has_init = 0;
