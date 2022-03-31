@@ -55,9 +55,8 @@ void rlc_parsed_die_statement_print(
 
 	if(this->fHasMessage)
 	{
-		fputs(" __rl_assert_stringify_code(", out);
 		rlc_parsed_string_expression_print(&this->fMessage, file, out);
-		fputs(");\n", out);
+		fputs(";\n", out);
 	} else
 		fputs("\"dying.\";\n", out);
 }
