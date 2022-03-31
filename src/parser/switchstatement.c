@@ -56,6 +56,8 @@ int rlc_parsed_switch_statement_parse(
 		kRlcTokSwitch))
 		return 0;
 
+	out->fIsStrict = !rlc_parser_consume(parser, NULL, kRlcTokQuestionMark);
+
 	struct RlcParserTracer tracer;
 	rlc_parser_trace(parser, "switch statement", &tracer);
 
@@ -167,8 +169,39 @@ void rlc_parsed_switch_statement_print(
 		fputs(")){\n", out);
 	}
 
+	int hasDefault = 0;
 	for(size_t i = 0; i < this->fCaseCount; i++)
+	{
+		if(this->fCases[i].fIsDefault)
+			hasDefault = 1;
+
 		rlc_parsed_case_statement_print(&this->fCases[i], this, file, out);
+	}
+
+	if(!hasDefault && this->fIsStrict)
+	{
+		struct RlcSrcPosition pos;
+		struct RlcSrcString exp;
+		if(this->fIsVariableSwitchValue)
+			exp = RLC_BASE_CAST(&this->fSwitchValue.fVariable, RlcParsedScopeEntry)->fName;
+		else
+		{
+			exp.start = this->fSwitchValue.fExpression->fStart.content.start;
+			struct RlcSrcString end = this->fSwitchValue.fExpression->fEnd.content;
+			exp.length = end.start + end.length - exp.start;
+		}
+
+		rlc_src_file_position(file, &pos, exp.start);
+
+		fprintf(out, "default: throw \"%s:%u:%u: value \"",
+			file->fName,
+			pos.line,
+			pos.column);
+
+		fputs(" __rl_assert_stringify_code(", out);
+		rlc_src_string_print(&exp, file, out);
+		fputs(") \" not covered in strict switch (consider SWITCH?(...))\";\n", out);
+	}
 
 	fputs("}\n", out);
 	if(this->fIsVariableSwitchValue)

@@ -22,6 +22,8 @@ struct RlcParsedSwitchStatement
 
 	/** The switch statement's control label. */
 	struct RlcParsedControlLabel fLabel;
+	/** Whether to require that the value is handled by a case. */
+	int fIsStrict;
 	/** Whether the switch value is a variable declaration or an expression. */
 	int fIsVariableSwitchValue;
 	/** The initial loop statement, if any. */
