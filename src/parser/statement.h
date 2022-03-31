@@ -15,6 +15,7 @@ extern "C" {
 enum RlcParsedStatementType
 {
 	kRlcParsedAssertStatement,
+	kRlcParsedDieStatement,
 	kRlcParsedExpressionStatement,
 	kRlcParsedBlockStatement,
 	kRlcParsedIfStatement,
