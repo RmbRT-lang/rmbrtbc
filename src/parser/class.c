@@ -674,6 +674,10 @@ static void rlc_parsed_class_print_impl(
 						if(!field->length)
 							continue;
 
+						if(RLC_BASE_CAST(v, RlcParsedMember)->fAttribute
+						== kRlcMemberAttributeStatic)
+							continue;
+
 						fputs(printed ? ", ": ": ", out);
 						printed = 1;
 
