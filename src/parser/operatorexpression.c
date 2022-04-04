@@ -309,20 +309,34 @@ static _Nodiscard struct RlcParsedExpression * parse_postfix(
 			NULL,
 			kRlcTokBracketOpen))
 		{
+			struct RlcParsedOperatorExpression * index_tuple = NULL;
+			struct RlcParsedExpression * index_sub = NULL;
+			do {
+				if(index_sub
+				&& !index_tuple)
+					index_tuple = make_unary_expression(kTuple, index_sub,
+						index_sub->fStart, index_sub->fEnd);
+
+				if(!(index_sub = rlc_parsed_expression_parse(
+						parser,
+						RLC_ALL_FLAGS(RlcParsedExpressionType))))
+					rlc_parser_fail(parser, "expected expression");
+
+				if(index_tuple)
+					rlc_parsed_operator_expression_add(index_tuple, index_sub);
+			} while(rlc_parser_consume(parser, NULL, kRlcTokComma));
+
+			if(index_tuple)
+				index_sub = RLC_BASE_CAST(index_tuple, RlcParsedExpression);
+
 			struct RlcParsedOperatorExpression * binary =
 				make_binary_expression(
 					kSubscript,
 					out,
-					rlc_parsed_expression_parse(
-						parser,
-						RLC_ALL_FLAGS(RlcParsedExpressionType)));
-			// index expression.
-			if(!(out = RLC_BASE_CAST(
-				binary,
-				RlcParsedExpression)))
-			{
-				rlc_parser_fail(parser, "expected an expression");
-			}
+					index_sub);
+			RLC_DASSERT(binary != NULL);
+
+			out = RLC_BASE_CAST(binary, RlcParsedExpression);
 
 			rlc_parser_expect(
 				parser,
