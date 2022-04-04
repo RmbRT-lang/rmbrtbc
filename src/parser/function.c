@@ -227,9 +227,16 @@ int rlc_parsed_function_parse(
 			case kRlcTokBracketOpen: out->fOperatorName = kSubscript; break;
 			}
 
+
+			if(out->fOperatorName == kCall
+			&& rlc_parser_consume(parser, NULL, kRlcTokParentheseClose))
+				break;
+
 			// parse arguments.
-			struct RlcParsedVariable argument;
-			while(rlc_parsed_variable_parse(
+			do
+			{
+				struct RlcParsedVariable argument;
+				if(!rlc_parsed_variable_parse(
 					&argument,
 					parser,
 					NULL,
@@ -238,17 +245,13 @@ int rlc_parsed_function_parse(
 					0,
 					0,
 					1))
-			{
+				{
+					rlc_parser_fail(parser, "expected argument");
+				}
 				rlc_parsed_function_add_argument(
 					out,
 					&argument);
-
-				if(!rlc_parser_consume(
-					parser,
-					NULL,
-					kRlcTokComma))
-					break;
-			}
+			} while(rlc_parser_consume(parser, NULL, kRlcTokComma));
 
 			rlc_parser_expect(
 				parser,
@@ -470,17 +473,31 @@ static void rlc_parsed_function_print_head_2(
 		} break;
 	}
 	fputc('(', out);
-	for(RlcSrcIndex i = 0; i < this->fArgumentCount; i++)
+	if(this->fType == kRlcFunctionTypeOperator
+	&& this->fArgumentCount > 1
+	&& this->fOperatorName == kSubscript)
 	{
-		if(i)
-			fputc(',', out);
-		fprintf(out, "\n\t");
-		rlc_parsed_variable_print_argument(
-			&this->fArguments[i],
-			file,
-			out,
-			0);
-	}
+		fputs("::__rl::Tuple<", out);
+		for(RlcSrcIndex i = 0; i < this->fArgumentCount; i++)
+		{
+			if(i)
+				fputc(',', out);
+			RLC_DASSERT(this->fArguments[i].fHasType);
+			rlc_parsed_type_name_print(&this->fArguments[i].fType, file, out);
+		}
+		fputs("> __rl_tuple_var", out);
+	} else
+		for(RlcSrcIndex i = 0; i < this->fArgumentCount; i++)
+		{
+			if(i)
+				fputc(',', out);
+			fprintf(out, "\n\t");
+			rlc_parsed_variable_print_argument(
+				&this->fArguments[i],
+				file,
+				out,
+				0);
+		}
 
 	if(this->fType == kRlcFunctionTypeOperator)
 		// THIS++/THIS-- needs (int) as dummy argument.
@@ -572,15 +589,37 @@ static void rlc_parsed_function_print_body(
 			"#define _return return\n"
 			"#define __rl_sleep ::__rl::sleep_thread\n", out);
 
+
+	fputs("{", out);
+
+	if(this->fType == kRlcFunctionTypeOperator
+	&& this->fArgumentCount > 1
+	&& this->fOperatorName == kSubscript)
+	{
+		for(RlcSrcIndex i = 0; i < this->fArgumentCount; i++)
+		{
+			fputs("auto &", out);
+			rlc_src_string_print(
+				&RLC_BASE_CAST(
+					&this->fArguments[i],
+					RlcParsedScopeEntry
+				)->fName,
+				file,
+				out);
+			fprintf(out, " = std::get<%u>(__rl_tuple_var);\n", i);
+		}
+	}
+
 	if(this->fIsShortHandBody)
 	{
-		fprintf(out, "\n{ _return ");
+		fprintf(out, "\n_return ");
 		rlc_parsed_expression_print(this->fReturnValue, file, out);
-		fprintf(out, "; }\n");
+		fprintf(out, ";\n");
 	} else
 	{
 		rlc_parsed_block_statement_print(&this->fBodyStatement, file, out);
 	}
+	fputs("}", out);
 
 	fputs("\n"
 		"#undef _return\n"
