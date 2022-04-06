@@ -452,6 +452,66 @@ static void rlc_parsed_class_print_impl(
 			}
 		}
 		fputs("\n{}\n", out);
+
+		// Add manual memberwise ctor if simple struct.
+		if(!this->fInheritanceCount)
+		{
+			for(int init = 0; init <= 1; init++)
+			{
+				int printed = 0;
+				for(RlcSrcIndex i = 0; i < this->fMembers.fEntryCount; i++)
+				{
+					struct RlcParsedMemberVariable * v;
+					if((v = RLC_DYNAMIC_CAST(
+						this->fMembers.fEntries[i],
+						RlcParsedMember,
+						RlcParsedMemberVariable)))
+					{
+						struct RlcSrcString * name = &RLC_BASE_CAST(
+								RLC_BASE_CAST(v, RlcParsedVariable),
+								RlcParsedScopeEntry)->fName;
+						if(!name->length)
+							continue;
+
+						if(RLC_BASE_CAST(v, RlcParsedMember)->fAttribute
+						== kRlcMemberAttributeStatic)
+							continue;
+
+						if(!init)
+						{
+							if(!printed)
+							{
+								rlc_src_string_print(
+									&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+									file,
+									out);
+								fputs("(\n", out);
+							} else
+								fputs(",\n", out);
+
+							RLC_DASSERT(RLC_BASE_CAST(v, RlcParsedVariable)->fHasType);
+							rlc_parsed_type_name_print(
+								&RLC_BASE_CAST(v, RlcParsedVariable)->fType,
+								file,
+								out);
+							fputs(" __rl_arg_", out);
+							rlc_src_string_print(name, file, out);
+						} else
+						{
+							fputs(!printed ? "):\n" : ",\n", out);
+							fputc('\t', out);
+							rlc_src_string_print(name, file, out);
+							fputs("(std::move(__rl_arg_", out);
+							rlc_src_string_print(name, file, out);
+							fputs("))", out);
+						}
+						printed = 1;
+					}
+				}
+				if(init && printed)
+					fputs("\n{}\n", out);
+			}
+		}
 	}
 
 	////////////////////////
