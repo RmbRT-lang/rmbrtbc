@@ -289,12 +289,23 @@ namespace __rl
 		return T(std::forward<Args>(args)...);
 	}
 
+	template<class T>
+	inline void __rl_constructor(T &self)
+	{
+		new (&self) T(::__rl::default_init);
+	}
+
 	template<class T, class ...Args>
 	inline void __rl_constructor(
 		T &self,
 		Args&&...args)
 	{
 		new (&self) T(std::forward<Args>(args)...);
+	}
+	template<class T>
+	inline void __rl_p_constructor(T *self)
+	{
+		new (self) T(::__rl::default_init);
 	}
 	template<class T, class ...Args>
 	inline void __rl_p_constructor(
@@ -310,6 +321,12 @@ namespace __rl
 		Args&&...args)
 	{
 		new (&*self) std::decay_t<decltype(*self)> (std::forward<Args>(args)...);
+	}
+
+	template<class T>
+	inline void __rl_p_constructor(T &self)
+	{
+		new (&*self) std::decay_t<decltype(*self)> (__rl::default_init);
 	}
 
 	template<class T>
