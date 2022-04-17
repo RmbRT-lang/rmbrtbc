@@ -203,6 +203,7 @@ enum RlcTokenType rlc_parser_expect(
 	enum RlcTokenType const types, ...)
 {
 	RLC_DASSERT(count >= 1);
+	size_t const count_ = count;
 
 	struct RlcSrcPosition pos;
 	if(rlc_parser_eof(this))
@@ -224,7 +225,6 @@ enum RlcTokenType rlc_parser_expect(
 	va_list args;
 	va_start(args, types);
 
-	size_t const count_ = count;
 	enum RlcTokenType type = types;
 
 	while(count--)
