@@ -376,10 +376,10 @@ static void rlc_parsed_variable_print_argument_2(
 	case 1:
 		{
 			fputs(" = ", out);
-			if(!this->fHasType)
+			if(!this->fHasType && this->fReference == kRlcReferenceTypeNone)
 				fputs("__rl::mk_auto(", out);
 			rlc_parsed_expression_print(this->fInitArgs[0], file, out);
-			if(!this->fHasType)
+			if(!this->fHasType && this->fReference == kRlcReferenceTypeNone)
 				fputs(")", out);
 		} break;
 	default:
