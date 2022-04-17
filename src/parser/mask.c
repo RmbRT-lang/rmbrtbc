@@ -174,6 +174,30 @@ static void rlc_parsed_mask_print_impl(
 	fputs("struct __rl_identifier {};\n", out);
 	fputs("virtual void const * __rl_get_derived(__rl_identifier const *) const = 0;\n", out);
 
+	fputs("static inline ", out);
+	rlc_src_string_print(
+		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+		file,
+		out);
+	fputs(" &__rl_factory(", out);
+	rlc_src_string_print(
+		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+		file,
+		out);
+	fputs(" &ref) { return ref; }\n", out);
+
+	fputs("static inline ", out);
+	rlc_src_string_print(
+		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+		file,
+		out);
+	fputs(" &__rl_factory(", out);
+	rlc_src_string_print(
+		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+		file,
+		out);
+	fputs(" &&ref) { return ref; }\n", out);
+
 	fputs("template<class __rl_mask_type> static inline ", out);
 	rlc_src_string_print(
 		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
