@@ -431,6 +431,10 @@ namespace __rl
 			static_assert((std::is_default_constructible_v<Types> && ...));
 		}
 
+		inline Tuple(__rl::default_init_t) {
+			__rl_visit([](auto &x) { __rl_constructor(x, default_init); });
+		}
+
 		template<class ...Types2>
 		inline Tuple(
 			std::enable_if_t<
