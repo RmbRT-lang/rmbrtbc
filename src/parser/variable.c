@@ -100,6 +100,7 @@ int rlc_parsed_variable_parse(
 			{ kRlcTokDoubleDotExclamationMark, 0 },
 			{ kRlcTokDoubleDotQuestionMark, 0 },
 			{ kRlcTokDoubleColon, 0 },
+			{ kRlcTokMinus, 0 },
 			{ kRlcTokSemicolon, 0 },
 			{ kRlcTokComma, 0 },
 			{ kRlcTokParentheseClose, 0 },
