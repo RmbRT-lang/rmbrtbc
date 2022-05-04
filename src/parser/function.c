@@ -267,11 +267,7 @@ int rlc_parsed_function_parse(
 		parser,
 		NULL,
 		kRlcTokAt);
-
-	out->fIsInline = rlc_parser_consume(
-		parser,
-		NULL,
-		kRlcTokInline);
+	out->fIsInline = 0;
 
 	if(fnType != kRlcFunctionTypeCast
 	&& rlc_parsed_type_name_parse(
@@ -290,6 +286,11 @@ int rlc_parsed_function_parse(
 			return 1;
 		} else if(!allow_body)
 			rlc_parser_fail(parser, "expected ';'");
+
+		out->fIsInline = rlc_parser_consume(
+			parser,
+			NULL,
+			kRlcTokInline);
 	} else if(!allow_body)
 		rlc_parser_fail(parser, "expected return type");
 
@@ -305,6 +306,10 @@ int rlc_parsed_function_parse(
 		if(rlc_parser_consume(parser, NULL, kRlcTokQuestionMark))
 		{
 			out->fHasReturnType = kRlcFunctionReturnTypeAuto;
+			out->fIsInline = rlc_parser_consume(
+				parser,
+				NULL,
+				kRlcTokInline);
 			if(!rlc_parsed_block_statement_parse(
 				&out->fBodyStatement,
 				parser))
@@ -315,12 +320,22 @@ int rlc_parsed_function_parse(
 			out->fIsShortHandBody = 1;
 	}
 	else
+	{
+		out->fIsInline = rlc_parser_consume(
+			parser,
+			NULL,
+			kRlcTokInline);
 		out->fIsShortHandBody = !rlc_parsed_block_statement_parse(
 			&out->fBodyStatement,
 			parser);
+	}
 
 	if(out->fIsShortHandBody)
 	{
+		out->fIsInline = rlc_parser_consume(
+			parser,
+			NULL,
+			kRlcTokInline);
 		enum RlcTokenType tok;
 		if(out->fHasReturnType == kRlcFunctionReturnTypeType)
 			tok = rlc_parser_expect(
@@ -332,8 +347,7 @@ int rlc_parsed_function_parse(
 			tok = rlc_parser_expect(
 				parser,
 				NULL,
-				2,
-				kRlcTokColonEqual,
+				1,
 				kRlcTokDoubleColonEqual);
 
 		if(tok == kRlcTokDoubleColonEqual)

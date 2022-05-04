@@ -20,6 +20,7 @@ extern "C" {
 
 enum RlcFunctionReturnType
 {
+	// C++ requires us not to print anything as a type (casts etc.)
 	kRlcFunctionReturnTypeNone,
 	kRlcFunctionReturnTypeAuto,
 	kRlcFunctionReturnTypeType
