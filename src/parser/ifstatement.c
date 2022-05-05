@@ -70,6 +70,8 @@ int rlc_parsed_if_statement_parse(
 		&out->fIfLabel,
 		parser);
 
+	out->fIsNegated = rlc_parser_consume(parser, NULL, kRlcTokExclamationMark);
+
 	rlc_parser_expect(
 		parser,
 		NULL,
@@ -131,19 +133,29 @@ void rlc_parsed_if_statement_print(
 	struct RlcSrcFile const * file,
 	FILE * out)
 {
-	fputs("if(", out);
 	if(this->fCondition.fIsVariable)
 	{
+		fputs("{", out);
 		rlc_parsed_variable_print_argument(
 			&this->fCondition.fVariable,
 			file,
 			out,
 			1);
+
+		fputs(";", out);
+
+		fputs(this->fIsNegated? "if(!": "if(", out);
+		rlc_src_string_print(
+			&RLC_BASE_CAST(&this->fCondition.fVariable, RlcParsedScopeEntry)->fName,
+			file,
+			out);
+		fputs(")", out);
 	} else
 	{
+		fputs(this->fIsNegated ? "if(!(" : "if(", out);
 		rlc_parsed_expression_print(this->fCondition.fExpression, file, out);
+		fputs(this->fIsNegated ? "))" : ")", out);
 	}
-	fputs(")\n\t", out);
 
 	rlc_parsed_statement_print(this->fIf, file, out);
 	if(this->fElse)
@@ -152,5 +164,7 @@ void rlc_parsed_if_statement_print(
 		rlc_parsed_statement_print(this->fElse, file, out);
 	}
 
+	if(this->fCondition.fIsVariable)
+		fputs("}", out);
 	rlc_parsed_control_label_print(&this->fIfLabel, file, out, "_break");
 }
