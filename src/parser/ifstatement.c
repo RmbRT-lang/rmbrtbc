@@ -66,6 +66,8 @@ int rlc_parsed_if_statement_parse(
 
 	rlc_parsed_if_statement_create(out);
 
+	out->fRevealsVariable = rlc_parser_consume(parser, NULL, kRlcTokColon);
+
 	rlc_parsed_control_label_parse(
 		&out->fIfLabel,
 		parser);
@@ -89,6 +91,9 @@ int rlc_parsed_if_statement_parse(
 		0)))
 	{
 		;
+	} else if(out->fRevealsVariable)
+	{
+		rlc_parser_fail(parser, "expected variable because of ':' after IF");
 	} else if((out->fCondition.fExpression = rlc_parsed_expression_parse(
 		parser,
 		RLC_ALL_FLAGS(RlcParsedExpressionType))))
@@ -135,7 +140,8 @@ void rlc_parsed_if_statement_print(
 {
 	if(this->fCondition.fIsVariable)
 	{
-		fputs("{", out);
+		if(!this->fRevealsVariable)
+			fputs("{", out);
 		rlc_parsed_variable_print_argument(
 			&this->fCondition.fVariable,
 			file,
@@ -164,7 +170,7 @@ void rlc_parsed_if_statement_print(
 		rlc_parsed_statement_print(this->fElse, file, out);
 	}
 
-	if(this->fCondition.fIsVariable)
+	if(this->fCondition.fIsVariable && !this->fRevealsVariable)
 		fputs("}", out);
 	rlc_parsed_control_label_print(&this->fIfLabel, file, out, "_break");
 }
