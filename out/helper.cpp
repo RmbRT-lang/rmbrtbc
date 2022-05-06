@@ -176,6 +176,10 @@ namespace __rl
 				throw timeout_throw_t{};
 			return this->get();
 		}
+
+		struct __rl_identifier {};
+		void const * __rl_get_derived(__rl_identifier const *) const
+		{ return this; }
 	};
 
 	template<>
