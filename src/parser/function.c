@@ -297,61 +297,34 @@ int rlc_parsed_function_parse(
 	out->fHasBody = 1;
 	if(!out->fHasReturnType)
 	{
+		rlc_parser_expect(parser, NULL, 1, kRlcTokQuestionMark);
 		rlc_type_qualifier_parse(&out->fAutoReturnQualifier, parser);
 		if(rlc_parser_consume(parser, NULL, kRlcTokAnd))
 			out->fAutoReturnReference = kRlcReferenceTypeReference;
 		else if(rlc_parser_consume(parser, NULL, kRlcTokDoubleAnd))
 			out->fAutoReturnReference = kRlcReferenceTypeTempReference;
 
-		if(rlc_parser_consume(parser, NULL, kRlcTokQuestionMark))
-		{
-			out->fHasReturnType = kRlcFunctionReturnTypeAuto;
-			out->fIsInline = rlc_parser_consume(
-				parser,
-				NULL,
-				kRlcTokInline);
-			if(!rlc_parsed_block_statement_parse(
-				&out->fBodyStatement,
-				parser))
-				rlc_parser_fail(parser, "expected block statement");
+		out->fHasReturnType = kRlcFunctionReturnTypeAuto;
+	}
 
-			out->fIsShortHandBody = 0;
-		} else
-			out->fIsShortHandBody = 1;
-	}
-	else
-	{
-		out->fIsInline = rlc_parser_consume(
-			parser,
-			NULL,
-			kRlcTokInline);
-		out->fIsShortHandBody = !rlc_parsed_block_statement_parse(
-			&out->fBodyStatement,
-			parser);
-	}
+	out->fIsInline = rlc_parser_consume(
+		parser,
+		NULL,
+		kRlcTokInline);
+	out->fIsShortHandBody = !rlc_parsed_block_statement_parse(
+		&out->fBodyStatement,
+		parser);
 
 	if(out->fIsShortHandBody)
 	{
-		out->fIsInline = rlc_parser_consume(
+		if(out->fHasReturnType != kRlcFunctionReturnTypeType)
+			out->fHasReturnType = kRlcFunctionReturnTypeAuto;
+
+		rlc_parser_expect(
 			parser,
 			NULL,
-			kRlcTokInline);
-		enum RlcTokenType tok;
-		if(out->fHasReturnType == kRlcFunctionReturnTypeType)
-			tok = rlc_parser_expect(
-				parser,
-				NULL,
-				1,
-				kRlcTokColonEqual);
-		else
-			tok = rlc_parser_expect(
-				parser,
-				NULL,
-				1,
-				kRlcTokDoubleColonEqual);
-
-		if(tok == kRlcTokDoubleColonEqual)
-			out->fHasReturnType = kRlcFunctionReturnTypeAuto;
+			1,
+			kRlcTokColonEqual);
 
 		if(!(out->fReturnValue = rlc_parsed_expression_parse(
 			parser,
