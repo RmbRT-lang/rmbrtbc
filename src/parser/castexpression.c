@@ -138,7 +138,7 @@ void rlc_parsed_cast_expression_print(
 		{
 		int isNonNull;
 		needDeRef = rlc_parsed_type_is_ptr(&this->fType, &isNonNull);
-		needRef = !isNonNull;
+		needRef = !isNonNull && this->fType.fReferenceType == kRlcReferenceTypeNone;
 		if(isNonNull)
 			fputs("&", out);
 		fputs("::__rl::__rl_dynamic_cast<", out);
