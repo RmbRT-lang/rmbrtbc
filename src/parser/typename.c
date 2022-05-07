@@ -158,7 +158,7 @@ int rlc_parsed_type_is_ptr(
 	if(!isNonNull)
 		isNonNull = &(int){0};
 	*isNonNull = 0;
-	if(!this->fReferenceType == kRlcReferenceTypeNone
+	if(this->fReferenceType != kRlcReferenceTypeNone
 	|| !this->fTypeModifierCount)
 		return 0;
 	struct RlcTypeModifier const * const lastMod =

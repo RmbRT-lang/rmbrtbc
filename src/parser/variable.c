@@ -87,7 +87,6 @@ int rlc_parsed_variable_parse(
 			int allowIfNeedsName;
 		} const k_needed_ahead[] = {
 			{ kRlcTokColon, 1 },
-			{ kRlcTokColonEqual, 1 },
 			{ kRlcTokDoubleColonEqual, 1 },
 			{ kRlcTokHash, 1 },
 			{ kRlcTokDollar, 1 },
