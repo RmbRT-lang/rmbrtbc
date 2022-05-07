@@ -150,31 +150,79 @@ namespace __rl
 	template<class Result>
 	class ProcessHandle : std::future<Result>
 	{
-	public:
-		ProcessHandle(std::future<Result> &&f): std::future<Result>(std::move(f))
+		std::mutex m;
+		Result * m_result;
+
+		Result & get_result()
 		{
+			if(!m_result)
+			{
+				if(!this->valid())
+					throw std::runtime_error("invalid process handle.");
+				m_result = new Result(this->get());
+			}
+			return *m_result;
+		}
+	public:
+		ProcessHandle(std::future<Result> &&f):
+			std::future<Result>(std::move(f)),
+			m_result(nullptr)
+		{
+			if(!this->valid())
+				throw std::runtime_error("invalid process handle.");
+		}
+		ProcessHandle(ProcessHandle&& move):
+			m_result(nullptr)
+		{
+			*this = std::move(move);
+		}
+		~ProcessHandle() { if(m_result) delete m_result; }
+
+		ProcessHandle<Result> &operator=(ProcessHandle<Result> &&mv)
+		{
+			if(this == &mv)
+				return *this;
+			std::lock_guard l2{m};
+			if(this->valid())
+				throw std::runtime_error("cannot assign to non-empty process handle");
+			std::lock_guard l{mv.m};
+
+			if(this->m_result)
+				delete(this->m_result);
+			this->m_result = mv.m_result;
+			static_cast<std::future<Result> &>(*this) = std::move(mv);
+			mv.m_result = nullptr;
+			return *this;
 		}
 
 		inline operator bool() const
 		{
+			std::lock_guard l{m};
+			if(!this->valid())
+				throw std::runtime_error("invalid process handle.");
 			using namespace std::chrono_literals;
 			return this->wait_for(0s) != std::future_status::timeout;
 		}
 		inline bool operator[](double seconds) const
 		{
+			std::lock_guard l{m};
+			if(!this->valid())
+				throw std::runtime_error("invalid process handle.");
 			return this->wait_for(std::chrono::duration<double>(seconds)) != std::future_status::timeout;
 		}
 
-		inline Result operator()()
+		inline Result &operator()()
 		{
-			return this->get();
+			std::lock_guard l{m};
+			return get_result();
 		}
 
-		Result operator()(double seconds)
+		Result &operator()(double seconds)
 		{
 			if(!(*this)[seconds])
 				throw timeout_throw_t{};
-			return this->get();
+			std::lock_guard l{m};
+			return get_result();
 		}
 
 		struct __rl_identifier {};
