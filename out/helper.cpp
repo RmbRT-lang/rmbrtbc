@@ -562,6 +562,24 @@ namespace __rl
 		return Tuple<Types&&...>(createTuple, static_cast<Types&&>(values)...);
 	}
 
+	template<class T0, class T1, class ...T>
+	inline Tuple<T0&&, T1&&, T&&...> single_ctor_arg(
+		T0&&arg0,
+		T1&&arg1,
+		T&&...arg)
+	{
+		return mk_tuple(
+			std::forward<T0>(arg0),
+			std::forward<T1>(arg1),
+			std::forward<T>(arg)...);
+	}
+	template<class T>
+	constexpr T&& single_ctor_arg(T&&arg)
+	{
+		return std::forward<T&&>(arg);
+	}
+	constexpr default_init_t single_ctor_arg() { return default_init; }
+
 	template<class ...Types>
 	struct auto_type_wrapper<Tuple<Types...>> {
 		typedef Tuple<auto_t<::std::decay_t<Types>>...> type;

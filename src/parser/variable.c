@@ -1,4 +1,5 @@
 #include "variable.h"
+#include "operatorexpression.h"
 
 #include "../malloc.h"
 #include "../assert.h"
@@ -376,10 +377,24 @@ static void rlc_parsed_variable_print_argument_2(
 	case 1:
 		{
 			fputs(" = ", out);
+			struct RlcParsedOperatorExpression * exp;
+			int printClose = 1;
 			if(!this->fHasType && this->fReference == kRlcReferenceTypeNone)
 				fputs("__rl::mk_auto(", out);
+			else if((exp = RLC_DYNAMIC_CAST(
+				this->fInitArgs[0],
+				RlcParsedExpression, RlcParsedOperatorExpression)))
+			{
+				if((printClose = exp->fOperator == kVariadicExpand))
+					fputs("::__rl::single_ctor_arg(", out);
+				else
+					printClose = 0;
+			} else
+				printClose = 0;
+
 			rlc_parsed_expression_print(this->fInitArgs[0], file, out);
-			if(!this->fHasType && this->fReference == kRlcReferenceTypeNone)
+
+			if(printClose)
 				fputs(")", out);
 		} break;
 	default:

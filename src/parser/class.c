@@ -1,5 +1,6 @@
 #include "class.h"
 #include "constructor.h"
+#include "operatorexpression.h"
 
 #include "../assert.h"
 #include "../malloc.h"
@@ -921,6 +922,21 @@ static void rlc_parsed_class_print_impl(
 				fputc('(', out);
 				if(!init->fArgumentCount)
 					fputs("::__rl::default_init", out);
+				else if(init->fArgumentCount == 1)
+				{
+					int printClose = 0;
+					struct RlcParsedOperatorExpression * exp;
+					if((exp = RLC_DYNAMIC_CAST(init->fArguments[0],
+						RlcParsedExpression,
+						RlcParsedOperatorExpression)))
+					{
+						if((printClose = exp->fOperator == kVariadicExpand))
+							fputs("::__rl::single_ctor_arg(", out);
+					}
+					rlc_parsed_expression_print(init->fArguments[0], file, out);
+					if(printClose)
+						fputs(")", out);
+				}
 				else
 					for(RlcSrcIndex k = 0; k < init->fArgumentCount; k++)
 					{
