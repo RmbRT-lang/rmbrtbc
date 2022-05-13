@@ -21,6 +21,7 @@ enum RlcConstructorType
 	kRlcDefaultConstructor,
 	kRlcCopyConstructor,
 	kRlcMoveConstructor,
+	kRlcStructuralConstructor,
 	kRlcCustomConstructor
 };
 

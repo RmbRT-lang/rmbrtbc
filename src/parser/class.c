@@ -413,6 +413,23 @@ static void rlc_parsed_class_print_impl(
 		"{\n"
 		"}\n", out);
 
+
+	int hasStructuralCtor = 0;
+	enum RlcVisibility structCtorVisibility = kRlcVisibilityPublic;
+	for(RlcSrcIndex i = 0; i < this->fConstructors.fEntryCount; i++)
+	{
+		struct RlcParsedConstructor * ctor = RLC_DERIVE_CAST(
+			this->fConstructors.fEntries[i],
+			RlcParsedMember,
+			struct RlcParsedConstructor);
+		if(ctor->fType == kRlcStructuralConstructor)
+		{
+			hasStructuralCtor = 1;
+			structCtorVisibility = this->fConstructors.fEntries[i]->fVisibility;
+			break;
+		}
+	}
+
 	// Add manual default ctor.
 	if(!this->fConstructors.fEntryCount)
 	{
@@ -460,62 +477,70 @@ static void rlc_parsed_class_print_impl(
 
 		// Add manual memberwise ctor if simple struct.
 		if(!this->fInheritanceCount)
+			hasStructuralCtor = 1;
+	}
+
+	// Add manual memberwise ctor if simple struct.
+	if(hasStructuralCtor)
+	{
+		rlc_visibility_print(
+			structCtorVisibility,
+			1,
+			out);
+		for(int init = 0; init <= 1; init++)
 		{
-			for(int init = 0; init <= 1; init++)
+			int printed = 0;
+			for(RlcSrcIndex i = 0; i < this->fMembers.fEntryCount; i++)
 			{
-				int printed = 0;
-				for(RlcSrcIndex i = 0; i < this->fMembers.fEntryCount; i++)
+				struct RlcParsedMemberVariable * v;
+				if((v = RLC_DYNAMIC_CAST(
+					this->fMembers.fEntries[i],
+					RlcParsedMember,
+					RlcParsedMemberVariable)))
 				{
-					struct RlcParsedMemberVariable * v;
-					if((v = RLC_DYNAMIC_CAST(
-						this->fMembers.fEntries[i],
-						RlcParsedMember,
-						RlcParsedMemberVariable)))
+					struct RlcSrcString * name = &RLC_BASE_CAST(
+							RLC_BASE_CAST(v, RlcParsedVariable),
+							RlcParsedScopeEntry)->fName;
+					if(!name->length)
+						continue;
+
+					if(RLC_BASE_CAST(v, RlcParsedMember)->fAttribute
+					== kRlcMemberAttributeStatic)
+						continue;
+
+					if(!init)
 					{
-						struct RlcSrcString * name = &RLC_BASE_CAST(
-								RLC_BASE_CAST(v, RlcParsedVariable),
-								RlcParsedScopeEntry)->fName;
-						if(!name->length)
-							continue;
-
-						if(RLC_BASE_CAST(v, RlcParsedMember)->fAttribute
-						== kRlcMemberAttributeStatic)
-							continue;
-
-						if(!init)
+						if(!printed)
 						{
-							if(!printed)
-							{
-								rlc_src_string_print(
-									&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
-									file,
-									out);
-								fputs("(\n", out);
-							} else
-								fputs(",\n", out);
-
-							RLC_DASSERT(RLC_BASE_CAST(v, RlcParsedVariable)->fHasType);
-							rlc_parsed_type_name_print(
-								&RLC_BASE_CAST(v, RlcParsedVariable)->fType,
+							rlc_src_string_print(
+								&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
 								file,
 								out);
-							fputs(" __rl_arg_", out);
-							rlc_src_string_print(name, file, out);
+							fputs("(\n", out);
 						} else
-						{
-							fputs(!printed ? "):\n" : ",\n", out);
-							fputc('\t', out);
-							rlc_src_string_print(name, file, out);
-							fputs("(std::move(__rl_arg_", out);
-							rlc_src_string_print(name, file, out);
-							fputs("))", out);
-						}
-						printed = 1;
+							fputs(",\n", out);
+
+						RLC_DASSERT(RLC_BASE_CAST(v, RlcParsedVariable)->fHasType);
+						rlc_parsed_type_name_print(
+							&RLC_BASE_CAST(v, RlcParsedVariable)->fType,
+							file,
+							out);
+						fputs(" __rl_arg_", out);
+						rlc_src_string_print(name, file, out);
+					} else
+					{
+						fputs(!printed ? "):\n" : ",\n", out);
+						fputc('\t', out);
+						rlc_src_string_print(name, file, out);
+						fputs("(std::move(__rl_arg_", out);
+						rlc_src_string_print(name, file, out);
+						fputs("))", out);
 					}
+					printed = 1;
 				}
-				if(init && printed)
-					fputs("\n{}\n", out);
 			}
+			if(init && printed)
+				fputs("\n{}\n", out);
 		}
 	}
 
@@ -626,6 +651,9 @@ static void rlc_parsed_class_print_impl(
 			RlcParsedMember,
 			struct RlcParsedConstructor);
 
+		if(ctor->fType == kRlcStructuralConstructor)
+			continue;
+
 		rlc_visibility_print(
 			this->fConstructors.fEntries[i]->fVisibility,
 			1,
@@ -649,6 +677,10 @@ static void rlc_parsed_class_print_impl(
 				fputc('&', out);
 
 				rlc_src_string_print(&ctor->fArgName, file, out);
+			} break;
+		case kRlcStructuralConstructor:
+			{
+				RLC_DASSERT(!"This must never happen");
 			} break;
 		case kRlcCustomConstructor:
 			{
@@ -767,6 +799,7 @@ static void rlc_parsed_class_print_impl(
 
 		switch(ctor->fType)
 		{
+		case kRlcStructuralConstructor: break;
 		case kRlcDefaultConstructor: fputs("::__rl::default_init_t", out); break;
 		case kRlcCopyConstructor:
 		case kRlcMoveConstructor:

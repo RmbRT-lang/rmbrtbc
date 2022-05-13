@@ -138,6 +138,9 @@ int rlc_parsed_constructor_parse(
 	} else if(!out->fIsVariant && rlc_parser_is_current(parser, kRlcTokBraceClose))
 	{
 		out->fType = kRlcDefaultConstructor;
+	} else if(!out->fIsVariant && rlc_parser_consume(parser, NULL, kRlcTokTripleDot))
+	{
+		out->fType = kRlcStructuralConstructor;
 	} else
 	{
 		out->fType = kRlcCustomConstructor;
@@ -182,6 +185,12 @@ int rlc_parsed_constructor_parse(
 		kRlcTokInline))
 	{
 		out->fIsInline = 1;
+	}
+
+	if(out->fType == kRlcStructuralConstructor)
+	{
+		rlc_parser_expect(parser, NULL, 1, kRlcTokSemicolon);
+		return 1;
 	}
 
 	if(rlc_parser_consume(
