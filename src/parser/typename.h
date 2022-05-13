@@ -167,6 +167,7 @@ struct RlcParsedTypeName
 	};
 
 	int fNoDecay;
+	int fForceTypename;
 	int fVariadicExpand;
 
 	/** The type modifiers list. */

@@ -267,6 +267,7 @@ void rlc_parsed_type_name_create(
 	this->fTypeModifiers = NULL;
 	this->fTypeModifierCount = 0;
 	this->fVariadicExpand = 0;
+	this->fForceTypename = 0;
 }
 
 static int rlc_parsed_type_name_parse_impl(
@@ -340,6 +341,10 @@ static int rlc_parsed_type_name_parse_impl(
 			parser,
 			NULL,
 			kRlcTokExclamationMark);
+		out->fForceTypename = rlc_parser_consume(
+			parser,
+			NULL,
+			kRlcTokPlus);
 	} else if(rlc_parsed_function_signature_parse(
 		&parse.fFunction,
 		parser))
@@ -543,8 +548,9 @@ void rlc_parsed_type_name_print(
 				&& !this->fName->fChildren[0].fTemplateCount;
 			if(decay)
 				fputs("::std::decay_t<", out);
-			for(RlcSrcIndex i = 0; (RlcSrcIndex)(i+1) < this->fName->fChildCount; i++)
-				if(this->fName->fChildren[i].fTemplateCount)
+			for(RlcSrcIndex i = 0; i < this->fName->fChildCount-1; i++)
+				if(this->fName->fChildren[i].fTemplateCount
+				|| this->fForceTypename)
 				{
 					fputs(" typename ", out);
 					break;
