@@ -173,6 +173,7 @@ struct {
 	// keywords.
 	{"ABSTRACT", kRlcTokAbstract },
 	{"ASSERT", kRlcTokAssert },
+	{"BARE", kRlcTokBare },
 	{"BREAK", kRlcTokBreak },
 	{"CATCH", kRlcTokCatch },
 	{"CONTINUE", kRlcTokContinue },

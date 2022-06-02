@@ -15,6 +15,7 @@ char const * rlc_token_type_name(
 
 		"'ABSTRACT'",
 		"'ASSERT'",
+		"'BARE'",
 		"'BREAK'",
 		"'CATCH'",
 		"'CONTINUE'",

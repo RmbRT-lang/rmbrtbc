@@ -415,6 +415,7 @@ static void rlc_parsed_class_print_impl(
 
 
 	int hasStructuralCtor = 0;
+	int hasBareCtor = 0;
 	enum RlcVisibility structCtorVisibility = kRlcVisibilityPublic;
 	for(RlcSrcIndex i = 0; i < this->fConstructors.fEntryCount; i++)
 	{
@@ -426,18 +427,23 @@ static void rlc_parsed_class_print_impl(
 		{
 			hasStructuralCtor = 1;
 			structCtorVisibility = this->fConstructors.fEntries[i]->fVisibility;
-			break;
+		} else if(ctor->fType == kRlcBareConstructor)
+		{
+			hasBareCtor = 1;
 		}
 	}
 
 	// Add manual default ctor.
-	if(!this->fConstructors.fEntryCount)
+	for(int type = !!this->fConstructors.fEntryCount; type < 1 + !hasBareCtor; type++)
 	{
+		char const * default_init_arg = type
+			? "::__rl::bare_init"
+			: "::__rl::default_init";
 		rlc_src_string_print(
 			&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
 			file,
 			out);
-		fputs("(__rl::default_init_t)\n", out);
+		fprintf(out, "(%s_t)\n", default_init_arg);
 
 		int printed = 0;
 		for(RlcSrcIndex i = 0; i < this->fInheritanceCount; i++)
@@ -446,7 +452,7 @@ static void rlc_parsed_class_print_impl(
 			printed = 1;
 			fputc('\t', out);
 			rlc_parsed_symbol_print(&this->fInheritances[i].fBase, file, out);
-			fputs("(__rl::default_init)", out);
+			fprintf(out, "(%s)", default_init_arg);
 		}
 		for(RlcSrcIndex i = 0; i < this->fMembers.fEntryCount; i++)
 		{
@@ -470,15 +476,16 @@ static void rlc_parsed_class_print_impl(
 				printed = 1;
 				fputc('\t', out);
 				rlc_src_string_print(name, file, out);
-				fputs("(__rl::default_init)", out);
+				fprintf(out, "(%s)", default_init_arg);
 			}
 		}
 		fputs("\n{}\n", out);
+	}
 
+	if(!this->fConstructors.fEntryCount)
 		// Add manual memberwise ctor if simple struct.
 		if(!this->fInheritanceCount)
 			hasStructuralCtor = 1;
-	}
 
 	// Add manual memberwise ctor if simple struct.
 	if(hasStructuralCtor)
@@ -669,6 +676,7 @@ static void rlc_parsed_class_print_impl(
 		switch(ctor->fType)
 		{
 		case kRlcDefaultConstructor: fputs("::__rl::default_init_t", out); break;
+		case kRlcBareConstructor: fputs("::__rl::bare_init_t", out); break;
 		case kRlcCopyConstructor:
 		case kRlcMoveConstructor:
 			{
@@ -739,8 +747,13 @@ static void rlc_parsed_class_print_impl(
 		&& !ctor->fCallsOtherCtor
 		&& !ctor->fInit.fInits.fInitialiserCount)
 		{
-			if(ctor->fType == kRlcDefaultConstructor)
+			if(ctor->fType == kRlcDefaultConstructor
+			|| ctor->fType == kRlcBareConstructor)
 			{
+				char const * init_arg = ctor->fType == kRlcBareConstructor
+					? "(::__rl::bare_init)"
+					: "(::__rl::default_init)";
+
 				int printed = 0;
 				for(RlcSrcIndex i = 0; i < this->fInheritanceCount; i++)
 				{
@@ -749,7 +762,7 @@ static void rlc_parsed_class_print_impl(
 
 					rlc_parsed_symbol_print(
 						&this->fInheritances[i].fBase, file, out);
-					fputs("(::__rl::default_init)", out);
+					fputs(init_arg, out);
 				}
 				for(RlcSrcIndex i = 0; i < this->fMembers.fEntryCount; i++)
 				{
@@ -774,7 +787,7 @@ static void rlc_parsed_class_print_impl(
 						printed = 1;
 
 						rlc_src_string_print(field, file, out);
-						fputs("(::__rl::default_init)", out);
+						fputs(init_arg, out);
 					}
 				}
 				fputs("{}\n", out);
@@ -801,6 +814,7 @@ static void rlc_parsed_class_print_impl(
 		{
 		case kRlcStructuralConstructor: break;
 		case kRlcDefaultConstructor: fputs("::__rl::default_init_t", out); break;
+		case kRlcBareConstructor: fputs("::__rl::bare_init_t", out); break;
 		case kRlcCopyConstructor:
 		case kRlcMoveConstructor:
 			{
@@ -865,6 +879,9 @@ static void rlc_parsed_class_print_impl(
 
 		if(!ctor->fCallsOtherCtor)
 		{
+			char const * default_init_arg = ctor->fType == kRlcBareConstructor
+				? "(::__rl::bare_init"
+				: "(::__rl::default_init)";
 			int printed_init = 0;
 			for(RlcSrcIndex m = 0; m < this->fMembers.fEntryCount; m++)
 			{
@@ -901,7 +918,7 @@ static void rlc_parsed_class_print_impl(
 						fputc('\t', out);
 
 						rlc_src_string_print(field, file, out);
-						fputs("(::__rl::default_init)", out);
+						fputs(default_init_arg, out);
 					}
 				}
 			}
@@ -912,7 +929,7 @@ static void rlc_parsed_class_print_impl(
 				for(RlcSrcIndex j = 0; j < this->fInheritanceCount; j++)
 				{
 					struct RlcParsedBaseInit * init = &ctor->fInit.fInits.fBaseInits[j];
-					if(init->fIsNoInit)
+					if(init->fInitType == kRlcInitTypeNoInit)
 						continue;
 
 					fputs(printed_init ? ", " : ": ", out);
@@ -921,7 +938,16 @@ static void rlc_parsed_class_print_impl(
 					rlc_parsed_symbol_print(&this->fInheritances[j].fBase, file, out);
 					fputc('(', out);
 					if(!init->fArgumentCount)
-						fputs("::__rl::default_init", out);
+					{
+						switch(init->fInitType)
+						{
+						case kRlcInitTypeArguments:
+							fputs("::__rl::default_init", out); break;
+						case kRlcInitTypeBare:
+							fputs("::__rl::bare_init", out); break;
+						case kRlcInitTypeNoInit: break;
+						}
+					}
 					else
 						for(RlcSrcIndex k = 0; k < init->fArgumentCount; k++)
 						{
@@ -939,13 +965,13 @@ static void rlc_parsed_class_print_impl(
 					printed_init = 1;
 
 					rlc_parsed_symbol_print(&this->fInheritances[j].fBase, file, out);
-					fputs("(::__rl::default_init)", out);
+					fputs(default_init_arg, out);
 				}
 
 			for(RlcSrcIndex j = 0; j < ctor->fInit.fInits.fInitialiserCount; j++)
 			{
 				struct RlcParsedInitialiser * init = &ctor->fInit.fInits.fInitialisers[j];
-				if(init->fIsNoInit)
+				if(init->fInitType == kRlcInitTypeNoInit)
 					continue;
 
 				fputs(printed_init ? ", " : ": ", out);
@@ -953,7 +979,14 @@ static void rlc_parsed_class_print_impl(
 				rlc_src_string_print(&init->fMember, file, out);
 				fputc('(', out);
 				if(!init->fArgumentCount)
-					fputs("::__rl::default_init", out);
+					switch(init->fInitType)
+					{
+					case kRlcInitTypeArguments:
+						fputs("::__rl::default_init", out); break;
+					case kRlcInitTypeBare:
+						fputs("::__rl::bare_init", out); break;
+					case kRlcInitTypeNoInit: break;
+					}
 				else if(init->fArgumentCount == 1)
 				{
 					int printClose = 0;

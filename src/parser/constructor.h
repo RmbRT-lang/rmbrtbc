@@ -19,6 +19,8 @@ extern "C" {
 enum RlcConstructorType
 {
 	kRlcDefaultConstructor,
+	/** Bare-minimum construction that is a well-formed object according to the destructor. */
+	kRlcBareConstructor,
 	kRlcCopyConstructor,
 	kRlcMoveConstructor,
 	kRlcStructuralConstructor,
@@ -145,6 +147,12 @@ void rlc_parsed_constructor_add_base_init(
 	struct RlcParsedConstructor * this,
 	struct RlcParsedBaseInit * initialiser);
 
+enum RlcInitType {
+	kRlcInitTypeNoInit,
+	kRlcInitTypeBare,
+	kRlcInitTypeArguments
+};
+
 /** A member initaliser inside a constructor as used by the parser.
 @related RlcParsedConstructor */
 struct RlcParsedInitialiser
@@ -152,7 +160,7 @@ struct RlcParsedInitialiser
 	/** The meber's name. */
 	struct RlcSrcString fMember;
 
-	int fIsNoInit;
+	enum RlcInitType fInitType;
 	/** The arguments. */
 	struct RlcParsedExpression ** fArguments;
 	/** The argument count. */
@@ -163,7 +171,7 @@ struct RlcParsedInitialiser
 @related RlcParsedConstructor */
 struct RlcParsedBaseInit
 {
-	int fIsNoInit;
+	enum RlcInitType fInitType;
 	/** The arguments. */
 	struct RlcParsedExpression ** fArguments;
 	/** The argument count. */

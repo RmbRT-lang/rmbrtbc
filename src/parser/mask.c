@@ -170,6 +170,11 @@ static void rlc_parsed_mask_print_impl(
 		file,
 		out);
 	fputs("(::__rl::default_init_t) {}\n", out);
+	rlc_src_string_print(
+		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+		file,
+		out);
+	fputs("(::__rl::bare_init_t) {}\n", out);
 
 	fputs("struct __rl_identifier {};\n", out);
 	fputs("virtual void const * __rl_get_derived(__rl_identifier const *) const = 0;\n", out);

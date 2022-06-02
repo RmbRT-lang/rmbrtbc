@@ -128,6 +128,8 @@ enum RlcParsedTypeNameValue
 	kRlcParsedTypeNameValueVoid,
 	/** The type name is null pointer type. */
 	kRlcParsedTypeNameValueNull,
+	/** Helper for the BARE initialiser. */
+	kRlcParsedTypeNameValueBare,
 	/** Only in classes: the current class type. */
 	kRlcParsedTypeNameValueThis,
 	/** The type name is a name. */

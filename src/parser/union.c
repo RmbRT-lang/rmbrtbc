@@ -142,6 +142,11 @@ static void rlc_parsed_union_print_impl(
 		file,
 		out);
 	fputs("(::__rl::default_init_t) {}\n", out);
+	rlc_src_string_print(
+		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+		file,
+		out);
+	fputs("(::__rl::bare_init_t) {}\n", out);
 
 	fputs("~", out);
 	rlc_src_string_print(

@@ -17,6 +17,7 @@ extern "C" {
 struct RlcParsedNullExpression
 {
 	RLC_DERIVE(struct, RlcParsedExpression);
+	int fNullOrBare;
 };
 
 /** Creates a `this` expression.

@@ -233,6 +233,7 @@ void rlc_parsed_type_name_destroy(
 		} break;
 	case kRlcParsedTypeNameValueVoid:
 	case kRlcParsedTypeNameValueNull:
+	case kRlcParsedTypeNameValueBare:
 	case kRlcParsedTypeNameValueThis:
 	case kRlcParsedTypeNameValueSymbolConstant: { ; }
 	}
@@ -298,6 +299,12 @@ static int rlc_parsed_type_name_parse_impl(
 		kRlcTokNull))
 	{
 		out->fValue = kRlcParsedTypeNameValueNull;
+	} else if(rlc_parser_consume(
+		parser,
+		NULL,
+		kRlcTokBare))
+	{
+		out->fValue = kRlcParsedTypeNameValueBare;
 	} else if(rlc_parser_consume(
 		parser,
 		NULL,
@@ -536,6 +543,10 @@ void rlc_parsed_type_name_print(
 	case kRlcParsedTypeNameValueNull:
 		{
 			fprintf(out, "nullptr_t");
+		} break;
+	case kRlcParsedTypeNameValueBare:
+		{
+			fprintf(out, "::__rl::bare_init");
 		} break;
 	case kRlcParsedTypeNameValueThis:
 		{

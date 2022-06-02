@@ -141,6 +141,9 @@ int rlc_parsed_constructor_parse(
 	} else if(!out->fIsVariant && rlc_parser_consume(parser, NULL, kRlcTokTripleDot))
 	{
 		out->fType = kRlcStructuralConstructor;
+	} else if (!out->fIsVariant && rlc_parser_consume(parser, NULL, kRlcTokBare))
+	{
+		out->fType = kRlcBareConstructor;
 	} else
 	{
 		out->fType = kRlcCustomConstructor;
@@ -340,7 +343,6 @@ void rlc_parsed_initialiser_create(
 {
 	RLC_DASSERT(this != NULL);
 
-	this->fIsNoInit = 0;
 	this->fArguments = NULL;
 	this->fArgumentCount = 0;
 }
@@ -381,11 +383,15 @@ void rlc_parsed_initialiser_parse(
 		NULL,
 		kRlcTokColonEqual))
 	{
-		if(!(out->fIsNoInit = rlc_parser_consume(
-			parser,
-			NULL,
-			kRlcTokNoinit)))
+		if(rlc_parser_consume(parser, NULL, kRlcTokNoinit))
 		{
+			out->fInitType = kRlcInitTypeNoInit;
+		} else if(rlc_parser_consume(parser, NULL, kRlcTokBare))
+		{
+			out->fInitType = kRlcInitTypeBare;
+		} else
+		{
+			out->fInitType = kRlcInitTypeArguments;
 			struct RlcParsedExpression * arg = rlc_parsed_expression_parse(
 				parser,
 				RLC_ALL_FLAGS(RlcParsedExpressionType));
@@ -403,16 +409,23 @@ void rlc_parsed_initialiser_parse(
 		1,
 		kRlcTokParentheseOpen);
 
-	if(!rlc_parser_consume(
+	if(rlc_parser_consume(
 		parser,
 		NULL,
 		kRlcTokParentheseClose))
 	{
-		if(!(out->fIsNoInit = rlc_parser_consume(
-			parser,
-			NULL,
-			kRlcTokNoinit)))
+		out->fInitType = kRlcInitTypeArguments;
+	} else
+	{
+		if(rlc_parser_consume(parser, NULL, kRlcTokNoinit))
 		{
+			out->fInitType = kRlcInitTypeNoInit;
+		} else if(rlc_parser_consume(parser, NULL, kRlcTokBare))
+		{
+			out->fInitType = kRlcInitTypeBare;
+		} else
+		{
+			out->fInitType = kRlcInitTypeArguments;
 			do {
 				struct RlcParsedExpression * arg = rlc_parsed_expression_parse(
 					parser,
@@ -456,7 +469,6 @@ void rlc_parsed_base_init_create(
 {
 	RLC_DASSERT(this != NULL);
 
-	this->fIsNoInit = 0;
 	this->fArguments = NULL;
 	this->fArgumentCount = 0;
 }
@@ -499,11 +511,15 @@ void rlc_parsed_base_init_parse(
 		NULL,
 		kRlcTokParentheseClose))
 	{
-		if(!(out->fIsNoInit = rlc_parser_consume(
-			parser,
-			NULL,
-			kRlcTokNoinit)))
+		if(rlc_parser_consume(parser, NULL, kRlcTokNoinit))
 		{
+			out->fInitType = kRlcInitTypeNoInit;
+		} else if(rlc_parser_consume(parser, NULL, kRlcTokBare))
+		{
+			out->fInitType = kRlcInitTypeBare;
+		} else
+		{
+			out->fInitType = kRlcInitTypeArguments;
 			do {
 				struct RlcParsedExpression * arg = rlc_parsed_expression_parse(
 					parser,

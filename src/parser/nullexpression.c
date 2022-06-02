@@ -28,18 +28,20 @@ int rlc_parsed_null_expression_parse(
 	struct RlcParsedNullExpression * out,
 	struct RlcParser * parser)
 {
-	int result;
 	struct RlcToken token;
-	if((result = rlc_parser_consume(
-		parser,
-		&token,
-		kRlcTokNull)))
+	if(rlc_parser_consume(parser, &token, kRlcTokNull))
 	{
-		rlc_parsed_null_expression_create(
-			out,
-			token);
-	}
-	return result;
+		out->fNullOrBare = 1;
+	} else if(rlc_parser_consume(parser, &token, kRlcTokBare))
+	{
+		out->fNullOrBare = 0;
+	} else
+		return 0;
+
+	rlc_parsed_null_expression_create(
+		out,
+		token);
+	return 1;
 }
 
 void rlc_parsed_null_expression_print(
@@ -49,5 +51,5 @@ void rlc_parsed_null_expression_print(
 {
 	(void) this;
 	(void) file;
-	fprintf(out, "nullptr");
+	fprintf(out, this->fNullOrBare ? "nullptr" : "::__rl::bare_init");
 }

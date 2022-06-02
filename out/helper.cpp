@@ -308,11 +308,6 @@ namespace __rl
 	template<class T>
 	auto_t<T &&> mk_auto(T &&v) { return static_cast<auto_t<T &&>>(v); }
 
-	template<class Ret, size_t kSize>
-	using array = Ret[kSize];
-	template<class Ret>
-	using unsized_array = Ret[];
-
 	struct voidthrow_t {};
 
 	nullptr_t const null {};
@@ -333,6 +328,60 @@ namespace __rl
 		constexpr operator int64_t() const { return 0; }
 		template<class T> constexpr operator T*() const { return NULL; }
 	} const default_init;
+
+
+	struct bare_init_t
+	{
+		constexpr operator bool() const { bool v; return v; }
+		constexpr operator char() const { char v; return v; }
+		constexpr operator float() const { float v; return v; }
+		constexpr operator double() const { double v; return v; }
+		constexpr operator uint8_t() const { uint8_t v; return v; }
+		constexpr operator uint16_t() const { uint16_t v; return v; }
+		constexpr operator uint32_t() const { uint32_t v; return v; }
+		constexpr operator uint64_t() const { uint64_t v; return v; }
+		constexpr operator int8_t() const { int8_t v; return v; }
+		constexpr operator int16_t() const { int16_t v; return v; }
+		constexpr operator int32_t() const { int32_t v; return v; }
+		constexpr operator int64_t() const { int64_t v; return v; }
+		template<class T> constexpr operator T*() const { T * v; return v; }
+	} const bare_init;
+
+	template<class Ret, size_t kSize>
+	class array
+	{
+	private:
+		Ret m_entries[kSize];
+	public:
+		typedef Ret arr_t[kSize];
+
+		constexpr array() {}
+		constexpr array(::__rl::default_init_t)
+		{
+			for(size_t i = 0; i < kSize; i++)
+				new (&m_entries[i]) Ret(::__rl::default_init);
+		}
+		constexpr array(::__rl::bare_init_t)
+		{
+			for(size_t i = 0; i < kSize; i++)
+				new (&m_entries[i]) Ret(::__rl::bare_init);
+		}
+		template<class ...Args>
+		constexpr array(Args&&...args): m_entries{std::forward<Args>(args)...}
+		{
+		}
+
+		constexpr auto __rl_value_of() const { return m_entries; };
+		constexpr auto __rl_value_of() { return m_entries; };
+
+		static constexpr size_t size() { return kSize; }
+		constexpr size_t __rl_count() const { return kSize; }
+		constexpr Ret &operator[](size_t i) { return m_entries[i]; }
+		constexpr Ret const& operator[](size_t i) const { return m_entries[i]; }
+	};
+
+	template<class Ret>
+	using unsized_array = Ret[];
 
 	template<class T> inline T __rl_cast() { return ::__rl::default_init; }
 	template<class T, class ...Args>
