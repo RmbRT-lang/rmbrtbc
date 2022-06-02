@@ -1016,10 +1016,21 @@ static void rlc_parsed_class_print_impl(
 			fputs(": ", out);
 			rlc_src_string_print(&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName, file, out);
 			fputc('(', out);
-			for(RlcSrcIndex i = 0; i < ctor->fInit.fOtherCtorCallArgCount; i++)
+			switch(ctor->fInit.fOtherCtorCallArgCount)
 			{
-				if(i) fputs(", ", out);
-				rlc_parsed_expression_print(ctor->fInit.fOtherCtorCallArgs[i], file, out);
+			case 0: fputs("__rl::default_init", out); break;
+			case 1:
+				{
+					fputs("__rl::single_ctor_arg(", out);
+					rlc_parsed_expression_print(ctor->fInit.fOtherCtorCallArgs[0], file, out);
+					fputc(')', out);
+				} break;
+			default:
+				for(RlcSrcIndex i = 0; i < ctor->fInit.fOtherCtorCallArgCount; i++)
+				{
+					if(i) fputs(", ", out);
+					rlc_parsed_expression_print(ctor->fInit.fOtherCtorCallArgs[i], file, out);
+				}
 			}
 			fputc(')', out);
 		}
