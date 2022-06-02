@@ -139,6 +139,7 @@ char const * rlc_token_type_name(
 		"'>'",
 
 		"'$'",
+		"'###'",
 		"'##'",
 		"'#'"
 	};
