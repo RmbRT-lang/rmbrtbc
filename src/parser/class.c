@@ -937,8 +937,10 @@ static void rlc_parsed_class_print_impl(
 
 					rlc_parsed_symbol_print(&this->fInheritances[j].fBase, file, out);
 					fputc('(', out);
-					if(!init->fArgumentCount)
+
+					switch(init->fArgumentCount)
 					{
+					case 0:
 						switch(init->fInitType)
 						{
 						case kRlcInitTypeArguments:
@@ -946,15 +948,21 @@ static void rlc_parsed_class_print_impl(
 						case kRlcInitTypeBare:
 							fputs("::__rl::bare_init", out); break;
 						case kRlcInitTypeNoInit: break;
-						}
-					}
-					else
+						} break;
+					case 1:
+						{
+							fputs("__rl::single_ctor_arg(", out);
+							rlc_parsed_expression_print(init->fArguments[0], file, out);
+							fputc(')', out);
+						} break;
+					default:
 						for(RlcSrcIndex k = 0; k < init->fArgumentCount; k++)
 						{
 							if(k)
 								fputs(", ", out);
 							rlc_parsed_expression_print(init->fArguments[k], file, out);
 						}
+					}
 					fputs(")\n", out);
 				}
 			}
