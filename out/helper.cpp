@@ -376,8 +376,12 @@ namespace __rl
 
 		static constexpr size_t size() { return kSize; }
 		constexpr size_t __rl_count() const { return kSize; }
+
 		constexpr Ret &operator[](size_t i) { return m_entries[i]; }
 		constexpr Ret const& operator[](size_t i) const { return m_entries[i]; }
+
+		constexpr Ret &operator*() { return m_entries[0]; }
+		constexpr Ret const& operator*() const { return m_entries[0]; }
 	};
 
 	template<class Ret>
