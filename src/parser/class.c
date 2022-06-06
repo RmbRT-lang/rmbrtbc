@@ -416,20 +416,36 @@ static void rlc_parsed_class_print_impl(
 
 	int hasStructuralCtor = 0;
 	int hasBareCtor = 0;
+	int hasCopyCtor = 0;
 	enum RlcVisibility structCtorVisibility = kRlcVisibilityPublic;
+	enum RlcVisibility copyCtorVisibility = kRlcVisibilityPublic;
 	for(RlcSrcIndex i = 0; i < this->fConstructors.fEntryCount; i++)
 	{
 		struct RlcParsedConstructor * ctor = RLC_DERIVE_CAST(
 			this->fConstructors.fEntries[i],
 			RlcParsedMember,
 			struct RlcParsedConstructor);
-		if(ctor->fType == kRlcStructuralConstructor)
+
+		enum RlcVisibility ctor_visitibility =
+			this->fConstructors.fEntries[i]->fVisibility;
+
+		switch(ctor->fType)
 		{
-			hasStructuralCtor = 1;
-			structCtorVisibility = this->fConstructors.fEntries[i]->fVisibility;
-		} else if(ctor->fType == kRlcBareConstructor)
-		{
-			hasBareCtor = 1;
+		case kRlcStructuralConstructor:
+			{
+				hasStructuralCtor = 1;
+				structCtorVisibility = ctor_visitibility;
+			} break;
+		case kRlcBareConstructor:
+			{
+				hasBareCtor = 1;
+			} break;
+		case kRlcCopyConstructor:
+			{
+				hasCopyCtor = 1;
+				copyCtorVisibility = ctor_visitibility;
+			} break;
+		default: break;
 		}
 	}
 
@@ -480,6 +496,22 @@ static void rlc_parsed_class_print_impl(
 			}
 		}
 		fputs("\n{}\n", out);
+	}
+
+	// Make sure that THIS& also calls the copy ctor.
+	if(hasCopyCtor)
+	{
+		rlc_visibility_print(copyCtorVisibility, 1, out);
+		rlc_src_string_print(
+			&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+			file,
+			out);
+		fputs("(__rl_MY_T &__rl_arg): ", out);
+		rlc_src_string_print(
+			&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+			file,
+			out);
+		fputs("(const_cast<__rl_MY_T const&>(__rl_arg))\n{}\n", out);
 	}
 
 	if(!this->fConstructors.fEntryCount)
