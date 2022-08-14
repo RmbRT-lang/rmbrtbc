@@ -18,6 +18,8 @@ void rlc_parsed_loop_statement_create(
 	this->fInitial.fExpression = NULL;
 	this->fBody = NULL;
 	this->fPostLoop = NULL;
+	this->fIsRangeLoop = 0;
+	this->fIsReverseRangeLoop = 0;
 }
 
 void rlc_parsed_loop_statement_destroy(
@@ -37,13 +39,22 @@ void rlc_parsed_loop_statement_destroy(
 		rlc_free((void**)&this->fInitial.fExpression);
 	}
 
-	if(this->fIsVariableCondition)
+	if(!this->fIsRangeLoop)
 	{
-		rlc_parsed_variable_destroy(&this->fCondition.fVariable);
-	} else if(this->fCondition.fExpression)
-	{
-		rlc_parsed_expression_destroy_virtual(this->fCondition.fExpression);
-		rlc_free((void**)&this->fCondition.fExpression);
+		if(this->fIsVariableCondition)
+		{
+			rlc_parsed_variable_destroy(&this->fCondition.fVariable);
+		} else if(this->fCondition.fExpression)
+		{
+			rlc_parsed_expression_destroy_virtual(this->fCondition.fExpression);
+			rlc_free((void**)&this->fCondition.fExpression);
+		}
+
+		if(this->fPostLoop)
+		{
+			rlc_parsed_expression_destroy_virtual(this->fPostLoop);
+			rlc_free((void**)&this->fPostLoop);
+		}
 	}
 
 	if(this->fBody)
@@ -51,15 +62,9 @@ void rlc_parsed_loop_statement_destroy(
 		rlc_parsed_statement_destroy_virtual(this->fBody);
 		rlc_free((void**)&this->fBody);
 	}
-
-	if(this->fPostLoop)
-	{
-		rlc_parsed_expression_destroy_virtual(this->fPostLoop);
-		rlc_free((void**)&this->fPostLoop);
-	}
 }
 
-static void parse_initial(
+static int parse_initial(
 	struct RlcParsedLoopStatement * out,
 	struct RlcParser * parser)
 {
@@ -79,7 +84,9 @@ static void parse_initial(
 		out->fInitial.fExpression = rlc_parsed_expression_parse(
 			parser,
 			RLC_ALL_FLAGS(RlcParsedExpressionType));
+		return out->fInitial.fExpression != NULL;
 	}
+	return 1;
 }
 
 static _Nodiscard int parse_for_head(
@@ -108,28 +115,40 @@ static _Nodiscard int parse_for_head(
 
 	if(!out->fIsPostCondition)
 	{
-		parse_initial(out, parser);
+		if(parse_initial(out, parser))
+		{
+			out->fIsRangeLoop = !rlc_parser_consume(
+				parser,
+				NULL,
+				kRlcTokSemicolon);
+
+			if(!out->fIsRangeLoop)
+			{
+				out->fIsRangeLoop = out->fIsReverseRangeLoop =
+					rlc_parser_is_ahead(parser, kRlcTokParentheseClose)
+					&& rlc_parser_consume(parser, NULL, kRlcTokDoubleMinus);
+			}
+		} else rlc_parser_expect(parser, NULL, 1, kRlcTokSemicolon);
+	}
+
+
+	if(!out->fIsRangeLoop)
+	{
+		out->fIsVariableCondition = 0;
+		out->fCondition.fExpression = rlc_parsed_expression_parse(
+			parser,
+			RLC_ALL_FLAGS(RlcParsedExpressionType));
+
 		rlc_parser_expect(
 			parser,
 			NULL,
 			1,
 			kRlcTokSemicolon);
+
+		out->fPostLoop = rlc_parsed_expression_parse(
+			parser,
+			RLC_ALL_FLAGS(RlcParsedExpressionType));
 	}
-
-	out->fIsVariableCondition = 0;
-	out->fCondition.fExpression = rlc_parsed_expression_parse(
-		parser,
-		RLC_ALL_FLAGS(RlcParsedExpressionType));
-
-	rlc_parser_expect(
-		parser,
-		NULL,
-		1,
-		kRlcTokSemicolon);
-
-	out->fPostLoop = rlc_parsed_expression_parse(
-		parser,
-		RLC_ALL_FLAGS(RlcParsedExpressionType));
 
 	rlc_parser_expect(
 		parser,
@@ -285,10 +304,15 @@ void rlc_parsed_loop_statement_print(
 	struct RlcSrcFile const * file,
 	FILE * out)
 {
+	fputs("{", out);
 	if(this->fIsVariableInitial)
 	{
-		fputs("{", out);
 		rlc_parsed_variable_print_argument(&this->fInitial.fVariable, file, out, 1);
+		fputs(";\n", out);
+	} else if(this->fIsRangeLoop)
+	{
+		fputs("decltype(auto) __rl_range_it = ", out);
+			rlc_parsed_expression_print(this->fInitial.fExpression, file, out);
 		fputs(";\n", out);
 	} else
 	{
@@ -340,7 +364,17 @@ void rlc_parsed_loop_statement_print(
 	} else
 	{
 		fputs("for(;", out);
-		if(this->fIsVariableCondition)
+		if(this->fIsRangeLoop)
+		{
+			if(this->fIsVariableInitial)
+				rlc_src_string_print(
+					&RLC_BASE_CAST(
+						&this->fInitial.fVariable,
+						RlcParsedScopeEntry)->fName,
+					file, out);
+			else fputs("__rl_range_it", out);
+		}
+		else if(this->fIsVariableCondition)
 			rlc_parsed_variable_print_argument(
 				&this->fCondition.fVariable,
 				file,
@@ -351,7 +385,18 @@ void rlc_parsed_loop_statement_print(
 
 		fputs("; ", out);
 
-		if(this->fPostLoop)
+		if(this->fIsRangeLoop)
+		{
+			fputs(this->fIsReverseRangeLoop ? "--" : "++", out);
+			if(this->fIsVariableInitial)
+				rlc_src_string_print(
+					&RLC_BASE_CAST(
+						&this->fInitial.fVariable,
+						RlcParsedScopeEntry)->fName,
+					file, out);
+			else fputs("__rl_range_it", out);
+		}
+		else if(this->fPostLoop)
 			rlc_parsed_expression_print(this->fPostLoop, file, out);
 		fputs(")\n{\n\t", out);
 		rlc_parsed_statement_print(this->fBody, file, out);
@@ -365,6 +410,5 @@ void rlc_parsed_loop_statement_print(
 
 	rlc_parsed_control_label_print(&this->fLabel, file, out, "_break");
 
-	if(this->fIsVariableInitial)
-		fputs("}\n", out);
+	fputs("}\n", out);
 }

@@ -29,6 +29,9 @@ struct RlcParsedLoopStatement
 	int fIsVariableCondition;
 	/** Whether the initial statement is a variable declaration or an expression. */
 	int fIsVariableInitial;
+	/** Whether the loop is a range loop with an iterator. */
+	int fIsRangeLoop;
+	int fIsReverseRangeLoop;
 	/** The initial loop statement, if any. */
 	union {
 		/** The loop statement's initial expression. */
