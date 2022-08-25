@@ -515,7 +515,9 @@ static void rlc_parsed_function_print_head_3(
 				fputs("::__rl::auto_t<decltype(", out);
 				rlc_parsed_expression_print(this->fReturnValue, file, out);
 				fputs(")>\n", out);
-				if(this->fAutoReturnQualifier & kRlcTypeQualifierConst)
+				if((this->fAutoReturnQualifier & kRlcTypeQualifierDefinitiveConst)
+				|| (rlc_const_context &&
+					(this->fAutoReturnQualifier & kRlcTypeQualifierMaybeConst)))
 					fputs(" const ", out);
 				if(this->fAutoReturnQualifier & kRlcTypeQualifierVolatile)
 					fputs(" volatile ", out);

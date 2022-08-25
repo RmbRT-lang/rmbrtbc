@@ -335,7 +335,9 @@ static void rlc_parsed_variable_print_argument_1(
 	else
 	{
 		fputs("auto", out);
-		if(this->fTypeQualifier & kRlcTypeQualifierConst)
+		if((this->fTypeQualifier & kRlcTypeQualifierDefinitiveConst)
+		|| (rlc_const_context &&
+			(this->fTypeQualifier & kRlcTypeQualifierMaybeConst)))
 			fputs(" const ", out);
 		if(this->fTypeQualifier & kRlcTypeQualifierVolatile)
 			fputs(" volatile ", out);
