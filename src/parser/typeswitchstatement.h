@@ -36,6 +36,7 @@ struct RlcParsedTypeCaseStatement
 {
 	int fIsDefault;
 	struct RlcParsedSymbol * fTypeNames;
+	uint8_t * fAddTypeName;
 	RlcSrcSize fTypeNameCount;
 	struct RlcParsedStatement * fBodyStatement;
 };
