@@ -110,6 +110,7 @@ int rlc_parsed_type_switch_statement_parse(
 
 	rlc_parsed_control_label_parse(&out->fLabel, parser);
 
+	out->fIsStrict = !rlc_parser_consume(parser, NULL, kRlcTokQuestionMark);
 	rlc_parser_expect(parser, NULL, 1, kRlcTokParentheseOpen);
 
 	if(!(out->fExpression = rlc_parsed_expression_parse(
@@ -140,6 +141,7 @@ void rlc_parsed_type_switch_statement_print(
 	struct RlcSrcFile const * file,
 	FILE * out)
 {
+	int hasDefault = 0;
 	if(this->fIsStatic)
 	{
 		fputs("{auto const& __rl_type_switch_var = ", out);
@@ -154,6 +156,7 @@ void rlc_parsed_type_switch_statement_print(
 				RLC_ASSERT(defaultIdx == -1
 					&& "duplicate default case in static type switch");
 
+				hasDefault = 1;
 				defaultIdx = i;
 				continue;
 			}
@@ -176,10 +179,9 @@ void rlc_parsed_type_switch_statement_print(
 		{
 			if(this->fCaseCount > 1)
 				fputs(" else\n", out);
+
 			rlc_parsed_statement_print(this->fCases[defaultIdx].fBodyStatement, file, out);
 		}
-
-		fputs("}\n", out);
 	} else
 	{
 		fprintf(out, "switch(__rl::deriving_type_number(");
@@ -188,7 +190,10 @@ void rlc_parsed_type_switch_statement_print(
 		for(RlcSrcSize i = 0; i < this->fCaseCount; i++)
 		{
 			if(this->fCases[i].fIsDefault)
+			{
+				hasDefault = 1;
 				fputs("default:", out);
+			}
 			else for(RlcSrcIndex j = 0; j<this->fCases[i].fTypeNameCount; j++)
 			{
 				fputs("case __rl::type_number<", out);
@@ -201,6 +206,34 @@ void rlc_parsed_type_switch_statement_print(
 			rlc_parsed_statement_print(this->fCases[i].fBodyStatement, file, out);
 			fputs("break;\n", out);
 		}
-		fputs("}\n", out);
 	}
+
+	if(!hasDefault && this->fIsStrict)
+	{
+		if(this->fIsStatic && this->fCaseCount > 1)
+			fputs(" else\n", out);
+		else if(!this->fIsStatic)
+			fputs("default: ", out);
+
+		struct RlcSrcPosition pos;
+		struct RlcSrcString exp;
+		exp.start = this->fExpression->fStart.content.start;
+		struct RlcSrcString end = this->fExpression->fEnd.content;
+		exp.length = end.start + end.length - exp.start;
+
+		rlc_src_file_position(file, &pos, exp.start);
+
+		fprintf(out, "throw \"%s:%u:%u: value \"",
+			file->fName,
+			pos.line,
+			pos.column);
+
+		fputs(" __rl_assert_stringify_code(", out);
+		rlc_src_string_print(&exp, file, out);
+		fprintf(out,
+			") \" not covered in strict type switch (consider TYPE SWITCH%s?(...))\";\n",
+			this->fIsStatic ? " STATIC":"");
+	}
+
+	fputs("}\n", out);
 }

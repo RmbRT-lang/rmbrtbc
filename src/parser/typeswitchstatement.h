@@ -24,6 +24,8 @@ struct RlcParsedTypeSwitchStatement
 	struct RlcParsedControlLabel fLabel;
 	/** Whether to switch the actual or derived type. */
 	int fIsStatic;
+	/** Whether to require that the value is handled by a case. */
+	int fIsStrict;
 	/** The expression whose type to switch. */
 	struct RlcParsedExpression * fExpression;
 	/** The switch statement's cases. */
