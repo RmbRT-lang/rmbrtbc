@@ -912,7 +912,7 @@ static void rlc_parsed_class_print_impl(
 		if(!ctor->fCallsOtherCtor)
 		{
 			char const * default_init_arg = ctor->fType == kRlcBareConstructor
-				? "(::__rl::bare_init"
+				? "(::__rl::bare_init)"
 				: "(::__rl::default_init)";
 			int printed_init = 0;
 			for(RlcSrcIndex m = 0; m < this->fMembers.fEntryCount; m++)
