@@ -546,7 +546,7 @@ void rlc_parsed_type_name_print(
 		} break;
 	case kRlcParsedTypeNameValueBare:
 		{
-			fprintf(out, "::__rl::bare_init");
+			fprintf(out, "::__rl::bare_init_t");
 		} break;
 	case kRlcParsedTypeNameValueThis:
 		{
