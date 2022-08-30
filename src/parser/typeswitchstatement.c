@@ -141,12 +141,13 @@ void rlc_parsed_type_switch_statement_print(
 	struct RlcSrcFile const * file,
 	FILE * out)
 {
+	fputs("{auto const& __rl_type_switch_var = ", out);
+	rlc_parsed_expression_print(this->fExpression, file, out);
+	fputs(";\n", out);
+
 	int hasDefault = 0;
 	if(this->fIsStatic)
 	{
-		fputs("{auto const& __rl_type_switch_var = ", out);
-		rlc_parsed_expression_print(this->fExpression, file, out);
-		fputs(";\n", out);
 
 		int defaultIdx = -1;
 		for(RlcSrcSize i = 0; i < this->fCaseCount; i++)
@@ -184,9 +185,7 @@ void rlc_parsed_type_switch_statement_print(
 		}
 	} else
 	{
-		fprintf(out, "switch(__rl::deriving_type_number(");
-		rlc_parsed_expression_print(this->fExpression, file, out);
-		fputs("))\n{", out);
+		fputs("switch(__rl::deriving_type_number(__rl_type_switch_var))\n{", out);
 		for(RlcSrcSize i = 0; i < this->fCaseCount; i++)
 		{
 			if(this->fCases[i].fIsDefault)
@@ -223,7 +222,9 @@ void rlc_parsed_type_switch_statement_print(
 
 		rlc_src_file_position(file, &pos, exp.start);
 
-		fprintf(out, "throw \"%s:%u:%u: value \"",
+		fprintf(out, "throw "
+			"__rl::Tuple<char const *, char const *>(__rl::createTuple, "
+			"\"%s:%u:%u: value \"",
 			file->fName,
 			pos.line,
 			pos.column);
@@ -231,9 +232,13 @@ void rlc_parsed_type_switch_statement_print(
 		fputs(" __rl_assert_stringify_code(", out);
 		rlc_src_string_print(&exp, file, out);
 		fprintf(out,
-			") \" not covered in strict type switch (consider TYPE SWITCH%s?(...))\";\n",
-			this->fIsStatic ? " STATIC":"");
+			") \" not covered in strict type switch (consider TYPE SWITCH%s?(...))\""
+			", __rl::%stype_name(__rl_type_switch_var));\n",
+			this->fIsStatic ? " STATIC":"",
+			this->fIsStatic ? "" : "deriving_");
 	}
 
+	if(!this->fIsStatic)
+		fputs("}", out);
 	fputs("}\n", out);
 }
