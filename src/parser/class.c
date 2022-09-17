@@ -648,6 +648,25 @@ static void rlc_parsed_class_print_impl(
 			fputs("(__rl_Fn &&fn, __rl_Args&&... args)", out);
 			if(isConst) fputs(" const", out);
 			fputs(" {\n", out);
+
+			for(RlcSrcIndex i = 0; i < this->fInheritanceCount; i++)
+			{
+				struct RlcParsedInheritance const * base = &this->fInheritances[i];
+				if(base->fVisibility == kRlcVisibilityPublic)
+				{
+					fputs("fn(", out);
+					if(isReflect)
+					{
+						rlc_parsed_symbol_print(&base->fBase, file, out);
+						fputs("::__rl_type_name_v, ", out);
+					}
+					fputs("(", out);
+					rlc_parsed_symbol_print(&base->fBase, file, out);
+					if(isConst)
+						fputs(" const", out);
+					fputs("&)*this, ::std::forward<__rl_Args>(args)...);\n", out);
+				}
+			}
 			for(RlcSrcIndex i = 0; i < this->fMembers.fEntryCount; i++)
 			{
 				struct RlcParsedMember const * member = this->fMembers.fEntries[i];

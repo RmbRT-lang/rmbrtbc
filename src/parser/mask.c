@@ -159,6 +159,10 @@ static void rlc_parsed_mask_print_impl(
 		out);
 	fputs(" { public:\n", out);
 
+	fputs("static constexpr char const * __rl_type_name_v = \"", out);
+	rlc_printer_print_ctx_symbol_with_namespace_rl_flavour(printer, file, out);
+	fputs("\";\n", out);
+
 	rlc_src_string_print(
 		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
 		file,
