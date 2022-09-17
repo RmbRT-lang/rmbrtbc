@@ -426,7 +426,7 @@ static void rlc_parsed_class_print_impl(
 			RlcParsedMember,
 			struct RlcParsedConstructor);
 
-		enum RlcVisibility ctor_visitibility =
+		enum RlcVisibility ctor_visibility =
 			this->fConstructors.fEntries[i]->fVisibility;
 
 		switch(ctor->fType)
@@ -434,7 +434,7 @@ static void rlc_parsed_class_print_impl(
 		case kRlcStructuralConstructor:
 			{
 				hasStructuralCtor = 1;
-				structCtorVisibility = ctor_visitibility;
+				structCtorVisibility = ctor_visibility;
 			} break;
 		case kRlcBareConstructor:
 			{
@@ -443,7 +443,7 @@ static void rlc_parsed_class_print_impl(
 		case kRlcCopyConstructor:
 			{
 				hasCopyCtor = 1;
-				copyCtorVisibility = ctor_visitibility;
+				copyCtorVisibility = ctor_visibility;
 			} break;
 		default: break;
 		}
