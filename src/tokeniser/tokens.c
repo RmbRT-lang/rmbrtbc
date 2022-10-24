@@ -36,7 +36,7 @@ char const * rlc_token_type_name(
 		"'NOINIT'",
 		"'NULL'",
 		"'NUMBER'",
-		"'OPERATOR'",
+		"'OR'",
 		"'OVERRIDE'",
 		"'PRIVATE'",
 		"'PROTECTED'",
@@ -99,6 +99,7 @@ char const * rlc_token_type_name(
 		"'|='",
 		"'|'",
 
+		"'?\?'",
 		"'?'",
 
 		"'::='",

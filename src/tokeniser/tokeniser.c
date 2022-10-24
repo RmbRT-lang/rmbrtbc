@@ -194,7 +194,7 @@ struct {
 	{"NOINIT", kRlcTokNoinit },
 	{"NULL", kRlcTokNull },
 	{"NUMBER", kRlcTokNumber },
-	{"OPERATOR", kRlcTokOperator },
+	{"OR", kRlcTokOr },
 	{"OVERRIDE", kRlcTokOverride },
 	{"PRIVATE", kRlcTokPrivate },
 	{"PROTECTED", kRlcTokProtected },
@@ -258,6 +258,7 @@ struct {
 	{ "|=", kRlcTokPipeEqual },
 	{ "|", kRlcTokPipe },
 
+	{ "??", kRlcTokDoubleQuestionMark },
 	{ "?", kRlcTokQuestionMark },
 
 	{ "::=", kRlcTokDoubleColonEqual },

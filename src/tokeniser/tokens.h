@@ -47,7 +47,7 @@ enum RlcTokenType
 	kRlcTokNoinit,
 	kRlcTokNull,
 	kRlcTokNumber,
-	kRlcTokOperator,
+	kRlcTokOr,
 	kRlcTokOverride,
 	kRlcTokPrivate,
 	kRlcTokProtected,
@@ -111,6 +111,7 @@ enum RlcTokenType
 	kRlcTokPipeEqual,
 	kRlcTokPipe,
 
+	kRlcTokDoubleQuestionMark,
 	kRlcTokQuestionMark,
 
 	kRlcTokDoubleColonEqual,

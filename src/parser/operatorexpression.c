@@ -586,7 +586,7 @@ static struct RlcParsedExpression * parse_binary(
 		if(rlc_parser_consume(
 			parser,
 			NULL,
-			kRlcTokQuestionMark))
+			kRlcTokDoubleQuestionMark))
 		{
 			struct RlcParsedExpression * then = rlc_parsed_operator_expression_parse(parser);
 			if(!then)
