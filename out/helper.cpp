@@ -452,6 +452,36 @@ namespace __rl
 	}
 
 	template<class T>
+	inline constexpr int8_t cmp(T const * lhs, T const * rhs)
+	{
+		auto diff = lhs - rhs;
+		if(diff)
+			return diff < 0 ? -1 : 1;
+		return 0;
+	}
+
+	inline constexpr int8_t cmp(bool a, bool b)
+	{
+		if(a) return b ? 0 : 1;
+		return b ? -1 : 0;
+	}
+
+	template<class T, class = std::enable_if_t<std::is_integral_v<T>>>
+	inline constexpr int8_t cmp(T lhs, T rhs)
+	{
+		auto diff = lhs - rhs;
+		if(diff)
+			return diff < 0 ? -1 : 1;
+		return 0;
+	}
+
+	template<class T>
+	inline int8_t cmp(T const& lhs, T const& rhs)
+	{
+		return lhs.__rl_cmp(rhs);
+	}
+
+	template<class T>
 	inline T & deref(T &v) { return v; }
 	template<class T>
 	inline T const& deref(T const& v) { return v; }
@@ -550,6 +580,22 @@ namespace __rl
 		{
 		}
 
+		static constexpr size_t __rl_arity = sizeof...(Types);
+
+		template<class TupleU,
+			size_t i = 0,
+			class = std::enable_if_t<__rl_arity == TupleU::__rl_arity>>
+		inline int8_t __rl_cmp(TupleU const& rhs)
+		{
+			if(auto c = __rl::cmp(std::get<i>(*this), std::get<i>(rhs)))
+				return c;
+
+			if constexpr(i == __rl_arity-1)
+				return 0;
+			else
+				return this->template __rl_cmp<TupleU, i+1>(rhs);
+		}
+
 		template<class ...Types2>
 		inline Tuple(Tuple<Types2...> const& rhs):
 			std::tuple<Types...>(static_cast<std::tuple<Types2...> const&>(rhs))
@@ -614,6 +660,26 @@ namespace __rl
 	Tuple<Types &&...> mk_tuple(Types&&...values) {
 		return Tuple<Types&&...>(createTuple, static_cast<Types&&>(values)...);
 	}
+
+	inline constexpr int8_t structure(int8_t x) { return x; }
+	inline constexpr int16_t structure(int16_t x) { return x; }
+	inline constexpr int32_t structure(int32_t x) { return x; }
+	inline constexpr int64_t structure(int64_t x) { return x; }
+	inline constexpr uint8_t structure(uint8_t x) { return x; }
+	inline constexpr uint16_t structure(uint16_t x) { return x; }
+	inline constexpr uint32_t structure(uint32_t x) { return x; }
+	inline constexpr uint64_t structure(uint64_t x) { return x; }
+	inline constexpr double structure(double x) { return x; }
+	inline constexpr float structure(float x) { return x; }
+
+	template<class...T>
+	inline constexpr Tuple<T...> const& structure(Tuple<T...> const& x) { return x; }
+
+	template<class T>
+	inline constexpr T const * structure(T const * x) { return x; }
+
+	template<class T>
+	inline auto structure(T const& x) { return x.__rl_structure(); }
 
 	template<class T0, class T1, class ...T>
 	inline Tuple<T0&&, T1&&, T&&...> single_ctor_arg(

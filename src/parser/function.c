@@ -376,19 +376,17 @@ static void rlc_parsed_function_print_head_2(
 		break;
 	case kRlcFunctionTypeOperator:
 		{
-			if(this->fOperatorName == kStreamFeed)
+			int isSpecialOp = 1;
+			switch(this->fOperatorName)
 			{
-				fputs("__rl_stream_feed", out);
-				break;
-			} else if(this->fOperatorName == kCount)
-			{
-				fputs("__rl_count", out);
-				break;
-			} else if(this->fOperatorName == kValueOf)
-			{
-				fputs("__rl_value_of", out);
-				break;
+			case kStreamFeed: fputs("__rl_stream_feed", out); break;
+			case kCount: fputs("__rl_count", out); break;
+			case kValueOf: fputs("__rl_value_of", out); break;
+			case kStructure: fputs("__rl_structure", out); break;
+			case kCompare: fputs("__rl_cmp", out); break;
+			default: isSpecialOp = 0;
 			}
+			if(isSpecialOp) break;
 
 			fputs("operator ", out);
 			char const * op;

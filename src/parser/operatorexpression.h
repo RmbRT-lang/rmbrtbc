@@ -15,7 +15,7 @@ extern "C" {
 enum RlcOperator
 {
 	kAdd, kSub, kMul, kDiv, kMod,
-	kEquals, kNotEquals, kLess, kLessEquals, kGreater, kGreaterEquals,
+	kEquals, kNotEquals, kLess, kLessEquals, kGreater, kGreaterEquals, kCompare,
 	kBitAnd, kBitOr, kBitXor, kBitNot,
 	kLogAnd, kLogOr, kLogNot,
 	kShiftLeft, kShiftRight, kRotateLeft, kRotateRight,
@@ -27,6 +27,8 @@ enum RlcOperator
 	kPreIncrement, kPreDecrement,
 	kPostIncrement, kPostDecrement,
 	kCount,
+
+	kStructure,
 
 	kRealAddr,
 	kValueOf,

@@ -65,7 +65,8 @@ const k_unary[] = {
 	{ kRlcTokDoubleAt, kFullAsync },
 	{ kRlcTokLessMinus, kAwait },
 	{ kRlcTokDoubleHash, kCount },
-	{ kRlcTokTripleAnd, kRealAddr }
+	{ kRlcTokTripleAnd, kRealAddr },
+	{ kRlcTokPipe, kStructure }
 },
 // postfix operators.
 k_unary_postfix[] = {
@@ -107,6 +108,7 @@ k_binary[] = {
 	{ kRlcTokGreaterEqual, kGreaterEquals },
 	{ kRlcTokDoubleEqual, kEquals },
 	{ kRlcTokExclamationMarkEqual, kNotEquals },
+	{ kRlcTokLessGreater, kCompare },
 
 	// boolean arithmetic.
 	{ kRlcTokDoubleAnd, kLogAnd },
@@ -137,7 +139,7 @@ static size_t const k_binary_groups[] = {
 	1, // &
 	1, // ^
 	1, // |
-	6, // < <= > >= == !=
+	7, // < <= > >= == != <>
 	1, // &&
 	1, // ||
 	0, // ?:
@@ -688,6 +690,7 @@ void rlc_parsed_operator_expression_print(
 		{kAdd, 1, "+",1}, {kSub, 1, "-",1}, {kMul, 1, "*",1}, {kDiv, 1, "/",1}, {kMod, 1, "%",1},
 		{kEquals, 1, "==",1}, {kNotEquals, 1, "!=",1}, {kLess, 1, "<",1},
 		{kLessEquals, 1, "<=",1}, {kGreater, 1, ">",1}, {kGreaterEquals, 1, ">=",1},
+		{kCompare, -1, NULL, 0},
 
 		{kBitAnd, 1, "&",1}, {kBitOr, 1, "|",1}, {kBitXor, 1, "^",1}, {kBitNot, 0, "~",1},
 		{kLogAnd, 1, "&&",1}, {kLogOr, 1, "||",1}, {kLogNot, 0, "!",1},
@@ -701,6 +704,8 @@ void rlc_parsed_operator_expression_print(
 		{kPreIncrement, 0, "++",1}, {kPreDecrement, 0, "--",1},
 		{kPostIncrement, 2, "++",1}, {kPostDecrement, 2, "--",1},
 		{kCount, -1, NULL, 0},
+		{kStructure, -1, NULL, 0},
+
 		{kRealAddr, -1, NULL, 0},
 		{kValueOf, -1, NULL, 0},
 
@@ -793,6 +798,10 @@ void rlc_parsed_operator_expression_print(
 				{
 					fputs("::__rl::count(", out);
 				} break;
+			case kStructure:
+				{
+					fputs("::__rl::structure(", out);
+				} break;
 			case kRealAddr:
 				{
 					fputs("::__rl::real_addr(", out);
@@ -809,6 +818,10 @@ void rlc_parsed_operator_expression_print(
 				{
 					fputs("::__rl::visit_reflect(", out);
 				}  break;
+			case kCompare:
+				{
+					fputs("::__rl::cmp(", out);
+				} break;
 			default: { ; }
 			}
 		} break;
@@ -901,6 +914,8 @@ void rlc_parsed_operator_expression_print(
 			case kTuple:
 			case kMove:
 			case kCount:
+			case kStructure:
+			case kCompare:
 			case kRealAddr:
 			case kValueOf:
 				{
