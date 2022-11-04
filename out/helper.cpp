@@ -475,8 +475,8 @@ namespace __rl
 		return 0;
 	}
 
-	template<class T>
-	inline int8_t cmp(T const& lhs, T const& rhs)
+	template<class T, class U, class = std::enable_if_t<!std::is_integral_v<T>>>
+	inline int8_t cmp(T const& lhs, U const& rhs)
 	{
 		return lhs.__rl_cmp(rhs);
 	}
@@ -585,7 +585,7 @@ namespace __rl
 		template<class TupleU,
 			size_t i = 0,
 			class = std::enable_if_t<__rl_arity == TupleU::__rl_arity>>
-		inline int8_t __rl_cmp(TupleU const& rhs)
+		inline int8_t __rl_cmp(TupleU const& rhs) const
 		{
 			if(auto c = __rl::cmp(std::get<i>(*this), std::get<i>(rhs)))
 				return c;
