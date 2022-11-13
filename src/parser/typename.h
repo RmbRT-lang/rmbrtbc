@@ -150,6 +150,24 @@ struct RlcParsedTupleType
 	RlcSrcSize fTypeCount;
 };
 
+struct RlcParsedSymbolConstantType
+{
+	struct RlcToken fSymbol;
+	struct RlcParsedTypeName * fType;
+};
+
+_Nodiscard int rlc_parsed_symbol_constant_type_parse(
+	struct RlcParsedSymbolConstantType * out,
+	struct RlcParser * parser);
+
+void rlc_parsed_symbol_constant_type_print(
+	struct RlcParsedSymbolConstantType const * this,
+	struct RlcSrcFile const * file,
+	FILE * out);
+
+void rlc_parsed_symbol_constant_type_destroy(
+	struct RlcParsedSymbolConstantType * this);
+
 /** A (possibly) scope-qualified identifier, or void, and type qualifiers. */
 struct RlcParsedTypeName
 {
@@ -159,7 +177,7 @@ struct RlcParsedTypeName
 		/** The name of the type. */
 		struct RlcParsedSymbol * fName;
 		/** The symbol constant name. */
-		struct RlcToken fSymbolConstant;
+		struct RlcParsedSymbolConstantType fSymbolConstant;
 		/** The function signature type. */
 		struct RlcParsedFunctionSignature * fFunction;
 		/** The expression (for type-of). */

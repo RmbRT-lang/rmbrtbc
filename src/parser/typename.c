@@ -182,6 +182,87 @@ void rlc_type_modifier_destroy(
 	}
 }
 
+int rlc_parsed_symbol_constant_type_parse(
+	struct RlcParsedSymbolConstantType * out,
+	struct RlcParser * parser)
+{
+	struct RlcParsedSymbolConstantExpression exp;
+	if(!rlc_parsed_symbol_constant_expression_parse(&exp, parser))
+		return 0;
+
+	out->fSymbol = exp.fName;
+	if(exp.fHasType)
+	{
+		out->fType = NULL;
+		rlc_malloc((void**)&out->fType, sizeof(struct RlcParsedTypeName));
+		*out->fType = exp.fType;
+		exp.fHasType = 0;
+	} else
+		out->fType = NULL;
+	rlc_parsed_symbol_constant_expression_destroy(&exp);
+
+	return 1;
+}
+
+
+void rlc_parsed_symbol_constant_type_print(
+	struct RlcParsedSymbolConstantType const * this,
+	struct RlcSrcFile const * file,
+	FILE * out)
+{
+	fprintf(out, "::__rl::constant::_%st%s_",
+		this->fSymbol.type == kRlcTokIdentifier ? "" : "_",
+		this->fType ? "t" : "");
+
+	switch(this->fSymbol.type)
+	{
+	case kRlcTokIdentifier:
+		rlc_src_string_print_noreplace(
+			&this->fSymbol.content,
+			file,
+			out);
+		break;
+	case kRlcTokLess:
+		fputs("less", out);
+		break;
+	case kRlcTokGreater:
+		fputs("greater", out);
+		break;
+	case kRlcTokLessGreater:
+		fputs("less_greater", out);
+		break;
+	case kRlcTokQuestionMark:
+		fputs("question_mark", out);
+		break;
+	case kRlcTokExclamationMark:
+		fputs("exclamation_mark", out);
+		break;
+	case kRlcTokLessMinus:
+		fputs("less_minus", out);
+		break;
+	default:
+		RLC_DASSERT(!"unhandled symbol constant");
+	}
+
+	if(this->fType)
+	{
+		fputc('<', out);
+		rlc_parsed_type_name_print(this->fType, file, out);
+		fputc('>', out);
+	}
+}
+
+void rlc_parsed_symbol_constant_type_destroy(
+	struct RlcParsedSymbolConstantType * this)
+{
+	if(this->fType)
+	{
+		rlc_parsed_type_name_destroy(this->fType);
+		rlc_free((void**)&this->fType);
+	}
+}
+
+
 void rlc_parsed_type_name_destroy(
 	struct RlcParsedTypeName * this)
 {
@@ -235,7 +316,13 @@ void rlc_parsed_type_name_destroy(
 	case kRlcParsedTypeNameValueNull:
 	case kRlcParsedTypeNameValueBare:
 	case kRlcParsedTypeNameValueThis:
-	case kRlcParsedTypeNameValueSymbolConstant: { ; }
+		{
+			;
+		} break;
+	case kRlcParsedTypeNameValueSymbolConstant:
+		{
+			rlc_parsed_symbol_constant_type_destroy(&this->fSymbolConstant);
+		} break;
 	}
 }
 
@@ -359,25 +446,11 @@ static int rlc_parsed_type_name_parse_impl(
 		out->fValue = kRlcParsedTypeNameValueFunction;
 		rlc_malloc((void**)&out->fFunction, sizeof(struct RlcParsedFunctionSignature));
 		*out->fFunction = parse.fFunction;
-	} else if(rlc_parser_consume(
-		parser,
-		NULL,
-		kRlcTokColon))
+	} else if(rlc_parsed_symbol_constant_type_parse(
+		&out->fSymbolConstant,
+		parser))
 	{
 		out->fValue = kRlcParsedTypeNameValueSymbolConstant;
-		rlc_parser_expect(parser, &out->fSymbolConstant, 7,
-			kRlcTokIdentifier,
-			kRlcTokLess, // acquire
-			kRlcTokGreater, // release
-			kRlcTokLessGreater, // acq_rel
-			kRlcTokQuestionMark, // relaxed
-			kRlcTokExclamationMark, // seq_cst
-			kRlcTokLessMinus // consume
-		);
-		if(out->fSymbolConstant.type == kRlcTokIdentifier)
-			rlc_parsed_symbol_constant_register(
-				rlc_parser_file(parser),
-				&out->fSymbolConstant.content);
 	} else if(rlc_parser_consume(
 		parser,
 		NULL,
@@ -575,36 +648,8 @@ void rlc_parsed_type_name_print(
 		} break;
 	case kRlcParsedTypeNameValueSymbolConstant:
 		{
-			switch(this->fSymbolConstant.type)
-			{
-			case kRlcTokIdentifier:
-				fputs("::__rl::constant::_t_", out);
-				rlc_src_string_print_noreplace(
-					&this->fSymbolConstant.content,
-					file,
-					out);
-				break;
-			case kRlcTokLess:
-				fputs("::__rl::constant::__t_less", out);
-				break;
-			case kRlcTokGreater:
-				fputs("::__rl::constant::__t_greater", out);
-				break;
-			case kRlcTokLessGreater:
-				fputs("::__rl::constant::__t_less_greater", out);
-				break;
-			case kRlcTokQuestionMark:
-				fputs("::__rl::constant::__t_question_mark", out);
-				break;
-			case kRlcTokExclamationMark:
-				fputs("::__rl::constant::__t_exclamation_mark", out);
-				break;
-			case kRlcTokLessMinus:
-				fputs("::__rl::constant::__t_less_minus", out);
-				break;
-			default:
-				RLC_DASSERT(!"unhandled symbol constant");
-			}
+			rlc_parsed_symbol_constant_type_print(
+				&this->fSymbolConstant, file, out);
 		} break;
 	case kRlcParsedTypeNameValueFunction:
 		{
