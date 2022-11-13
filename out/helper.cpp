@@ -469,13 +469,13 @@ namespace __rl
 	template<class T, class = std::enable_if_t<std::is_integral_v<T>>>
 	inline constexpr int8_t cmp(T lhs, T rhs)
 	{
-		auto diff = lhs - rhs;
+		std::make_signed_t<T> diff = lhs - rhs;
 		if(diff)
 			return diff < 0 ? -1 : 1;
 		return 0;
 	}
 
-	template<class T, class U, class = std::enable_if_t<!std::is_integral_v<T>>>
+	template<class T, class U, class = std::enable_if_t<!std::is_integral_v<T> && !std::is_pointer_v<T>>>
 	inline int8_t cmp(T const& lhs, U const& rhs)
 	{
 		return lhs.__rl_cmp(rhs);
