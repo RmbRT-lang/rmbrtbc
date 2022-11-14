@@ -42,7 +42,7 @@ struct RlcParsedConstructor
 	union {
 		struct {
 			int fIsVariant;
-			struct RlcToken fVariant;
+			struct RlcParsedSymbolConstantType fVariant;
 			/** The arguments. */
 			struct RlcParsedVariable * fArguments;
 			/** The argument count. */

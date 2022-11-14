@@ -38,6 +38,11 @@ void rlc_parsed_constructor_destroy(
 
 	if(this->fType == kRlcCustomConstructor)
 	{
+		if(this->fIsVariant)
+		{
+			rlc_parsed_symbol_constant_type_destroy(&this->fVariant);
+			this->fIsVariant = 0;
+		}
 		for(size_t i = this->fArgumentCount; i--;)
 			rlc_parsed_variable_destroy(&this->fArguments[i]);
 		if(this->fArguments)
@@ -96,21 +101,8 @@ int rlc_parsed_constructor_parse(
 		out,
 		member);
 
-	if((out->fIsVariant = rlc_parser_consume(parser, NULL, kRlcTokColon)))
-	{
-		if(rlc_parser_expect(parser, &out->fVariant, 7,
-			kRlcTokIdentifier,
-			kRlcTokLess, // acquire
-			kRlcTokGreater, // release
-			kRlcTokLessGreater, // acq_rel
-			kRlcTokQuestionMark, // relaxed
-			kRlcTokExclamationMark, // seq_cst
-			kRlcTokLessMinus // consume
-		) == kRlcTokIdentifier)
-			rlc_parsed_symbol_constant_register(
-				rlc_parser_file(parser),
-				&out->fVariant.content);
-	}
+	out->fIsVariant = rlc_parsed_symbol_constant_type_parse(
+		&out->fVariant, parser);
 
 	if(!rlc_parser_consume(
 		parser,
