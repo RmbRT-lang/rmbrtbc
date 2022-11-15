@@ -206,6 +206,8 @@ int main(
 		perror("mkstemp");
 		return 1;
 	}
+	FILE * pipef = fdopen(pipefd, "a");
+
 	char out_file[PATH_MAX];
 	char *rlc_actual;
 	ssize_t rlc_which_len;
@@ -222,6 +224,8 @@ int main(
 	}
 
 	snprintf(out_file, sizeof(out_file), "%.*s/out/helper.cpp", parent_dir(rlc_actual), rlc_actual);
+	fprintf(pipef, "\n#line 0 \"%s\"\n", out_file);
+	fflush(pipef);
 	pipe_file(out_file, pipefd);
 	read_into_pipe_and_close(printer.fSymbolConstants, &symbolConstantsBuf, &symbolConstantsLen, pipefd);
 	read_into_pipe_and_close(printer.fTypes, &typesBuf, &typesLen, pipefd);
@@ -231,6 +235,8 @@ int main(
 	read_into_pipe_and_close(printer.fVarsImpl, &varsImplBuf, &varsImplLen, pipefd);
 	read_into_pipe_and_close(printer.fFuncsImpl, &funcsImplBuf, &funcsImplLen, pipefd);
 	snprintf(out_file, sizeof(out_file), "%.*s/out/%s", parent_dir(rlc_actual), rlc_actual, isTest ? "testmain.cpp" : "exemain.cpp");
+	fprintf(pipef, "\n#line 0 \"%s\"\n", out_file);
+	fflush(pipef);
 	pipe_file(out_file, pipefd);
 	free(rlc_actual);
 	shutdown(pipefd, SHUT_WR);
@@ -238,7 +244,7 @@ int main(
 	fflush(stdout);
 
 	char command[PATH_MAX+128];
-	snprintf(command, sizeof(command), "c++ -std=c++2a -fcoroutines -pthread -x c++ -Wfatal-errors -Werror %s -o a.out -g",
+	snprintf(command, sizeof(command), "c++ -std=c++2a -fcoroutines -pthread -x c++ -Wfatal-errors -Wno-inaccessible-base -Werror %s -o a.out -g",
 		pipename);
 	if((status = !system(command)))
 		puts("compiled!");

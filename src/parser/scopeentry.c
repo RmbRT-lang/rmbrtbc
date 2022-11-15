@@ -251,6 +251,11 @@ void rlc_parsed_scope_entry_print(
 	RLC_DASSERT(k_vtable[RLC_DERIVING_TYPE(this)].type == RLC_DERIVING_TYPE(this));
 
 
+	struct RlcSrcPosition pos;
+	rlc_src_file_position(file, &pos, this->fName.start);
+	fprintf(printer->fTypes, "\n#line %d\n", pos.line);
+	fprintf(printer->fTypesImpl, "\n#line %d\n", pos.line);
+
 	k_vtable[RLC_DERIVING_TYPE(this)].fPrintFn(
 		((char*)this) + k_vtable[RLC_DERIVING_TYPE(this)].fOffset,
 		file,

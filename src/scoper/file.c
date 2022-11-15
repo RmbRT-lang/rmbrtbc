@@ -87,12 +87,18 @@ void rlc_scoped_file_print(
 			registry,
 			printer);
 
-	fprintf(printer->fTypes, "////// %s:Types\n", this->path);
-	fprintf(printer->fVars, "////// %s:Vars\n", this->path);
-	fprintf(printer->fFuncs, "////// %s:Funcs\n", this->path);
-	fprintf(printer->fTypesImpl, "////// %s:TypesImpl\n", this->path);
-	fprintf(printer->fVarsImpl, "////// %s:VarsImpl\n", this->path);
-	fprintf(printer->fFuncsImpl, "////// %s:FuncsImpl\n", this->path);
+	fprintf(printer->fTypes, "////// %s:Types\n#line 0 \"%s\"\n",
+		this->path, this->path);
+	fprintf(printer->fVars, "////// %s:Vars\n#line 0 \"%s\"\n",
+		this->path, this->path);
+	fprintf(printer->fFuncs, "////// %s:Funcs\n#line 0 \"%s\"\n",
+		this->path, this->path);
+	fprintf(printer->fTypesImpl, "////// %s:TypesImpl\n#line 0 \"%s\"\n",
+		this->path, this->path);
+	fprintf(printer->fVarsImpl, "////// %s:VarsImpl\n#line 0 \"%s\"\n",
+		this->path, this->path);
+	fprintf(printer->fFuncsImpl, "////// %s:FuncsImpl\n#line 0 \"%s\"\n",
+		this->path, this->path);
 	rlc_parsed_file_print(
 		this->parsed,
 		printer);
