@@ -66,7 +66,8 @@ const k_unary[] = {
 	{ kRlcTokLessMinus, kAwait },
 	{ kRlcTokDoubleHash, kCount },
 	{ kRlcTokTripleAnd, kRealAddr },
-	{ kRlcTokPipe, kStructure }
+	{ kRlcTokPipe, kStructure },
+	{ kRlcTokDoubleGreater, kAutoDynCast }
 },
 // postfix operators.
 k_unary_postfix[] = {
@@ -707,6 +708,7 @@ void rlc_parsed_operator_expression_print(
 		{kStructure, -1, NULL, 0},
 
 		{kRealAddr, -1, NULL, 0},
+		{kAutoDynCast, -1, NULL, 0},
 		{kValueOf, -1, NULL, 0},
 
 		{kAsync, -1, NULL,1},
@@ -805,6 +807,10 @@ void rlc_parsed_operator_expression_print(
 			case kRealAddr:
 				{
 					fputs("::__rl::real_addr(", out);
+				} break;
+			case kAutoDynCast:
+				{
+					fputs("::__rl::auto_dyn_cast(", out);
 				} break;
 			case kValueOf:
 				{
@@ -917,6 +923,7 @@ void rlc_parsed_operator_expression_print(
 			case kStructure:
 			case kCompare:
 			case kRealAddr:
+			case kAutoDynCast:
 			case kValueOf:
 				{
 					for(RlcSrcIndex i = 1; i < this->fExpressionCount; i++)

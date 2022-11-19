@@ -1039,6 +1039,41 @@ namespace __rl
 		else
 			return type_name<T>();
 	}
+
+	template<class T>
+	class AutoDynCastable
+	{
+		T &&cast;
+	public:
+		AutoDynCastable(T &&cast): cast((T&&)cast)
+		{}
+
+		AutoDynCastable(AutoDynCastable &&) = delete;
+		AutoDynCastable(AutoDynCastable const&) = delete;
+
+		template<class U>
+		constexpr operator U &() const {
+			return dynamic_cast<U&>((T&&)cast);
+		}
+
+		template<class U>
+		constexpr operator U const&() const {
+			return dynamic_cast<U const&>((T&&)cast);
+		}
+
+		template<class U>
+		constexpr operator U *() const {
+			return dynamic_cast<U *>((T&&)cast);
+		}
+
+		template<class U>
+		constexpr operator U const *() const {
+			return dynamic_cast<U const *>((T&&)cast);
+		}
+	};
+
+	template<class T>
+	[[nodiscard]] AutoDynCastable<T&&> auto_dyn_cast(T &&v) { return (T&&)v; }
 }
 
 // Declare special size types.

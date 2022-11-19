@@ -31,6 +31,7 @@ enum RlcOperator
 	kStructure,
 
 	kRealAddr,
+	kAutoDynCast,
 	kValueOf,
 
 	kAsync,
