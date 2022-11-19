@@ -549,6 +549,11 @@ namespace __rl
 			return (int_t)static_cast<EnumWrapper<Type, Enum, count> const&>(rhs).value
 				>= (int_t)value;
 		}
+
+		constexpr int8_t __rl_cmp(Type const& x) const
+		{
+			return __rl::cmp((int_t)value, (int_t)x.value);
+		}
 	};
 
 
