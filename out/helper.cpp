@@ -1043,32 +1043,58 @@ namespace __rl
 	template<class T>
 	class AutoDynCastable
 	{
-		T &&cast;
+		T cast;
 	public:
-		AutoDynCastable(T &&cast): cast((T&&)cast)
+		AutoDynCastable(T cast): cast((T)cast)
 		{}
 
 		AutoDynCastable(AutoDynCastable &&) = delete;
 		AutoDynCastable(AutoDynCastable const&) = delete;
 
 		template<class U>
-		constexpr operator U &() const {
-			return dynamic_cast<U&>((T&&)cast);
+		constexpr operator U &() const requires requires(T v){
+			dynamic_cast<U &>((T)v);
+			requires(!std::is_rvalue_reference_v<T>);
+		} {
+			return dynamic_cast<U &>((T)cast);
 		}
 
 		template<class U>
-		constexpr operator U const&() const {
-			return dynamic_cast<U const&>((T&&)cast);
+		constexpr operator U const&() const requires requires(T v){
+			dynamic_cast<U const&>((T)v);
+			requires(!std::is_rvalue_reference_v<T>);
+		} {
+			return dynamic_cast<U const&>((T)cast);
 		}
 
 		template<class U>
-		constexpr operator U *() const {
-			return dynamic_cast<U *>((T&&)cast);
+		constexpr operator U &&() const requires requires(T v){
+			dynamic_cast<U &&>((T)v);
+			requires(std::is_rvalue_reference_v<T>);
+		} {
+			return dynamic_cast<U &&>((T)cast);
 		}
 
 		template<class U>
-		constexpr operator U const *() const {
-			return dynamic_cast<U const *>((T&&)cast);
+		constexpr operator U const&&() const requires requires(T v){
+			dynamic_cast<U const&&>((T)v);
+			requires(std::is_rvalue_reference_v<T>);
+		} {
+			return dynamic_cast<U const&&>((T)cast);
+		}
+
+		template<class U>
+		constexpr operator U *() const requires requires(T v){
+			dynamic_cast<U *>((T)v);
+		} {
+			return dynamic_cast<U *>((T)cast);
+		}
+
+		template<class U>
+		constexpr operator U const*() const requires requires(T v){
+			dynamic_cast<U const*>((T)v);
+		} {
+			return dynamic_cast<U const*>((T)cast);
 		}
 	};
 
