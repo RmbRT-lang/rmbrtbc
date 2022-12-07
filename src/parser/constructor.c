@@ -531,6 +531,8 @@ void rlc_parsed_base_init_parse(
 			NULL,
 			1,
 			kRlcTokParentheseClose);
+	} else {
+		out->fInitType = kRlcInitTypeArguments;
 	}
 }
 
