@@ -171,6 +171,10 @@ void rlc_parsed_symbol_child_print(
 	FILE * out,
 	int templateAllowed)
 {
+	struct RlcSrcPosition pos;
+	rlc_src_file_position(file, &pos, this->fName.start);
+	fprintf(out, "\n#line %d\n", pos.line);
+
 	if(this->fTemplateCount && templateAllowed)
 		fprintf(out, "template ");
 
