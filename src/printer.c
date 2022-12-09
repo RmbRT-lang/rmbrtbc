@@ -56,6 +56,13 @@ void rlc_printer_pop_ns(
 		printer->innerNs->next = NULL;
 }
 
+void rlc_printer_adjust_position(FILE * out, struct RlcSrcString const * position)
+{
+	fprintf(out, "\n#line %d\n", position->line);
+	for(int i = position->column -1; i--;)
+		fputc(' ', out);
+}
+
 void rlc_printer_print_ctx_tpl(
 	struct RlcPrinter const * p,
 	struct RlcSrcFile const * file,

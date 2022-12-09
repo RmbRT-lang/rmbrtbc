@@ -12,6 +12,7 @@
 #include "countofexpression.h"
 #include "typeofexpression.h"
 #include "symbolconstantexpression.h"
+#include "../printer.h"
 
 #include "../assert.h"
 #include "../malloc.h"
@@ -273,7 +274,7 @@ void rlc_parsed_expression_print(
 
 	static_assert(RLC_COVERS_ENUM(k_offsets, RlcParsedExpressionType), "ill sized offset table.");
 
-	fprintf(out, "\n#line %d\n", this->fStart.content.line);
+	rlc_printer_adjust_position(out, &this->fStart.content);
 
 	if(k_vtable[RLC_DERIVING_TYPE(this)])
 		k_vtable[RLC_DERIVING_TYPE(this)](

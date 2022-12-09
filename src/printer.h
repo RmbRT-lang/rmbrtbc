@@ -45,6 +45,8 @@ struct RlcPrinter
 	struct RlcPrinterNamespace * innerNs;
 };
 
+void rlc_printer_adjust_position(FILE * out, struct RlcSrcString const * position);
+
 void rlc_printer_add_ctx(
 	struct RlcPrinter * printer,
 	struct RlcPrinterCtx * ctx,

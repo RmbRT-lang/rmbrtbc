@@ -250,8 +250,8 @@ void rlc_parsed_scope_entry_print(
 	static_assert(RLC_COVERS_ENUM(k_vtable, RlcParsedScopeEntryType), "ill-sized parse table.");
 	RLC_DASSERT(k_vtable[RLC_DERIVING_TYPE(this)].type == RLC_DERIVING_TYPE(this));
 
-	fprintf(printer->fTypes, "\n#line %d\n", this->fName.line);
-	fprintf(printer->fTypesImpl, "\n#line %d\n", this->fName.line);
+	rlc_printer_adjust_position(printer->fTypes, &this->fName);
+	rlc_printer_adjust_position(printer->fTypesImpl, &this->fName);
 
 	k_vtable[RLC_DERIVING_TYPE(this)].fPrintFn(
 		((char*)this) + k_vtable[RLC_DERIVING_TYPE(this)].fOffset,
