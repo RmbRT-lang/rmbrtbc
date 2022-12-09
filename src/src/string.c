@@ -5,7 +5,7 @@
 
 #include <string.h>
 
-struct RlcSrcString const kRlcSrcStringEmpty = { 0, 0 };
+struct RlcSrcString const kRlcSrcStringEmpty = { 0, 0, 1, 1 };
 
 int rlc_src_string_valid(
 	struct RlcSrcString const * this,

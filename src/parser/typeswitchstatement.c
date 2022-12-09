@@ -214,20 +214,16 @@ void rlc_parsed_type_switch_statement_print(
 		else if(!this->fIsStatic)
 			fputs("default: ", out);
 
-		struct RlcSrcPosition pos;
-		struct RlcSrcString exp;
-		exp.start = this->fExpression->fStart.content.start;
+		struct RlcSrcString exp = this->fExpression->fStart.content;
 		struct RlcSrcString end = this->fExpression->fEnd.content;
 		exp.length = end.start + end.length - exp.start;
-
-		rlc_src_file_position(file, &pos, exp.start);
 
 		fprintf(out, "throw "
 			"__rl::Tuple<char const *, char const *>(__rl::createTuple, "
 			"\"%s:%u:%u: value \"",
 			file->fName,
-			pos.line,
-			pos.column);
+			exp.line,
+			exp.column);
 
 		fputs(" __rl_assert_stringify_code(", out);
 		rlc_src_string_print(&exp, file, out);

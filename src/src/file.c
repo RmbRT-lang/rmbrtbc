@@ -103,7 +103,7 @@ struct RlcSrcString rlc_src_file_line(
 			break;
 
 	RlcSrcIndex const length = end - index;
-	struct RlcSrcString ret = { index, length };
+	struct RlcSrcString ret = { index, length, index, 1 };
 	return ret;
 }
 

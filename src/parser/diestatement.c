@@ -31,10 +31,8 @@ _Nodiscard int rlc_parsed_die_statement_parse(
 
 	rlc_parsed_die_statement_create(out);
 
-	rlc_src_file_position(
-		parser->fTokeniser.fSource,
-		&out->fPosition,
-		token.content.start);
+	out->fPosition.line = token.content.line;
+	out->fPosition.column = token.content.column;
 
 	out->fHasMessage = rlc_parsed_string_expression_parse(
 		&out->fMessage, parser);

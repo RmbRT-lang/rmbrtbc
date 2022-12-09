@@ -22,6 +22,8 @@ extern struct RlcSrcString
 {
 	RlcSrcIndex start;
 	RlcSrcSize length;
+	RlcSrcIndex line;
+	RlcSrcIndex column;
 } const kRlcSrcStringEmpty;
 
 /** Checks whether a source string is a valid range inside a file.

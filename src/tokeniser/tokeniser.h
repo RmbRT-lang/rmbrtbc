@@ -23,6 +23,8 @@ struct RlcTokeniser
 	RlcSrcIndex fIndex;
 	/** The start of the current token. */
 	RlcSrcIndex fStart;
+
+	struct RlcSrcPosition fCursor;
 	/** The current token's type. */
 	enum RlcTokenType fType;
 };

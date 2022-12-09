@@ -273,9 +273,7 @@ void rlc_parsed_expression_print(
 
 	static_assert(RLC_COVERS_ENUM(k_offsets, RlcParsedExpressionType), "ill sized offset table.");
 
-	struct RlcSrcPosition pos;
-	rlc_src_file_position(file, &pos, this->fStart.content.start);
-	fprintf(out, "\n#line %d\n", pos.line);
+	fprintf(out, "\n#line %d\n", this->fStart.content.line);
 
 	if(k_vtable[RLC_DERIVING_TYPE(this)])
 		k_vtable[RLC_DERIVING_TYPE(this)](

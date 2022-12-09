@@ -19,17 +19,10 @@ static _Noreturn void va_fail(
 	fflush(stdout);
 	usleep(125 * 1000);
 
-
-	struct RlcSrcPosition pos;
-	rlc_src_file_position(
-		file,
-		&pos,
-		string->start);
-
 	fprintf(stderr, "%s:%u:%u: error: ",
 		file->fName,
-		pos.line,
-		pos.column);
+		string->line,
+		string->column);
 	vfprintf(stderr, msg, ap);
 	fprintf(stderr, ".\n");
 	fflush(stderr);

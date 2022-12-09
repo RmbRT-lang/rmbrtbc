@@ -180,23 +180,20 @@ void rlc_parsed_switch_statement_print(
 
 	if(!hasDefault && this->fIsStrict)
 	{
-		struct RlcSrcPosition pos;
 		struct RlcSrcString exp;
 		if(this->fIsVariableSwitchValue)
 			exp = RLC_BASE_CAST(&this->fSwitchValue.fVariable, RlcParsedScopeEntry)->fName;
 		else
 		{
-			exp.start = this->fSwitchValue.fExpression->fStart.content.start;
+			exp = this->fSwitchValue.fExpression->fStart.content;
 			struct RlcSrcString end = this->fSwitchValue.fExpression->fEnd.content;
 			exp.length = end.start + end.length - exp.start;
 		}
 
-		rlc_src_file_position(file, &pos, exp.start);
-
 		fprintf(out, "default: throw \"%s:%u:%u: value \"",
 			file->fName,
-			pos.line,
-			pos.column);
+			exp.line,
+			exp.column);
 
 		fputs(" __rl_assert_stringify_code(", out);
 		rlc_src_string_print(&exp, file, out);

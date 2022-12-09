@@ -54,6 +54,8 @@ void rlc_tokeniser_create(
 	this->fSource = file;
 	this->fIndex = 0;
 	this->fStart = 0;
+	this->fCursor.line = 1;
+	this->fCursor.column = 1;
 
 	skip(this);
 }
@@ -66,6 +68,8 @@ int rlc_tokeniser_read(
 	RLC_DASSERT(token != NULL);
 
 	token->content.start = this->fStart = this->fIndex;
+	token->content.line = this->fCursor.line;
+	token->content.column = this->fCursor.column;
 
 	if(!identifier(this)
 	&& !string_or_character(this)
@@ -127,6 +131,11 @@ int skip_whitespace(
 			{
 				skipped = 1;
 				ignore(this, 1);
+				if(c == '\n')
+				{
+					this->fCursor.line++;
+					this->fCursor.column = 1;
+				}
 				continue;
 			}
 		}
@@ -143,7 +152,11 @@ int skip_comment(
 		char c;
 		while((c = take(this)))
 			if(c == '\n')
+			{
+				this->fCursor.line++;
+				this->fCursor.column = 1;
 				break;
+			}
 		return 1;
 	} else if(take_str(this, "(/"))
 	{
@@ -158,7 +171,11 @@ int skip_comment(
 			else if(take_str(this, "(/"))
 				++level;
 			else
-				ignore(this, 1);
+				if(take(this) == '\n')
+				{
+					this->fCursor.line++;
+					this->fCursor.column = 1;
+				}
 		}
 		tok_error(this, "unterminated block comment");
 	} else
@@ -580,5 +597,6 @@ void ignore(
 	RlcSrcIndex n)
 {
 	this->fIndex += n;
+	this->fCursor.column += n;
 	RLC_DASSERT(this->fIndex <= this->fSource->fContentLength);
 }
