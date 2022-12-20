@@ -171,11 +171,11 @@ void rlc_parsed_symbol_child_print(
 	FILE * out,
 	int templateAllowed)
 {
-	rlc_printer_adjust_position(out, &this->fName);
 
 	if(this->fTemplateCount && templateAllowed)
 		fprintf(out, "template ");
 
+	rlc_printer_adjust_position(out, &this->fName);
 	rlc_src_string_print(&this->fName, file, out);
 
 	if(this->fTemplateCount)

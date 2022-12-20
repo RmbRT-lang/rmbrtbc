@@ -244,7 +244,7 @@ int main(
 	fflush(stdout);
 
 	char command[PATH_MAX+128];
-	snprintf(command, sizeof(command), "c++ -std=c++2a -fcoroutines -pthread -x c++ -Wfatal-errors -Wno-inaccessible-base -Werror -ftemplate-backtrace-limit=0 %s -o a.out -g",
+	snprintf(command, sizeof(command), "c++ -std=c++2a -fcoroutines -pthread -x c++ -Wfatal-errors -Wno-inaccessible-base -Werror -ftemplate-backtrace-limit=0 -fdiagnostics-column-unit=byte %s -o a.out -g",
 		pipename);
 	if((status = !system(command)))
 		puts("compiled!");

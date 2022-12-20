@@ -975,6 +975,7 @@ static void rlc_parsed_class_print_impl(
 
 				fputs(printed_init ? ", " : ": ", out);
 				printed_init = 1;
+				rlc_printer_adjust_position(out, &init->fMember);
 				rlc_src_string_print(&init->fMember, file, out);
 				fputc('(', out);
 				if(!init->fArgumentCount)

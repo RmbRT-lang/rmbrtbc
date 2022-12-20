@@ -363,6 +363,9 @@ static void rlc_parsed_function_print_head_2(
 	struct RlcSrcFile const * file,
 	FILE * out)
 {
+	rlc_printer_adjust_position(out,
+		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName);
+
 	switch(this->fType)
 	{
 	case kRlcFunctionTypeFunction:
@@ -723,6 +726,9 @@ void rlc_parsed_member_function_print_impl(
 		RlcParsedMember);
 
 	FILE * out = printer->fTypesImpl;
+
+	rlc_printer_adjust_position(out,
+		&RLC_BASE_CAST2(this, RlcParsedFunction, RlcParsedScopeEntry)->fName);
 
 	rlc_visibility_print(
 		member->fVisibility,
