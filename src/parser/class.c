@@ -529,6 +529,15 @@ static void rlc_parsed_class_print_impl(
 		for(int init = 0; init <= 1; init++)
 		{
 			int printed = 0;
+			if(init)
+				for(RlcSrcIndex j = 0; j < this->fInheritanceCount; j++)
+				{
+					fputs(printed ? ", " : "): ", out);
+					printed = 1;
+
+					rlc_parsed_symbol_print(&this->fInheritances[j].fBase, file, out);
+					fputs("(::__rl::default_init)", out);
+				}
 			for(RlcSrcIndex i = 0; i < this->fMembers.fEntryCount; i++)
 			{
 				struct RlcParsedMemberVariable * v;
