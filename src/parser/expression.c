@@ -202,6 +202,17 @@ struct RlcParsedExpression * rlc_parsed_expression_parse(
 				RLC_ALL_FLAGS(RlcParsedExpressionType));
 			if(!ret)
 				rlc_parser_fail(parser, "expected expression");
+			// If we have a variadic expansion inside parentheses, it's a tuple.
+			if(!opexp)
+			{
+				struct RlcParsedOperatorExpression * opRet;
+				if((opRet = RLC_DYNAMIC_CAST(ret,
+						RlcParsedExpression, RlcParsedOperatorExpression)))
+				{
+					if(opRet->fOperator == kVariadicExpand)
+						opexp = make_operator_expression(kTuple, ret->fStart, tok);
+				}
+			}
 
 			if(opexp)
 				rlc_parsed_operator_expression_add(opexp, ret);

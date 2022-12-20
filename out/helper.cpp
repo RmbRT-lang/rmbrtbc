@@ -666,6 +666,8 @@ namespace __rl
 		return Tuple<Types&&...>(createTuple, static_cast<Types&&>(values)...);
 	}
 
+	constexpr default_init_t mk_tuple() { return default_init; };
+
 	inline constexpr int8_t structure(int8_t x) { return x; }
 	inline constexpr int16_t structure(int16_t x) { return x; }
 	inline constexpr int32_t structure(int32_t x) { return x; }
@@ -846,7 +848,10 @@ namespace __rl
 	inline void const * real_addr(float const&v) { return &v; }
 	inline void const * real_addr(double const&v) { return &v; }
 
+	template<class T> inline void * real_addr(T * const& v) { return &v; }
+	template<class T> inline void * real_addr(T * &v) { return &v; }
 	template<class T> inline void const * real_addr(T const* const& v) { return &v; }
+	template<class T> inline void const * real_addr(T const* & v) { return &v; }
 	template<class T> inline void const * real_addr(T const&v)
 	{
 		return v.__rl_get_derived(static_cast<T::__rl_identifier const *>(nullptr));
