@@ -50,6 +50,8 @@ enum RlcOperator
 
 	kCtor,
 	kCtorPtr,
+	kVirtualCtor,
+	kVirtualCtorPtr,
 	kDtor,
 	kDtorPtr,
 	kTupleMember,
@@ -57,7 +59,8 @@ enum RlcOperator
 
 	kVariadicExpand,
 
-	kTuple
+	kTuple,
+	RLC_ENUM_END(RlcOperator)
 };
 
 

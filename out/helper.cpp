@@ -400,6 +400,18 @@ namespace __rl
 		new (&self) T(::__rl::default_init);
 	}
 
+	template<class T>
+	inline void __rl_virtual_constructor(T &self)
+	{
+		self.__rl_virtual_constructor(static_cast<T::__rl_identifier const *>(nullptr), ::__rl::default_init);
+	}
+
+	template<class T>
+	inline void __rl_virtual_p_constructor(T * self)
+	{
+		self->__rl_virtual_constructor(static_cast<T::__rl_identifier const *>(nullptr), ::__rl::default_init);
+	}
+
 	template<class T, class ...Args>
 	inline void __rl_constructor(
 		T &self,
@@ -407,6 +419,32 @@ namespace __rl
 	{
 		new (&self) T(std::forward<Args>(args)...);
 	}
+
+
+	template<class ...Args> inline void __rl_virtual_constructor(int &self, Args&&...args) { __rl_constructor(self, std::forward<Args>(args)...); }
+	template<class ...Args> inline void __rl_virtual_constructor(unsigned &self, Args&&...args) { __rl_constructor(self, std::forward<Args>(args)...); }
+	template<class ...Args> inline void __rl_virtual_constructor(short &self, Args&&...args) { __rl_constructor(self, std::forward<Args>(args)...); }
+	template<class ...Args> inline void __rl_virtual_constructor(unsigned short &self, Args&&...args) { __rl_constructor(self, std::forward<Args>(args)...); }
+	template<class ...Args> inline void __rl_virtual_constructor(bool &self, Args&&...args) { __rl_constructor(self, std::forward<Args>(args)...); }
+	template<class ...Args> inline void __rl_virtual_constructor(char &self, Args&&...args) { __rl_constructor(self, std::forward<Args>(args)...); }
+	template<class T, class ...Args> inline void __rl_virtual_constructor(T * &self, Args&&...args) { __rl_constructor(self, std::forward<Args>(args)...); }
+
+	template<class T, class ...Args>
+	inline void __rl_virtual_constructor(
+		T &self,
+		Args&&...args)
+	{
+		self.__rl_virtual_constructor(static_cast<T::__rl_identifier const *>(nullptr), std::forward<Args>(args)...);
+	}
+
+	template<class T, class ...Args>
+	inline void __rl_virtual_p_constructor(
+		T * self,
+		Args&&...args)
+	{
+		__rl_virtual_constructor(*self, std::forward<Args>(args)...);
+	}
+
 	template<class T>
 	inline void __rl_p_constructor(T *self)
 	{

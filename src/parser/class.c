@@ -248,6 +248,47 @@ static void rlc_parsed_class_print_impl(
 
 	rlc_parsed_member_list_print(&this->fMembers, file, printer);
 
+
+	// detect ctors
+	int hasStructuralCtor = 0;
+	int hasBareCtor = 0;
+	int hasCopyCtor = 0;
+	int hasMoveCtor = 0;
+	int hasDefaultCtor = 0;
+	enum RlcVisibility structCtorVisibility = kRlcVisibilityPublic;
+	enum RlcVisibility copyCtorVisibility = kRlcVisibilityPublic;
+	for(RlcSrcIndex i = 0; i < this->fConstructors.fEntryCount; i++)
+	{
+		struct RlcParsedConstructor * ctor = RLC_DERIVE_CAST(
+			this->fConstructors.fEntries[i],
+			RlcParsedMember,
+			struct RlcParsedConstructor);
+
+		enum RlcVisibility ctor_visibility =
+			this->fConstructors.fEntries[i]->fVisibility;
+
+		switch(ctor->fType)
+		{
+		case kRlcStructuralConstructor:
+			{
+				hasStructuralCtor = 1;
+				structCtorVisibility = ctor_visibility;
+			} break;
+		case kRlcBareConstructor:
+			{
+				hasBareCtor = 1;
+			} break;
+		case kRlcCopyConstructor:
+			{
+				hasCopyCtor = 1;
+				copyCtorVisibility = ctor_visibility;
+			} break;
+		case kRlcMoveConstructor: hasMoveCtor = 1; break;
+		case kRlcDefaultConstructor: hasDefaultCtor = 1; break;
+		default: break;
+		}
+	}
+
 	//////////////////////
 	// Get base address //
 	//////////////////////
@@ -266,12 +307,31 @@ static void rlc_parsed_class_print_impl(
 		fputs("virtual void const * __rl_get_derived(__rl_identifier const *) const = 0;\n", out);
 		fputs("virtual char const * __rl_type_name(__rl_identifier const *) const = 0;\n", out);
 		fputs("virtual unsigned __rl_type_number(__rl_identifier const *) const = 0;\n", out);
+
+		fputs("virtual void __rl_virtual_constructor(__rl_identifier const *, ::__rl::default_init_t) = 0;\n", out);
+		fputs("virtual void __rl_virtual_constructor(__rl_identifier const *, ::__rl::bare_init_t) = 0;\n", out);
+		fputs("virtual void __rl_virtual_constructor(__rl_identifier const *, __rl_MY_T const&) = 0;\n", out);
+		fputs("virtual void __rl_virtual_constructor(__rl_identifier const *, __rl_MY_T &&) = 0;\n", out);
 	}
 	else
 	{
 		fputs("inline void const * __rl_get_derived(__rl_identifier const *) const { return this; }\n", out);
 		fputs("constexpr char const * __rl_type_name(__rl_identifier const *) const { return __rl_type_name_v; }\n", out);
 		fputs("constexpr unsigned __rl_type_number(__rl_identifier const *) const { return __rl_type_number_v; }\n", out);
+
+		if(!hasDefaultCtor)
+			fputs("void __rl_virtual_constructor(__rl_identifier const *, ::__rl::default_init_t rhs) { throw \"virtual default ctor call: type has no default ctor.\"; }\n", out);
+		else
+			fputs("void __rl_virtual_constructor(__rl_identifier const *, ::__rl::default_init_t rhs) { new (this) __rl_MY_T(rhs); }\n", out);
+		fputs("void __rl_virtual_constructor(__rl_identifier const *, ::__rl::bare_init_t rhs) { new (this) __rl_MY_T(rhs); }\n", out);
+		if(!hasCopyCtor && hasMoveCtor)
+			fputs("void __rl_virtual_constructor(__rl_identifier const *, __rl_MY_T const& rhs) { throw \"virtual copy ctor call: type has no copy ctor\"; }\n", out);
+		else
+			fputs("void __rl_virtual_constructor(__rl_identifier const *, __rl_MY_T const& rhs) { new (this) __rl_MY_T(rhs); }\n", out);
+		if(!hasMoveCtor && hasCopyCtor)
+			fputs("void __rl_virtual_constructor(__rl_identifier const *, __rl_MY_T &&rhs) { throw \"virtual move ctor call: type has no move ctor\"; }\n", out);
+		else
+			fputs("void __rl_virtual_constructor(__rl_identifier const *, __rl_MY_T &&rhs) { new (this) __rl_MY_T(std::move(rhs)); }\n", out);
 	}
 
 	for(RlcSrcIndex i = 0; i < this->fInheritanceCount; i++)
@@ -299,6 +359,54 @@ static void rlc_parsed_class_print_impl(
 			out);
 
 		fputs("::__rl_identifier const *) const { return __rl::type_number(*this); }\n", out);
+
+
+		// virtual ctor
+		fputs("void __rl_virtual_constructor(typename ", out);
+		rlc_parsed_symbol_print_no_template(
+			&this->fInheritances[i].fBase,
+			file,
+			out);
+		fputs("::__rl_identifier const *, ::__rl::default_init_t rhs) { __rl::__rl_virtual_constructor(*this, rhs); }\n", out);
+
+
+		// virtual BARE ctor
+		fputs("void __rl_virtual_constructor(typename ", out);
+		rlc_parsed_symbol_print_no_template(
+			&this->fInheritances[i].fBase,
+			file,
+			out);
+		fputs("::__rl_identifier const *, ::__rl::bare_init_t rhs) { __rl::__rl_virtual_constructor(*this, rhs); }\n", out);
+
+
+
+		// virtual copy ctor
+		fputs("void __rl_virtual_constructor(typename ", out);
+		rlc_parsed_symbol_print_no_template(
+			&this->fInheritances[i].fBase,
+			file,
+			out);
+		fputs("::__rl_identifier const *, ", out);
+		rlc_parsed_symbol_print_no_template(
+			&this->fInheritances[i].fBase,
+			file,
+			out);
+		fputs(" const& rhs) { __rl::__rl_virtual_constructor(*this, static_cast<__rl_MY_T const&>(rhs)); }\n", out);
+
+
+
+		// virtual move ctor
+		fputs("void __rl_virtual_constructor(typename ", out);
+		rlc_parsed_symbol_print_no_template(
+			&this->fInheritances[i].fBase,
+			file,
+			out);
+		fputs("::__rl_identifier const *, ", out);
+		rlc_parsed_symbol_print_no_template(
+			&this->fInheritances[i].fBase,
+			file,
+			out);
+		fputs(" &&rhs) { __rl::__rl_virtual_constructor(*this, static_cast<__rl_MY_T &&>(rhs)); }\n", out);
 	}
 
 	////////////////
@@ -412,42 +520,6 @@ static void rlc_parsed_class_print_impl(
 		"::std::make_index_sequence<sizeof...(__RL_Types)>{})\n"
 		"{\n"
 		"}\n", out);
-
-
-	int hasStructuralCtor = 0;
-	int hasBareCtor = 0;
-	int hasCopyCtor = 0;
-	enum RlcVisibility structCtorVisibility = kRlcVisibilityPublic;
-	enum RlcVisibility copyCtorVisibility = kRlcVisibilityPublic;
-	for(RlcSrcIndex i = 0; i < this->fConstructors.fEntryCount; i++)
-	{
-		struct RlcParsedConstructor * ctor = RLC_DERIVE_CAST(
-			this->fConstructors.fEntries[i],
-			RlcParsedMember,
-			struct RlcParsedConstructor);
-
-		enum RlcVisibility ctor_visibility =
-			this->fConstructors.fEntries[i]->fVisibility;
-
-		switch(ctor->fType)
-		{
-		case kRlcStructuralConstructor:
-			{
-				hasStructuralCtor = 1;
-				structCtorVisibility = ctor_visibility;
-			} break;
-		case kRlcBareConstructor:
-			{
-				hasBareCtor = 1;
-			} break;
-		case kRlcCopyConstructor:
-			{
-				hasCopyCtor = 1;
-				copyCtorVisibility = ctor_visibility;
-			} break;
-		default: break;
-		}
-	}
 
 	// Add manual default ctor.
 	for(int type = !!this->fConstructors.fEntryCount; type < 1 + !hasBareCtor; type++)
@@ -596,26 +668,32 @@ static void rlc_parsed_class_print_impl(
 	// NOINIT constructor //
 	////////////////////////
 
+	fputs("public: inline ", out);
 	rlc_src_string_print(
 		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
 		file,
 		out);
-	fputs("() = default;\n", out);
+	fputs("() {}\n", out);
 
 	// Default ctors and assignments for virtual classes.
 	if(this->fIsVirtual)
 	{
-		rlc_src_string_print(
-			&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
-			file,
-			out);
-		fputs("(__rl_MY_T&&) = default;\n", out);
-
-		rlc_src_string_print(
-			&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
-			file,
-			out);
-		fputs("(__rl_MY_T const&) = default;\n", out);
+		if(!hasMoveCtor)
+		{
+			rlc_src_string_print(
+				&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+				file,
+				out);
+			fputs("(__rl_MY_T&&) = default;\n", out);
+		}
+		if(!hasCopyCtor)
+		{
+			rlc_src_string_print(
+				&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+				file,
+				out);
+			fputs("(__rl_MY_T const&) = default;\n", out);
+		}
 
 		fputs("__rl_MY_T& operator=(__rl_MY_T&&) = default;\n", out);
 		fputs("__rl_MY_T& operator=(__rl_MY_T const&) = default;\n", out);

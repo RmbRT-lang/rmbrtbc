@@ -410,6 +410,25 @@ static _Nodiscard struct RlcParsedExpression * parse_postfix(
 			++postfix;
 			continue;
 		}
+		// virtual constructor?
+		else if(rlc_parser_is_ahead(parser, kRlcTokVirtual))
+		{
+			int is_pointer = kRlcTokMinusGreater == rlc_parser_expect(parser, NULL, 2, kRlcTokDot, kRlcTokMinusGreater);
+			rlc_parser_skip(parser);
+			rlc_parser_expect(parser, NULL, 1, kRlcTokBraceOpen);
+			struct RlcParsedExpression * ctorArg =
+				rlc_parsed_expression_parse(
+					parser,
+					RLC_ALL_FLAGS(RlcParsedExpressionType));
+			struct RlcParsedOperatorExpression * ctorExpr;
+			if(ctorArg)
+				ctorExpr = make_binary_expression(is_pointer ? kVirtualCtorPtr : kVirtualCtor, out, ctorArg);
+			else
+				ctorExpr = make_unary_expression(is_pointer ? kVirtualCtorPtr : kVirtualCtor, out, out->fStart, out->fEnd);
+
+			out = RLC_BASE_CAST(ctorExpr, RlcParsedExpression);
+			rlc_parser_expect(parser, &out->fEnd, 1, kRlcTokBraceClose);
+		}
 		// member access operator?
 		else
 		{
@@ -732,6 +751,8 @@ void rlc_parsed_operator_expression_print(
 
 		{kCtor, -1, NULL, 0},
 		{kCtorPtr, -1, NULL, 0},
+		{kVirtualCtor, -1, NULL, 0},
+		{kVirtualCtorPtr, -1, NULL, 0},
 		{kDtor, -1, NULL, 0},
 		{kDtorPtr, -1, NULL, 0},
 		{kTupleMember, -1, NULL, 0},
@@ -741,6 +762,8 @@ void rlc_parsed_operator_expression_print(
 
 		{kTuple, -1, NULL, 0}
 	};
+
+	static_assert(RLC_COVERS_ENUM(k_position, RlcOperator));
 
 	RLC_DASSERT(k_position[this->fOperator].op == this->fOperator);
 
@@ -769,6 +792,14 @@ void rlc_parsed_operator_expression_print(
 			case kCtorPtr:
 				{
 					fputs("::__rl::__rl_p_constructor(", out);
+				} break;
+			case kVirtualCtor:
+				{
+					fputs("::__rl::__rl_virtual_constructor(", out);
+				} break;
+			case kVirtualCtorPtr:
+				{
+					fputs("::__rl::__rl_virtual_p_constructor(", out);
 				} break;
 			case kDtorPtr:
 				{
@@ -915,6 +946,8 @@ void rlc_parsed_operator_expression_print(
 				} break;
 			case kCtor:
 			case kCtorPtr:
+			case kVirtualCtor:
+			case kVirtualCtorPtr:
 			case kDtor:
 			case kDtorPtr:
 			case kTuple:
