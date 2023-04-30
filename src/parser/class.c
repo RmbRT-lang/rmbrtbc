@@ -307,6 +307,7 @@ static void rlc_parsed_class_print_impl(
 		fputs("virtual void const * __rl_get_derived(__rl_identifier const *) const = 0;\n", out);
 		fputs("virtual char const * __rl_type_name(__rl_identifier const *) const = 0;\n", out);
 		fputs("virtual unsigned __rl_type_number(__rl_identifier const *) const = 0;\n", out);
+		fputs("virtual void __rl_copy_rtti(__rl_identifier const *, void *) const = 0;\n", out);
 		fputs("virtual unsigned __rl_real_sizeof(__rl_identifier const *) const = 0;\n", out);
 
 		fputs("virtual void __rl_virtual_constructor(__rl_identifier const *, ::__rl::default_init_t) = 0;\n", out);
@@ -319,6 +320,7 @@ static void rlc_parsed_class_print_impl(
 		fputs("inline void const * __rl_get_derived(__rl_identifier const *) const { return this; }\n", out);
 		fputs("constexpr char const * __rl_type_name(__rl_identifier const *) const { return __rl_type_name_v; }\n", out);
 		fputs("constexpr unsigned __rl_type_number(__rl_identifier const *) const { return __rl_type_number_v; }\n", out);
+		fputs("inline void __rl_copy_rtti(__rl_identifier const *, void * ptr) const { new (ptr) __rl_MY_T(); }\n", out);
 		fputs("inline constexpr unsigned __rl_real_sizeof(__rl_identifier const *) const { return sizeof(*this); }\n", out);
 
 		if(!hasDefaultCtor)
@@ -343,24 +345,31 @@ static void rlc_parsed_class_print_impl(
 			&this->fInheritances[i].fBase,
 			file,
 			out);
-
 		fputs("::__rl_identifier const *) const { return __rl::real_addr(*this); }\n", out);
+
 
 		fputs("char const * __rl_type_name(typename ", out);
 		rlc_parsed_symbol_print_no_template(
 			&this->fInheritances[i].fBase,
 			file,
 			out);
-
 		fputs("::__rl_identifier const *) const { return __rl::type_name(*this); }\n", out);
+
 
 		fputs("unsigned __rl_type_number(typename ", out);
 		rlc_parsed_symbol_print_no_template(
 			&this->fInheritances[i].fBase,
 			file,
 			out);
-
 		fputs("::__rl_identifier const *) const { return __rl::type_number(*this); }\n", out);
+
+
+		fputs("void __rl_copy_rtti(typename ", out);
+		rlc_parsed_symbol_print_no_template(
+			&this->fInheritances[i].fBase,
+			file,
+			out);
+		fputs("::__rl_identifier const *, void * out) const { __rl::copy_rtti(*this, out); }\n", out);
 
 
 		fputs("unsigned __rl_real_sizeof(typename ", out);

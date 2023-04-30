@@ -915,6 +915,24 @@ namespace __rl
 
 
 
+	inline void copy_rtti(char const&v, void *) { }
+	inline void copy_rtti(signed const&v, void *) { }
+	inline void copy_rtti(unsigned const&v, void *) { }
+	inline void copy_rtti(signed short const&v, void *) { }
+	inline void copy_rtti(unsigned short const&v, void *) { }
+	inline void copy_rtti(signed long const&v, void *) { }
+	inline void copy_rtti(unsigned long const&v, void *) { }
+	inline void copy_rtti(signed char const&v, void *) { }
+	inline void copy_rtti(unsigned char const&v, void *) { }
+	inline void copy_rtti(float const&v, void *) { }
+	inline void copy_rtti(double const&v, void *) { }
+
+	template<class T> inline void copy_rtti(T * const& v, void *) { }
+	template<class T> inline void copy_rtti(T * &v, void *) { }
+	template<class T> inline void copy_rtti(T const&v, void * copy) { return v.__rl_copy_rtti(static_cast<T::__rl_identifier const *>(nullptr), copy); }
+
+
+
 	template<class T>
 	concept HasCustomValueOf = requires(T x) { x.__rl_value_of(); };
 

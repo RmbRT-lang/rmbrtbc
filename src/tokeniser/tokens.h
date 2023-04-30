@@ -30,6 +30,7 @@ enum RlcTokenType
 	kRlcTokBreak,
 	kRlcTokCatch,
 	kRlcTokContinue,
+	kRlcTokCopyRtti,
 	kRlcTokDefault,
 	kRlcTokDestructor,
 	kRlcTokDie,

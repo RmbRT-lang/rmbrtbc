@@ -194,6 +194,7 @@ struct {
 	{"BREAK", kRlcTokBreak },
 	{"CATCH", kRlcTokCatch },
 	{"CONTINUE", kRlcTokContinue },
+	{"COPY_RTTI", kRlcTokCopyRtti },
 	{"DEFAULT", kRlcTokDefault },
 	{"DESTRUCTOR", kRlcTokDestructor },
 	{"DIE", kRlcTokDie },
