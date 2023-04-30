@@ -307,6 +307,7 @@ static void rlc_parsed_class_print_impl(
 		fputs("virtual void const * __rl_get_derived(__rl_identifier const *) const = 0;\n", out);
 		fputs("virtual char const * __rl_type_name(__rl_identifier const *) const = 0;\n", out);
 		fputs("virtual unsigned __rl_type_number(__rl_identifier const *) const = 0;\n", out);
+		fputs("virtual unsigned __rl_real_sizeof(__rl_identifier const *) const = 0;\n", out);
 
 		fputs("virtual void __rl_virtual_constructor(__rl_identifier const *, ::__rl::default_init_t) = 0;\n", out);
 		fputs("virtual void __rl_virtual_constructor(__rl_identifier const *, ::__rl::bare_init_t) = 0;\n", out);
@@ -318,6 +319,7 @@ static void rlc_parsed_class_print_impl(
 		fputs("inline void const * __rl_get_derived(__rl_identifier const *) const { return this; }\n", out);
 		fputs("constexpr char const * __rl_type_name(__rl_identifier const *) const { return __rl_type_name_v; }\n", out);
 		fputs("constexpr unsigned __rl_type_number(__rl_identifier const *) const { return __rl_type_number_v; }\n", out);
+		fputs("inline constexpr unsigned __rl_real_sizeof(__rl_identifier const *) const { return sizeof(*this); }\n", out);
 
 		if(!hasDefaultCtor)
 			fputs("void __rl_virtual_constructor(__rl_identifier const *, ::__rl::default_init_t rhs) { throw \"virtual default ctor call: type has no default ctor.\"; }\n", out);
@@ -359,6 +361,14 @@ static void rlc_parsed_class_print_impl(
 			out);
 
 		fputs("::__rl_identifier const *) const { return __rl::type_number(*this); }\n", out);
+
+
+		fputs("unsigned __rl_real_sizeof(typename ", out);
+		rlc_parsed_symbol_print_no_template(
+			&this->fInheritances[i].fBase,
+			file,
+			out);
+		fputs("::__rl_identifier const *) const { return __rl::real_sizeof(*this); }\n", out);
 
 
 		// virtual ctor

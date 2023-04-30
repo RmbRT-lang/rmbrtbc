@@ -94,10 +94,19 @@ void rlc_parsed_sizeof_expression_print(
 	struct RlcSrcFile const * file,
 	FILE * out)
 {
-	fprintf(out, "sizeof%s(", this->fIsVariadic ? "...":"");
+	if(this->fIsVariadic)
+		fprintf(out, "sizeof%s(", this->fIsVariadic ? "...":"");
 	if(this->fIsType)
+	{
+		if(!this->fIsVariadic)
+			fputs("sizeof(", out);
 		rlc_parsed_type_name_print(&this->fType, file, out);
+	}
 	else
+	{
+		if(!this->fIsVariadic)
+			fputs("::__rl::real_sizeof(", out);
 		rlc_parsed_expression_print(this->fExpression, file, out);
+	}
 	fputc(')', out);
 }

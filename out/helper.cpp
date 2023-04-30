@@ -895,6 +895,26 @@ namespace __rl
 		return v.__rl_get_derived(static_cast<T::__rl_identifier const *>(nullptr));
 	}
 
+
+
+	inline constexpr size_t real_sizeof(char const&v) { return sizeof(v); }
+	inline constexpr size_t real_sizeof(signed const&v) { return sizeof(v); }
+	inline constexpr size_t real_sizeof(unsigned const&v) { return sizeof(v); }
+	inline constexpr size_t real_sizeof(signed short const&v) { return sizeof(v); }
+	inline constexpr size_t real_sizeof(unsigned short const&v) { return sizeof(v); }
+	inline constexpr size_t real_sizeof(signed long const&v) { return sizeof(v); }
+	inline constexpr size_t real_sizeof(unsigned long const&v) { return sizeof(v); }
+	inline constexpr size_t real_sizeof(signed char const&v) { return sizeof(v); }
+	inline constexpr size_t real_sizeof(unsigned char const&v) { return sizeof(v); }
+	inline constexpr size_t real_sizeof(float const&v) { return sizeof(v); }
+	inline constexpr size_t real_sizeof(double const&v) { return sizeof(v); }
+
+	template<class T> inline constexpr size_t real_sizeof(T * const& v) { return sizeof(v); }
+	template<class T> inline constexpr size_t real_sizeof(T * &v) { return sizeof(v); }
+	template<class T> inline unsigned real_sizeof(T const&v) { return v.__rl_real_sizeof(static_cast<T::__rl_identifier const *>(nullptr)); }
+
+
+
 	template<class T>
 	concept HasCustomValueOf = requires(T x) { x.__rl_value_of(); };
 
