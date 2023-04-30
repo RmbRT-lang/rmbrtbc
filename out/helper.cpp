@@ -351,7 +351,7 @@ namespace __rl
 	class array
 	{
 	private:
-		Ret m_entries[kSize];
+		std::decay_t<Ret> m_entries[kSize];
 	public:
 		typedef Ret arr_t[kSize];
 
@@ -372,7 +372,7 @@ namespace __rl
 		}
 
 		constexpr auto __rl_value_of() const { return m_entries; };
-		constexpr auto __rl_value_of() { return m_entries; };
+		constexpr auto __rl_value_of() -> Ret(&)[] { return m_entries; };
 
 		static constexpr size_t size() { return kSize; }
 		constexpr size_t __rl_count() const { return kSize; }
@@ -616,7 +616,7 @@ namespace __rl
 		template<class ...Types2>
 		inline Tuple(
 			std::enable_if_t<
-				(...&&std::is_constructible_v<Types, Types2&&>),
+				(...&&(std::is_constructible_v<Types, Types2&&>)),
 				CreateTuple>,
 			Types2&&... args):
 			std::tuple<Types...>(static_cast<Types2&&>(args)...)
@@ -637,6 +637,10 @@ namespace __rl
 				return 0;
 			else
 				return this->template __rl_cmp<TupleU, i+1>(rhs);
+		}
+
+		Tuple<std::decay_t<Types>...> operator+() const {
+			return *this;
 		}
 
 		template<class ...Types2>
@@ -886,8 +890,8 @@ namespace __rl
 	inline void const * real_addr(float const&v) { return &v; }
 	inline void const * real_addr(double const&v) { return &v; }
 
-	template<class T> inline void * real_addr(T * const& v) { return &v; }
-	template<class T> inline void * real_addr(T * &v) { return &v; }
+	template<class T> inline void const * real_addr(T * const& v) { return &v; }
+	template<class T> inline void const * real_addr(T * &v) { return &v; }
 	template<class T> inline void const * real_addr(T const* const& v) { return &v; }
 	template<class T> inline void const * real_addr(T const* & v) { return &v; }
 	template<class T> inline void const * real_addr(T const&v)
