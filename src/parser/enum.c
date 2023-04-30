@@ -231,6 +231,12 @@ static void rlc_parsed_enum_print_to_file(
 		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
 		file,
 		out);
+	fputs(": ", out);
+	fputs(
+		this->fConstantCount <= 0xff ? "::uint8_t" :
+		this->fConstantCount <= 0xffff ? "::uint16_t" :
+		"uint32_t",
+		out);
 	fputs(" {\n", out);
 
 	for(RlcSrcIndex i = 0; i < this->fConstantCount; i++)
