@@ -589,7 +589,7 @@ static void rlc_parsed_class_print_impl(
 		fputs("\n{}\n", out);
 	}
 
-	// Make sure that THIS& also calls the copy ctor.
+	// Make sure that THIS& and THIS#&& also calls the copy ctor.
 	if(hasCopyCtor)
 	{
 		rlc_visibility_print(copyCtorVisibility, 1, out);
@@ -598,6 +598,19 @@ static void rlc_parsed_class_print_impl(
 			file,
 			out);
 		fputs("(__rl_MY_T &__rl_arg): ", out);
+		rlc_src_string_print(
+			&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+			file,
+			out);
+		fputs("(const_cast<__rl_MY_T const&>(__rl_arg))\n{}\n", out);
+
+
+		rlc_visibility_print(copyCtorVisibility, 1, out);
+		rlc_src_string_print(
+			&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+			file,
+			out);
+		fputs("(__rl_MY_T const&&__rl_arg): ", out);
 		rlc_src_string_print(
 			&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
 			file,
