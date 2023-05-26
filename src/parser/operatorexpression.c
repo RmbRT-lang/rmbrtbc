@@ -715,7 +715,7 @@ void rlc_parsed_operator_expression_print(
 		{kBitAnd, 1, "&",1}, {kBitOr, 1, "|",1}, {kBitXor, 1, "^",1}, {kBitNot, 0, "~",1},
 		{kLogAnd, 1, "&&",1}, {kLogOr, 1, "||",1}, {kLogNot, 0, "!",1},
 		{kShiftLeft, 1, "<<",1}, {kShiftRight, 1, ">>",1},
-		{kRotateLeft, -1, NULL,1}, {kRotateRight, -1, NULL,1},
+		{kRotateLeft, -1, NULL,0}, {kRotateRight, -1, NULL,0},
 		{kNeg, 0, "-",1}, {kPos, 0, "+",1},
 		{kSubscript, -1, NULL,0}, {kCall, -1, NULL,0}, {kVisit, -1, NULL, 0}, {kVisitReflect, -1, NULL, 0}, {kConditional, -1, NULL,1},
 		{kMemberReference, -1, ".",0}, {kMemberPointer, -1, "->",0},
@@ -859,6 +859,14 @@ void rlc_parsed_operator_expression_print(
 				{
 					fputs("::__rl::cmp(", out);
 				} break;
+			case kRotateLeft:
+				{
+					fputs("::__rl::rotl(", out);
+				} break;
+			case kRotateRight:
+				{
+					fputs("::__rl::rotr(", out);
+				} break;
 			default: { ; }
 			}
 		} break;
@@ -955,6 +963,8 @@ void rlc_parsed_operator_expression_print(
 			case kCount:
 			case kStructure:
 			case kCompare:
+			case kRotateLeft:
+			case kRotateRight:
 			case kRealAddr:
 			case kAutoDynCast:
 			case kValueOf:

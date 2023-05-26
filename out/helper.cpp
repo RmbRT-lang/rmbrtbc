@@ -519,6 +519,19 @@ namespace __rl
 		return lhs.__rl_cmp(rhs);
 	}
 
+
+	template<class T, class U>
+	inline constexpr T rotl(T v, U sh)
+	{
+		return (v << sh) | (v >> (8 * sizeof(T)) - sh);
+	}
+
+	template<class T, class U>
+	inline constexpr T rotr(T v, U sh)
+	{
+		return (v >> sh) | (v << (8 * sizeof(T)) - sh);
+	}
+
 	template<class T>
 	inline T & deref(T &v) { return v; }
 	template<class T>
