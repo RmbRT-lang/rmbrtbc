@@ -348,30 +348,40 @@ static void rlc_parsed_mask_print_impl(
 			if(member->fAttribute == kRlcMemberAttributeIsolated)
 				fputs("const ", out);
 			fputs("final { ", out);
-			if(fn->fReturnType.fValue != kRlcParsedTypeNameValueVoid
-			|| fn->fReturnType.fTypeModifierCount)
-				fputs("return ", out);
-			fputs("__rl::deref(__rl_mask_ptr).", out);
-			rlc_src_string_print(
-				&RLC_BASE_CAST(fn, RlcParsedScopeEntry)->fName,
-				file,
-				out);
-			fputs("(", out);
-			for(RlcSrcSize i = 0; i < fn->fArgumentCount; i++)
+
+			for(int i = 0; i <= 1; i++)
 			{
-				if(i) fputs(", ", out);
-				fputs("::__cpp_std::forward<", out);
-				RLC_DASSERT(fn->fArguments[i].fHasType);
-				rlc_parsed_type_name_print(&fn->fArguments[i].fType, file, out);
-				fputs(">(", out);
+				if(!i)
+					fputs("if constexpr(requires{{", out);
+				else if(fn->fReturnType.fValue != kRlcParsedTypeNameValueVoid
+				|| fn->fReturnType.fTypeModifierCount)
+					fputs("return ", out);
+
+				fputs("__rl::deref(__rl_mask_ptr).", out);
 				rlc_src_string_print(
-					&RLC_BASE_CAST(&fn->fArguments[i], RlcParsedScopeEntry)->fName,
+					&RLC_BASE_CAST(fn, RlcParsedScopeEntry)->fName,
 					file,
 					out);
-				fprintf(out, "__rlc_arg_%u", i);
+				fputs("(", out);
+				for(RlcSrcSize i = 0; i < fn->fArgumentCount; i++)
+				{
+					if(i) fputs(", ", out);
+					fputs("::__cpp_std::forward<", out);
+					RLC_DASSERT(fn->fArguments[i].fHasType);
+					rlc_parsed_type_name_print(&fn->fArguments[i].fType, file, out);
+					fputs(">(", out);
+					rlc_src_string_print(
+						&RLC_BASE_CAST(&fn->fArguments[i], RlcParsedScopeEntry)->fName,
+						file,
+						out);
+					fprintf(out, "__rlc_arg_%u", i);
+					fputs(")", out);
+				}
 				fputs(")", out);
+				if(!i) fputs("};}) ", out);
+				else fputs(";\n", out);
 			}
-			fputs("); }\n", out);
+			fputs("else throw ::__rl::voidthrow_t{};}", out);
 		}
 	}
 
