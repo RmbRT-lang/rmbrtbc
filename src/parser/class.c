@@ -331,7 +331,10 @@ static void rlc_parsed_class_print_impl(
 		if(!hasCopyCtor && hasMoveCtor)
 			fputs("void __rl_virtual_constructor(__rl_identifier const *, __rl_MY_T const& rhs) { throw \"virtual copy ctor call: type has no copy ctor\"; }\n", out);
 		else
+		{
 			fputs("void __rl_virtual_constructor(__rl_identifier const *, __rl_MY_T const& rhs) { new (this) __rl_MY_T(rhs); }\n", out);
+			fputs("__rl_MY_T operator+() const { return *this; }\n", out);
+		}
 		if(!hasMoveCtor && hasCopyCtor)
 			fputs("void __rl_virtual_constructor(__rl_identifier const *, __rl_MY_T &&rhs) { throw \"virtual move ctor call: type has no move ctor\"; }\n", out);
 		else
