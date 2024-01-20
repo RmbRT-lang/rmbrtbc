@@ -182,6 +182,15 @@ static void rlc_parsed_mask_print_impl(
 
 	fputs("struct __rl_identifier {};\n", out);
 	fputs("virtual void const * __rl_get_derived(__rl_identifier const *) const = 0;\n", out);
+	fputs("virtual unsigned __rl_real_sizeof(__rl_identifier const *) const = 0;", out);
+
+	fputs("typedef ", out);
+	rlc_printer_print_ctx_symbol(printer, file, out);
+	fputs(" __rl_MY_T;\n", out);
+
+	fputs("virtual void __rl_copy_rtti(__rl_identifier const *, void *) const = 0;\n", out);
+	fputs("virtual void __rl_virtual_constructor(__rl_identifier const *, __rl_MY_T const&) = 0;\n", out);
+	fputs("virtual void __rl_virtual_constructor(__rl_identifier const *, __rl_MY_T &&) = 0;\n", out);
 
 	fputs("static inline ", out);
 	rlc_src_string_print(
@@ -290,28 +299,65 @@ static void rlc_parsed_mask_print_impl(
 	}
 
 	fputs("{\n\tstd::decay_t<__rl_mask_type> __rl_mask_ptr;\n\tpublic:\n", out);
-	fputs("void const * __rl_get_derived(", out);
-	if(this->fTemplates.fChildCount)
-		fputs("typename ", out);
+	{
+		fputs("typedef ", out);
+		rlc_src_string_print(
+			&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+			file,
+			out);
+		if(this->fTemplates.fChildCount)
+		{
+			fputs("<", out);
+			for(RlcSrcSize i = 0; i < this->fTemplates.fChildCount; i++)
+			{
+				if(i)
+					fputs(", ", out);
+				rlc_src_string_print(
+					&this->fTemplates.fChildren[i].fName,
+					file,
+					out);
+			}
+			fputs(">", out);
+		}
+		fputs(" __rl_PARENT_T;\n", out);
+	}
+
+	{
+		fputs("typedef ", out);
+		rlc_src_string_print(
+			&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+			file,
+			out);
+		fputs("_wrapper<__rl_mask_type", out);
+		if(this->fTemplates.fChildCount)
+		{
+			for(RlcSrcSize i = 0; i < this->fTemplates.fChildCount; i++)
+			{
+				fputs(", ", out);
+				rlc_src_string_print(
+					&this->fTemplates.fChildren[i].fName,
+					file,
+					out);
+			}
+		}
+		fputs(">", out);
+		fputs(" __rl_MY_T;\n", out);
+	}
+
+	fputs("using typename __rl_PARENT_T::__rl_identifier;\n", out);
+
+	fputs("inline void __rl_copy_rtti(__rl_identifier const *, void * dst) const final { new (dst) __rl_MY_T(); }\n", out);
+	fputs("void __rl_virtual_constructor(__rl_identifier const *, __rl_PARENT_T const& rhs) { new (this) __rl_MY_T(static_cast<__rl_MY_T const&>(rhs)); }\n", out);
+	fputs("void __rl_virtual_constructor(__rl_identifier const *, __rl_PARENT_T && rhs) { new (this) __rl_MY_T(static_cast<__rl_MY_T &&>(rhs)); }\n", out);
+
+	fputs("void const * __rl_get_derived(__rl_identifier const *) const final { return this; }\n", out);
+	fputs("constexpr unsigned __rl_real_sizeof(__rl_identifier const *) const { return sizeof(*this); }\n", out);
+
 	rlc_src_string_print(
 		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
 		file,
 		out);
-	if(this->fTemplates.fChildCount)
-	{
-		fputs("<", out);
-		for(RlcSrcSize i = 0; i < this->fTemplates.fChildCount; i++)
-		{
-			if(i)
-				fputs(", ", out);
-			rlc_src_string_print(
-				&this->fTemplates.fChildren[i].fName,
-				file,
-				out);
-		}
-		fputs(">", out);
-	}
-	fputs("::__rl_identifier const *) const override { return this; }\n", out);
+	fputs("_wrapper() = default;\n", out);
 
 	rlc_src_string_print(
 		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
@@ -381,7 +427,12 @@ static void rlc_parsed_mask_print_impl(
 				if(!i) fputs("};}) ", out);
 				else fputs(";\n", out);
 			}
-			fputs("else throw ::__rl::voidthrow_t{};}", out);
+			fputs("else throw ::__rl::Tuple<char const*, char const*>{::__rl::createTuple,\"unsupported MASK call: ", out);
+			rlc_src_string_print(
+					&RLC_BASE_CAST(fn, RlcParsedScopeEntry)->fName,
+					file,
+					out);
+			fputs("()\", ::__rl::type_name<>(__rl::deref(__rl_mask_ptr))}; }", out);
 		}
 	}
 
