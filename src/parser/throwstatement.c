@@ -87,13 +87,17 @@ void rlc_parsed_throw_statement_print(
 	struct RlcSrcFile const * file,
 	FILE * out)
 {
-	fputs("throw ", out);
-	if(this->fType == kRlcThrowTypeValue)
+	switch(this->fType)
 	{
+	case kRlcThrowTypeValue:
+	{
+		fputs("throw ", out);
 		rlc_parsed_expression_print(this->fValue, file, out);
-	} else if(this->fType == kRlcThrowTypeVoid)
-	{
-		fputs("::__rl::voidthrow_t{}", out);
+	} break;
+	case kRlcThrowTypeVoid:
+		fputs("throw ::__rl::voidthrow_t{}", out); break;
+	case kRlcThrowTypeRethrow:
+		fputs("::std::rethrow_exception(::std::current_exception())", out); break;
 	}
 	fputs(";\n", out);
 }
