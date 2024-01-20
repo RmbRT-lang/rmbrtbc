@@ -995,33 +995,6 @@ namespace __rl
 		}
 	}
 
-	template<class Fn, class Obj, class ...Args>
-	inline Fn &&visit(Fn &&fn, Obj &&obj, Args &&... args) requires requires {
-		obj.__rl_visit(std::forward<Fn>(fn), std::forward<Args>(args)...);
-	}
-	{
-		obj.__rl_visit(std::forward<Fn>(fn), std::forward<Args>(args)...);
-		return std::forward<Fn>(fn);
-	}
-
-	template<class Fn, class Obj, class ...Args>
-	inline Fn &&visit(Fn &&fn, Obj &&obj, Args &&... args) { throw "VISIT invalid"; }
-
-	template<class Fn, class Obj, class ...Args>
-	inline Fn &&visit_reflect(Fn &&fn, Obj &&obj, Args &&... args) requires requires {
-		obj.__rl_visit_reflect(std::forward<Fn>(fn), std::forward<Args>(args)...);
-	}
-	{
-		obj.__rl_visit_reflect(std::forward<Fn>(fn), std::forward<Args>(args)...);
-		return std::forward<Fn>(fn);
-	}
-
-	template<class Fn, class Obj, class ...Args>
-	inline Fn &&visit_reflect(Fn &&fn, Obj &&obj, Args &&... args)
-	{
-		throw "VISIT invalid";
-	}
-
 	template<class T, class U>
 	inline T __rl_dynamic_cast(U *v) {
 		if constexpr(std::is_polymorphic<U>() || std::is_convertible<U*, T>())
@@ -1117,6 +1090,37 @@ namespace __rl
 	template<class T> constexpr char const * type_name(T *) { return TypeName<T>::value; }
 	template<class T> constexpr char const * type_name(T const&&) { return TypeName<T>::value; }
 	template<class T> constexpr char const * type_name(T &&) { return TypeName<T>::value; }
+
+	template<class Fn, class Obj, class ...Args>
+	inline Fn &&visit(Fn &&fn, Obj &&obj, Args &&... args) requires requires {
+		obj.__rl_visit(std::forward<Fn>(fn), std::forward<Args>(args)...);
+	}
+	{
+		obj.__rl_visit(std::forward<Fn>(fn), std::forward<Args>(args)...);
+		return std::forward<Fn>(fn);
+	}
+
+	template<class Fn, class Obj, class ...Args>
+	inline Fn &&visit(Fn &&fn, Obj &&obj, Args &&... args)
+	{
+		throw __rl::Tuple<char const*, char const*>(createTuple,
+			"VISIT invalid", ::__rl::type_name(obj));
+	}
+
+	template<class Fn, class Obj, class ...Args>
+	inline Fn &&visit_reflect(Fn &&fn, Obj &&obj, Args &&... args) requires requires {
+		obj.__rl_visit_reflect(std::forward<Fn>(fn), std::forward<Args>(args)...);
+	}
+	{
+		obj.__rl_visit_reflect(std::forward<Fn>(fn), std::forward<Args>(args)...);
+		return std::forward<Fn>(fn);
+	}
+
+	template<class Fn, class Obj, class ...Args>
+	inline Fn &&visit_reflect(Fn &&fn, Obj &&obj, Args &&... args)
+	{
+		throw __rl::mk_tuple("VISIT* invalid", ::__rl::type_name(obj));
+	}
 
 	template<class T>
 	inline char const * deriving_type_name(T const& type)
