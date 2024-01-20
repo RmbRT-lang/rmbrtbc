@@ -101,7 +101,7 @@ void rlc_parsed_case_statement_print(
 	RLC_ASSERT(!this->fControlLabel.fExists);
 
 	if(this->fIsDefault)
-		fputs("default:", out);
+		fputs("default: ", out);
 	else
 	{
 		for(size_t i = 0; i < this->fValues.fCount; i++)

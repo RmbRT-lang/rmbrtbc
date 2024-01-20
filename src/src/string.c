@@ -100,6 +100,7 @@ void rlc_src_string_print(
 		"extern",
 		"inline",
 		"static",
+		"explicit",
 		"operator",
 		"final",
 		"override",

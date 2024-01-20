@@ -191,7 +191,7 @@ void rlc_parsed_type_switch_statement_print(
 			if(this->fCases[i].fIsDefault)
 			{
 				hasDefault = 1;
-				fputs("default:", out);
+				fputs("default: ", out);
 			}
 			else for(RlcSrcIndex j = 0; j<this->fCases[i].fTypeNameCount; j++)
 			{
@@ -199,7 +199,7 @@ void rlc_parsed_type_switch_statement_print(
 				if(this->fCases[i].fAddTypeName[j])
 					fputs("typename ", out);
 				rlc_parsed_symbol_print(&this->fCases[i].fTypeNames[j], file, out);
-				fputs(">():", out);
+				fputs(">(): ", out);
 			}
 
 			rlc_parsed_statement_print(this->fCases[i].fBodyStatement, file, out);
