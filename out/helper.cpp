@@ -355,6 +355,8 @@ namespace __rl
 	public:
 		typedef Ret arr_t[kSize];
 
+		static constexpr char const * __rl_type_name_v = "[]";
+
 		constexpr array() {}
 		constexpr array(::__rl::default_init_t)
 		{
@@ -637,6 +639,8 @@ namespace __rl
 		}
 
 		static constexpr size_t __rl_arity = sizeof...(Types);
+
+		static constexpr char const * __rl_type_name_v = "Tuple";
 
 		template<class TupleU,
 			size_t i = 0,
@@ -928,6 +932,7 @@ namespace __rl
 
 	template<class T> inline constexpr size_t real_sizeof(T * const& v) { return sizeof(v); }
 	template<class T> inline constexpr size_t real_sizeof(T * &v) { return sizeof(v); }
+	template<class T, size_t n> inline constexpr size_t real_sizeof(array<T, n> const& x) { return sizeof(x); }
 	template<class T> inline unsigned real_sizeof(T const&v) { return v.__rl_real_sizeof(static_cast<T::__rl_identifier const *>(nullptr)); }
 
 
@@ -1088,6 +1093,8 @@ namespace __rl
 	{
 		static constexpr char const * value = T::__rl_type_name_v;
 	};
+
+	template<> struct TypeName<char> { static constexpr char const * value = "CHAR"; };
 	template<> struct TypeName<uint8_t> { static constexpr char const * value = "U1"; };
 	template<> struct TypeName<int8_t> { static constexpr char const * value = "S1"; };
 	template<> struct TypeName<uint16_t> { static constexpr char const * value = "U2"; };
