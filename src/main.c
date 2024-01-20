@@ -80,14 +80,20 @@ int main(
 			"usage:\n"
 			"\t%s f1 f2 ... fN\n"
 			"\t\tcompiles f1...fN into executable 'a.out'.\n"
+			"\t%s --lib f1 f2 ... fN\n"
+			"\t\tcompiles f1...fN into library 'a.out'.\n"
 			"\t%s --test f1 f2 ... fN\n"
 			"\t\tcompiles tests in f1...fN into executable 'a.out'.\n"
+			"\t%s --testrun f1 f2 ... fN\n"
+			"\t\tcompiles and runs tests in f1...fN.\n"
 			"\t%s --help\n"
 				"\t\tprints this message.\n"
 			"\t%s --license\n"
 				"\t\tprints the license information.\n"
 			"\t%s --find path\n"
 				"\t\tresolves the requested include path.\n",
+			argv[0],
+			argv[0],
 			argv[0],
 			argv[0],
 			argv[0],
@@ -141,7 +147,11 @@ int main(
 		return 0;
 	}
 
-	int isTest = !strcmp(argv[1], "--test");
+	int lib = !strcmp(argv[1], "--lib");
+	int tempExe = !strcmp(argv[1], "--testrun");
+	int run = tempExe;
+	int isTest = tempExe || !strcmp(argv[1], "--test");
+	int anyArg = lib | tempExe | isTest;
 
 	struct RlcScopedFileRegistry scoped_registry;
 	rlc_scoped_file_registry_create(&scoped_registry);
@@ -171,7 +181,7 @@ int main(
 	};
 
 	int status = 1;
-	for(int i = 1 + isTest; i < argc; i++)
+	for(int i = 1 + anyArg; i < argc; i++)
 	{
 		char const * abs = to_absolute_path(argv[i]);
 		struct RlcScopedFile * file;
@@ -243,9 +253,15 @@ int main(
 
 	fflush(stdout);
 
-	char command[PATH_MAX+128];
-	snprintf(command, sizeof(command), "c++ -std=c++2a -fcoroutines -pthread -x c++ -Wfatal-errors -Wno-inaccessible-base -Werror -ftemplate-backtrace-limit=0 -fdiagnostics-column-unit=byte %s -o a.out -g",
-		pipename);
+	char exeName[32];
+	snprintf(exeName, sizeof(exeName),
+		tempExe ? "/tmp/.rlc_%p.exe" : "a.out",
+		rlc_actual); // only used as nondeterministic address
+	char command[PATH_MAX+256];
+	snprintf(command, sizeof(command), "c++ %s -std=c++2a -fcoroutines -pthread -x c++ -Wfatal-errors -Wno-inaccessible-base -Werror -ftemplate-backtrace-limit=0 -fdiagnostics-column-unit=byte %s -o %s %s",
+		lib ? "-c" : "",
+		pipename, exeName,
+		tempExe ? "-O0" : "-rdynamic -g");
 	if((status = !system(command)))
 		puts("compiled!");
 	close(pipefd);
@@ -258,5 +274,18 @@ int main(
 
 	fflush(stdout);
 	fflush(stderr);
+
+	if(run)
+	{
+		if(!system(exeName)) status = 1;
+	}
+	if(tempExe)
+	{
+		snprintf(command, sizeof(command), "rm %s", exeName);
+		system(command);
+	}
+	snprintf(command, sizeof(command), "rm %s", pipename);
+	system(command);
+
 	return status ? 0 : 1;
 }
