@@ -31,7 +31,7 @@ int rlc_parsed_base_expression_parse(
 {
 	struct RlcToken start;
 	if(!rlc_parser_is_ahead(parser, kRlcTokParentheseOpen)
-	|| !rlc_parser_consume(parser, &start, kRlcTokGreater))
+	|| !rlc_parser_consume(parser, &start, kRlcTokMinusGreater))
 		return 0;
 
 	rlc_parser_skip(parser);
