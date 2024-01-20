@@ -224,6 +224,7 @@ static void rlc_parsed_enum_print_symbol_ctor(
 static void rlc_parsed_enum_print_to_file(
 	struct RlcParsedEnum const * this,
 	struct RlcSrcFile const * file,
+	struct RlcPrinter const * printer,
 	FILE * out)
 {
 	fputs("enum class __rl_enum_", out);
@@ -321,6 +322,16 @@ static void rlc_parsed_enum_print_to_file(
 		out);
 	fputs(">\";\n"
 		"}\n\n", out);
+
+	fputs("static constexpr char const * __rl_type_name_v = \"", out);
+	rlc_printer_print_ctx_symbol_with_namespace_rl_flavour(printer, file, out);
+		fputs("::", out);
+	rlc_src_string_print(
+		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+		file,
+		out);
+	fputs("\";\n", out);
+
 	for(RlcSrcIndex i = 0; i < this->fConstantCount; i++)
 	{
 		rlc_parsed_enum_print_symbol_ctor(
@@ -403,7 +414,7 @@ void rlc_parsed_enum_print(
 	struct RlcSrcFile const * file,
 	struct RlcPrinter * printer)
 {
-	rlc_parsed_enum_print_to_file(this, file, printer->fTypes);
+	rlc_parsed_enum_print_to_file(this, file, printer, printer->fTypes);
 }
 
 void rlc_parsed_member_enum_create(
@@ -464,5 +475,6 @@ void rlc_parsed_member_enum_print(
 	rlc_parsed_enum_print_to_file(
 		RLC_BASE_CAST(this, RlcParsedEnum),
 		file,
+		printer,
 		printer->fTypesImpl);
 }
