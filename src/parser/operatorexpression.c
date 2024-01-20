@@ -557,6 +557,8 @@ static struct RlcParsedExpression * parse_prefix(
 				rlc_parser_trace(parser, "asynchronous call", &trace);
 
 			struct RlcParsedExpression * operand = parse_prefix(parser);
+			if(!operand)
+				rlc_parser_fail(parser, "expected expression after unary operator");
 
 			if(isAsync)
 			{
