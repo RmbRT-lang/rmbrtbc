@@ -764,7 +764,7 @@ namespace __rl
 		return std::forward<T&&>(arg);
 	}
 	constexpr default_init_t single_ctor_arg() { return default_init; }
-
+/*
 	template<class ...Types>
 	struct auto_type_wrapper<Tuple<Types...>> {
 		typedef Tuple<auto_t<::std::decay_t<Types>>...> type;
@@ -776,7 +776,7 @@ namespace __rl
 	template<class ...Types>
 	struct auto_type_wrapper<Tuple<Types...> const&> {
 		typedef Tuple<auto_t<::std::decay_t<Types>>...> type;
-	};
+	};*/
 
 	template<class Symbol>
 	struct SymbolBase
