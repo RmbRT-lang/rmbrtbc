@@ -9,7 +9,7 @@ void rlc_assertion_failure(
 	int line,
 	char const * function)
 {
-	fprintf(stderr, "assertion failure: \"%s\" in %s:%i (%s).\n", expression, file, line, function);
+	fprintf(stderr, "%s:%i: assertion failure: \"%s\" in (%s).\n", file, line, expression, function);
 	fflush(stdout);
 	fflush(stderr);
 	abort();
