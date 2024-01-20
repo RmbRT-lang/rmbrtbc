@@ -504,8 +504,8 @@ namespace __rl
 		return b ? -1 : 0;
 	}
 
-	template<class T, class = std::enable_if_t<std::is_integral_v<T>>>
-	inline constexpr int8_t cmp(T lhs, T rhs)
+	template<class T, class U, class = std::enable_if_t<std::is_integral_v<std::common_type_t<T, U>>>>
+	inline constexpr int8_t cmp(T lhs, U rhs)
 	{
 		std::make_signed_t<T> diff = lhs - rhs;
 		if(diff)
