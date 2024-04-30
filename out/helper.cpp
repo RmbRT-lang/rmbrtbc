@@ -627,6 +627,9 @@ namespace __rl
 		inline Tuple(__rl::default_init_t) {
 			__rl_visit([](auto &x) { __rl_constructor(x, default_init); });
 		}
+		inline Tuple(__rl::bare_init_t) {
+			__rl_visit([](auto &x) { __rl_constructor(x, bare_init); });
+		}
 
 		template<class ...Types2>
 		inline Tuple(
