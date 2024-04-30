@@ -248,7 +248,7 @@ int main(
 	fprintf(pipef, "\n#line 0 \"%s\"\n", out_file);
 	fflush(pipef);
 	pipe_file(out_file, pipefd);
-	free(rlc_actual);
+	// free(rlc_actual); // GCC 13.2.0 bug
 	shutdown(pipefd, SHUT_WR);
 
 	fflush(stdout);
@@ -257,6 +257,7 @@ int main(
 	snprintf(exeName, sizeof(exeName),
 		tempExe ? "/tmp/.rlc_%p.exe" : "a.out",
 		rlc_actual); // only used as nondeterministic address
+	free(rlc_actual); // GCC 13.2.0 bug
 	char command[PATH_MAX+256];
 	snprintf(command, sizeof(command), "c++ %s -std=c++2a -fcoroutines -pthread -x c++ -Wfatal-errors -Wno-inaccessible-base -Werror -ftemplate-backtrace-limit=0 -fdiagnostics-column-unit=byte %s -o %s %s",
 		lib ? "-c" : "",
