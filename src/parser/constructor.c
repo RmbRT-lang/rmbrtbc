@@ -177,7 +177,11 @@ int rlc_parsed_constructor_parse(
 	if(rlc_parser_consume(
 		parser,
 		NULL,
-		kRlcTokInline))
+		kRlcTokInline)
+	|| rlc_parser_consume(
+		parser,
+		NULL,
+		RLC_INLINE_SHORTHAND))
 	{
 		out->fIsInline = 1;
 	}

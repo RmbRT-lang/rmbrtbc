@@ -290,7 +290,11 @@ int rlc_parsed_function_parse(
 		out->fIsInline = rlc_parser_consume(
 			parser,
 			NULL,
-			kRlcTokInline);
+			kRlcTokInline)
+		|| rlc_parser_consume(
+			parser,
+			NULL,
+			RLC_INLINE_SHORTHAND);
 	} else if(!allow_body)
 		rlc_parser_fail(parser, "expected return type");
 
@@ -310,7 +314,11 @@ int rlc_parsed_function_parse(
 	out->fIsInline = rlc_parser_consume(
 		parser,
 		NULL,
-		kRlcTokInline);
+		kRlcTokInline)
+	|| rlc_parser_consume(
+		parser,
+		NULL,
+		RLC_INLINE_SHORTHAND);
 	out->fIsShortHandBody = !rlc_parsed_block_statement_parse(
 		&out->fBodyStatement,
 		parser);

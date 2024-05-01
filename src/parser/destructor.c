@@ -53,7 +53,11 @@ int rlc_parsed_destructor_parse(
 	out->fIsInline = rlc_parser_consume(
 		parser,
 		NULL,
-		kRlcTokInline);
+		kRlcTokInline)
+	|| rlc_parser_consume(
+		parser,
+		NULL,
+		RLC_INLINE_SHORTHAND);
 
 	if(rlc_parser_consume(
 		parser,

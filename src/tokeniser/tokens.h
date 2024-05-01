@@ -161,6 +161,8 @@ enum RlcTokenType
 
 };
 
+#define RLC_INLINE_SHORTHAND kRlcTokDoubleMinus
+
 /** Looks up the name belonging to the given token type.
 @param[in] type:
 	The token type whose name to retrieve.
