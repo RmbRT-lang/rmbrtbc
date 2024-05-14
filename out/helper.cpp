@@ -562,6 +562,7 @@ namespace __rl
 			value(v) { }
 		explicit constexpr EnumWrapper(int_t v):
 			value((Enum)v) { }
+		constexpr EnumWrapper(__rl::bare_init_t): EnumWrapper() {}
 		constexpr EnumWrapper() = default;
 
 		constexpr operator int_t() const {
