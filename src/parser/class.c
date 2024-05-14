@@ -742,6 +742,47 @@ static void rlc_parsed_class_print_impl(
 			file->fName,
 			clsName.line,
 			clsName.column);
+
+		if(!hasCopyCtor || hasMoveCtor)
+		{
+			if(!hasMoveCtor)
+			{
+				rlc_src_string_print(
+					&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+					file,
+					out);
+				fputs("(__rl_MY_T&&) = default;\n", out);
+			}
+			fprintf(out, "__rl_MY_T& operator=(__rl_MY_T &&_rhs)\n{\n"
+				"	__rl_assert(this != &_rhs, (self-assignments are forbidden!), \"%s\", %u, %u);\n"
+				"	__rl_destructor();\n"
+				"	__rl::__rl_p_constructor(this, (__rl_MY_T &&)_rhs);\n"
+				"	return *this;\n"
+				"}\n",
+				file->fName,
+				clsName.line,
+				clsName.column);
+		}
+		if(!hasMoveCtor || hasCopyCtor)
+		{
+			if(!hasCopyCtor)
+			{
+				rlc_src_string_print(
+					&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+					file,
+					out);
+				fputs("(__rl_MY_T const&) = default;\n", out);
+			}
+			fprintf(out, "__rl_MY_T& operator=(__rl_MY_T const&_rhs)\n{\n"
+				"	__rl_assert(this != &_rhs, (self-assignments are forbidden!), \"%s\", %u, %u);\n"
+				"	__rl_destructor();\n"
+				"	__rl::__rl_p_constructor(this, _rhs);\n"
+				"	return *this;\n"
+				"}\n",
+				file->fName,
+				clsName.line,
+				clsName.column);
+		}
 	}
 
 
