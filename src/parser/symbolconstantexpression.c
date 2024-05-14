@@ -58,23 +58,37 @@ void rlc_parsed_symbol_constant_print(FILE * out)
 {
 	fputs("namespace __rl::constant {\n", out);
 
+	static char const * const ctors[] = { "default_init_t", "bare_init_t" };
+
 	for(RlcSrcIndex i = 0; i < symbolCount; i++)
 	{
 		char const * name = symbols[i];
 		fprintf(out,
 			"struct _t_%s : public __rl::SymbolBase<_t_%s> {\n"
-			"	_t_%s() = default; _t_%s(::__rl::default_init_t) {}\n"
-			"} const _v_%s{};\n",
-			name, name, name, name, name);
+				"	static constexpr char const * const __rl_type_name_v = \":%s\"; "
+				"	_t_%s() = default;",
+			name, name, name, name);
+		for(unsigned c = 0; c < _countof(ctors); c++)
+			fprintf(out,
+				" _t_%s(::__rl::%s) {}\n",
+				name, ctors[c]);
+		fprintf(out, "} const _v_%s{};\n", name);
+
 
 		fprintf(out,
 			"template<class T>\n"
 			"struct _tt_%s : public __rl::SymbolBase<_tt_%s<T>> {\n"
-			"	_tt_%s() = default; _tt_%s(::__rl::default_init_t) {}\n"
+				"	static constexpr char const * const __rl_type_name_v = \":%s\"; "
+			"	_tt_%s() = default;", name, name, name, name);
+		for(unsigned c = 0; c < _countof(ctors); c++)
+			fprintf(out,
+			" _tt_%s(::__rl::%s) {}\n",
+				name, ctors[c]);
+		fprintf(out,
 			"};\n"
 			"template<class T>\n"
 			"_tt_%s<T> const __t_v_%s{};\n",
-			name, name, name, name, name, name);
+			name, name);
 	}
 
 	fputs("}\n", out);
