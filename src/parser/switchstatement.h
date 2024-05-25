@@ -35,6 +35,9 @@ struct RlcParsedSwitchStatement
 	} fSwitchValue;
 	/** The switch statement's cases. */
 	struct RlcParsedCaseStatement * fCases;
+
+	/** This gets executed before each block. Incompatible with DEFAULT.  */
+	struct RlcParsedBlockStatement * fCommonIntro;
 	/** The switch statement's case count. */
 	size_t fCaseCount;
 };

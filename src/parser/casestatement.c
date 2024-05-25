@@ -1,5 +1,6 @@
 #include "casestatement.h"
 #include "switchstatement.h"
+#include "blockstatement.h"
 
 #include "../assert.h"
 #include "../malloc.h"
@@ -120,9 +121,26 @@ void rlc_parsed_case_statement_print(
 			fputs("):\n", out);
 		}
 	}
+	// Common intro wraps its scope around the actual cases.
+	if(parent->fCommonIntro)
+	{
+		fputs("{", out);
+		for(RlcSrcIndex i = 0;
+			i < parent->fCommonIntro->fList.fStatementCount;
+			i++)
+		{
+			rlc_parsed_statement_print(
+				parent->fCommonIntro->fList.fStatements[i],
+				file,
+				out);
+		}
+	}
 	fputs("{", out);
 	rlc_parsed_statement_print(this->fBody, file, out);
 	if(!this->fIsFallthrough)
 		fputs("\tbreak;\n", out);
 	fputs("}", out);
+
+	if(parent->fCommonIntro)
+		fputs("}", out);
 }

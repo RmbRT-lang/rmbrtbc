@@ -1,4 +1,5 @@
 #include "switchstatement.h"
+#include "blockstatement.h"
 
 #include "../assert.h"
 #include "../malloc.h"
@@ -15,6 +16,7 @@ void rlc_parsed_switch_statement_create(
 	this->fSwitchValue.fExpression = NULL;
 	this->fCases = NULL;
 	this->fCaseCount = 0;
+	this->fCommonIntro = NULL;
 }
 
 void rlc_parsed_switch_statement_destroy(
@@ -39,6 +41,12 @@ void rlc_parsed_switch_statement_destroy(
 	}
 	this->fCaseCount = 0;
 
+	if(this->fCommonIntro)
+	{
+		rlc_parsed_block_statement_destroy(this->fCommonIntro);
+		rlc_free((void**)&this->fCommonIntro);
+	}
+
 	rlc_parsed_statement_destroy_base(
 		RLC_BASE_CAST(this, RlcParsedStatement));
 }
@@ -56,12 +64,12 @@ int rlc_parsed_switch_statement_parse(
 		kRlcTokSwitch))
 		return 0;
 
+	rlc_parsed_switch_statement_create(out);
 	out->fIsStrict = !rlc_parser_consume(parser, NULL, kRlcTokQuestionMark);
 
 	struct RlcParserTracer tracer;
 	rlc_parser_trace(parser, "switch statement", &tracer);
 
-	rlc_parsed_switch_statement_create(out);
 	rlc_parsed_control_label_parse(&out->fLabel, parser);
 
 	rlc_parser_expect(
@@ -100,6 +108,23 @@ int rlc_parsed_switch_statement_parse(
 
 	int hasDefault = 0;
 
+	if(rlc_parser_consume(parser, NULL, kRlcTokCommon))
+	{
+		struct RlcParserTracer tracer;
+		rlc_parser_trace(parser, "COMMON case", &tracer);
+
+		rlc_parser_expect(parser, NULL, 1, kRlcTokColon);
+
+		struct RlcParsedBlockStatement common;
+		if(!rlc_parsed_block_statement_parse(&common, parser))
+			rlc_parser_fail(parser, "expected block statement");
+
+		rlc_malloc((void**)&out->fCommonIntro, sizeof(common));
+		*out->fCommonIntro = common;
+
+		rlc_parser_untrace(parser, &tracer);
+	}
+
 	struct RlcParsedCaseStatement case_stmt;
 	do {
 		if(!rlc_parsed_case_statement_parse(
@@ -113,15 +138,19 @@ int rlc_parsed_switch_statement_parse(
 		{
 			if(hasDefault)
 				rlc_parser_fail(parser, "duplicate default case");
+			if(out->fCommonIntro)
+				rlc_parser_fail(parser, "COMMON intro forbids default case");
 			hasDefault = 1;
 		}
+
+		if(case_stmt.fIsFallthrough && out->fCommonIntro)
+			rlc_parser_fail(parser, "COMMON intro forbids fallthrough (limitation of bootstrap compiler)");
 
 		rlc_parsed_switch_statement_add_case(
 			out,
 			&case_stmt);
 	} while(case_stmt.fIsFallthrough
 		|| !rlc_parser_consume(parser, NULL, kRlcTokBraceClose));
-
 
 	rlc_parser_untrace(parser, &tracer);
 

@@ -18,6 +18,7 @@ char const * rlc_token_type_name(
 		"'BARE'",
 		"'BREAK'",
 		"'CATCH'",
+		"'COMMON'",
 		"'CONTINUE'",
 		"'COPY_RTTI'",
 		"'DEFAULT'",

@@ -193,6 +193,7 @@ struct {
 	{"BARE", kRlcTokBare },
 	{"BREAK", kRlcTokBreak },
 	{"CATCH", kRlcTokCatch },
+	{"COMMON", kRlcTokCommon },
 	{"CONTINUE", kRlcTokContinue },
 	{"COPY_RTTI", kRlcTokCopyRtti },
 	{"DEFAULT", kRlcTokDefault },
