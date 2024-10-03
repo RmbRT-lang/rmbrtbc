@@ -19,6 +19,7 @@ struct RlcSrcFile
 	char * fContents; // Used for parsing, does not contain BOM.
 	char * fContentData; // Used for freeing, may contain BOM.
 	size_t fContentLength;
+	size_t fLineCount;
 };
 
 /** Reads a source file.

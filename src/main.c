@@ -207,6 +207,11 @@ int main(
 	rlc_parsed_symbol_constant_print(printer.fSymbolConstants);
 	rlc_parsed_symbol_constant_free();
 
+	printf("Parsed %zu files, %zu lines, %zu bytes\n",
+		scoped_registry.fFileCount,
+		scoped_registry.fLineCount,
+		scoped_registry.fBytes);
+
 	rlc_scoped_file_registry_destroy(&scoped_registry);
 
 	int pipefd;

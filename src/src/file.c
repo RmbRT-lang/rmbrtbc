@@ -50,6 +50,18 @@ int rlc_src_file_read(
 
 	this->fContentData[this->fContentLength] = '\0';
 
+	this->fLineCount = 0;
+	for(
+		char const * start = strchr(this->fContentData, '\n');
+		start != NULL;
+		start = strchr(start+1, '\n')
+	) {
+		this->fLineCount++;
+	}
+	if(this->fContentData[this->fContentLength-1] != '\n')
+		this->fLineCount++;
+
+
 	// Detect and skip UTF-8 BOM.
 	if(!strncmp(this->fContentData, "\xEF\xBB\xBF", 3))
 	{

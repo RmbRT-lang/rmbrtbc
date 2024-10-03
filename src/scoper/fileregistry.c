@@ -43,6 +43,8 @@ void rlc_scoped_file_registry_create(
 
 	this->fFiles = NULL;
 	this->fFileCount = 0;
+	this->fLineCount = 0;
+	this->fBytes = 0;
 	this->fIncludeDirs = NULL;
 	this->fIncludeDirCount = 0;
 	read_include_dirs(this);
@@ -93,6 +95,9 @@ struct RlcScopedFile * rlc_scoped_file_registry_get(
 
 	if(!parsed)
 		return NULL;
+
+	this->fLineCount += parsed->fSource.fLineCount;
+	this->fBytes += parsed->fSource.fContentLength;
 
 	rlc_realloc(
 		(void**)&this->fFiles,

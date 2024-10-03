@@ -21,6 +21,9 @@ struct RlcScopedFileRegistry
 	RlcSrcSize fIncludeDirCount;
 
 	struct RlcParsedFileRegistry fParseRegistry;
+
+	size_t fLineCount;
+	size_t fBytes;
 };
 
 void rlc_scoped_file_registry_create(
