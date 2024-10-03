@@ -244,8 +244,8 @@ int main(
 	pipe_file(out_file, pipefd);
 	read_into_pipe_and_close(printer.fSymbolConstants, &symbolConstantsBuf, &symbolConstantsLen, pipefd);
 	read_into_pipe_and_close(printer.fTypes, &typesBuf, &typesLen, pipefd);
-	read_into_pipe_and_close(printer.fFuncs, &funcsBuf, &funcsLen, pipefd);
 	read_into_pipe_and_close(printer.fTypesImpl, &typesImplBuf, &typesImplLen, pipefd);
+	read_into_pipe_and_close(printer.fFuncs, &funcsBuf, &funcsLen, pipefd);
 	read_into_pipe_and_close(printer.fVars, &varsBuf, &varsLen, pipefd);
 	read_into_pipe_and_close(printer.fVarsImpl, &varsImplBuf, &varsImplLen, pipefd);
 	read_into_pipe_and_close(printer.fFuncsImpl, &funcsImplBuf, &funcsImplLen, pipefd);
