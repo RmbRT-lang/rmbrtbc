@@ -58,6 +58,8 @@ void rlc_printer_pop_ns(
 
 void rlc_printer_adjust_position(FILE * out, struct RlcSrcString const * position)
 {
+	if(RLC_NORENAME) return;
+
 	fprintf(out, "\n#line %d\n", position->line);
 	for(int i = position->column -1; i--;)
 		fputc(' ', out);

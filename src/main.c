@@ -239,7 +239,8 @@ int main(
 	}
 
 	snprintf(out_file, sizeof(out_file), "%.*s/out/helper.cpp", parent_dir(rlc_actual), rlc_actual);
-	fprintf(pipef, "\n#line 0 \"%s\"\n", out_file);
+	if(!RLC_NORENAME)
+		fprintf(pipef, "\n#line 0 \"%s\"\n", out_file);
 	fflush(pipef);
 	pipe_file(out_file, pipefd);
 	read_into_pipe_and_close(printer.fSymbolConstants, &symbolConstantsBuf, &symbolConstantsLen, pipefd);
@@ -250,7 +251,8 @@ int main(
 	read_into_pipe_and_close(printer.fVarsImpl, &varsImplBuf, &varsImplLen, pipefd);
 	read_into_pipe_and_close(printer.fFuncsImpl, &funcsImplBuf, &funcsImplLen, pipefd);
 	snprintf(out_file, sizeof(out_file), "%.*s/out/%s", parent_dir(rlc_actual), rlc_actual, isTest ? "testmain.cpp" : "exemain.cpp");
-	fprintf(pipef, "\n#line 0 \"%s\"\n", out_file);
+	if(!RLC_NORENAME)
+		fprintf(pipef, "\n#line 0 \"%s\"\n", out_file);
 	fflush(pipef);
 	pipe_file(out_file, pipefd);
 	// free(rlc_actual); // GCC 13.2.0 bug
@@ -291,7 +293,8 @@ int main(
 		system(command);
 	}
 	snprintf(command, sizeof(command), "rm %s", pipename);
-	system(command);
+	if(status || !RLC_NORENAME)
+		system(command);
 
 	return status ? 0 : 1;
 }

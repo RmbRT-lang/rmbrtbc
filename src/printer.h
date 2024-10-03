@@ -2,6 +2,8 @@
 #define __rlc_scoper_printer_h_defined
 #pragma once
 
+#define RLC_NORENAME 0
+
 #include <stdio.h>
 
 #ifdef __cplusplus
