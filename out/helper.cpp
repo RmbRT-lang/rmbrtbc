@@ -347,7 +347,7 @@ namespace __rl
 		template<class T> constexpr operator T*() const { T * v; return v; }
 	} const bare_init;
 
-	template<class Ret, size_t kSize>
+	template<class Ret, unsigned kSize>
 	class array
 	{
 	private:
@@ -376,8 +376,8 @@ namespace __rl
 		constexpr auto __rl_value_of() const { return m_entries; };
 		constexpr auto __rl_value_of() -> Ret(&)[] { return m_entries; };
 
-		static constexpr size_t size() { return kSize; }
-		constexpr size_t __rl_count() const { return kSize; }
+		static constexpr unsigned size() { return kSize; }
+		constexpr unsigned __rl_count() const { return kSize; }
 
 		constexpr Ret &operator[](size_t i) { return m_entries[i]; }
 		constexpr Ret const& operator[](size_t i) const { return m_entries[i]; }
