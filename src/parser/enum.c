@@ -100,6 +100,7 @@ void rlc_parsed_enum_create(
 
 	this->fConstants = NULL;
 	this->fConstantCount = 0;
+	this->fDefaultConstant = -1;
 }
 
 void rlc_parsed_enum_destroy(
@@ -166,6 +167,13 @@ int rlc_parsed_enum_parse(
 		kRlcTokBraceOpen);
 
 	do {
+		if(out->fDefaultConstant == -1
+		&& (rlc_parser_consume(parser, NULL, kRlcTokDefault)
+			|| rlc_parser_consume(parser, NULL, kRlcTokAsterisk)))
+		{
+			out->fDefaultConstant = out->fConstantCount;
+		}
+
 		struct RlcParsedEnumConstant constant;
 		if(!rlc_parsed_enum_constant_parse(
 			&constant,
@@ -299,6 +307,7 @@ static void rlc_parsed_enum_print_to_file(
 		"{\n\t"
 		"char const * const names[] = {\n",
 		(size_t)this->fConstantCount);
+
 	for(RlcSrcIndex i = 0; i < this->fConstantCount; i++)
 	{
 		if(i)
@@ -322,6 +331,15 @@ static void rlc_parsed_enum_print_to_file(
 		out);
 	fputs(">\";\n"
 		"}\n\n", out);
+
+	if(this->fDefaultConstant == -1)
+		fputs("private: ", out);
+	rlc_src_string_print(
+		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+		file,
+		out);
+	fprintf(out, "(::__rl::default_init_t): EnumWrapper(%d) {}\npublic:\n",
+		this->fDefaultConstant);
 
 	fputs("static constexpr char const * __rl_type_name_v = \"", out);
 	rlc_printer_print_ctx_symbol_with_namespace_rl_flavour(printer, file, out);

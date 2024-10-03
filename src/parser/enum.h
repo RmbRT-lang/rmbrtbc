@@ -71,6 +71,7 @@ struct RlcParsedEnum
 	struct RlcParsedEnumConstant * fConstants;
 	/** The constant count. */
 	size_t fConstantCount;
+	int fDefaultConstant; // -1 for no default.
 };
 
 void rlc_parsed_enum_print(
