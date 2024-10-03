@@ -857,6 +857,17 @@ void __RL_TEST_IMPL_PASTE(__rl_test_, counter)(); \
 		::__rl::test::detail::test(name, &__RL_TEST_IMPL_PASTE(__rl_test_, counter)); \
 	void __RL_TEST_IMPL_PASTE(__rl_test_, counter)()
 
+
+extern "C" {
+	uint64_t file_get_size(void * f) {
+		uint64_t old = ftell((FILE *)f);
+		fseek((FILE *)f, 0, SEEK_END);
+		uint64_t size = ftell((FILE *)f);
+		fseek((FILE *)f, old, SEEK_SET);
+		return size;
+	}
+}
+
 namespace __rl::test
 {
 	namespace detail {
