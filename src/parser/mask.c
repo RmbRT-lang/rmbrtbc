@@ -214,7 +214,7 @@ static void rlc_parsed_mask_print_impl(
 		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
 		file,
 		out);
-	fputs(" &&ref) { return ref; }\n", out);
+	fputs(" &&ref) { return *&ref; }\n", out);
 
 	fputs("template<class __rl_mask_type> static inline ", out);
 	rlc_src_string_print(

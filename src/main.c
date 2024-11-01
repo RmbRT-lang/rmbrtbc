@@ -266,7 +266,7 @@ int main(
 		rlc_actual); // only used as nondeterministic address
 	free(rlc_actual); // GCC 13.2.0 bug
 	char command[PATH_MAX+256];
-	snprintf(command, sizeof(command), "c++ %s -std=c++2a -fcoroutines -pthread -x c++ -Wfatal-errors -Wno-inaccessible-base -Werror -ftemplate-backtrace-limit=0 -fdiagnostics-column-unit=byte %s -o %s %s",
+	snprintf(command, sizeof(command), "c++ %s -std=c++23 -fcoroutines -pthread -x c++ -Wfatal-errors -Wno-inaccessible-base -Werror -ftemplate-backtrace-limit=0 -fdiagnostics-column-unit=byte %s -o %s %s",
 		lib ? "-c" : "",
 		pipename, exeName,
 		tempExe ? "-O0" : "-rdynamic -g");
