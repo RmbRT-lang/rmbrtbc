@@ -3,6 +3,7 @@
 // Some standard includes.
 #include <inttypes.h>
 #include <stddef.h>
+#include <bit>
 #include <new>
 #include <coroutine>
 #include <variant>
@@ -840,6 +841,38 @@ namespace __rl
 		{ return this->exchange(std::get<1>(v), std::memory_order_seq_cst); }
 	};
 
+
+	constexpr uint8_t popcnt(uint64_t x) noexcept
+		{ return std::popcount(x); }
+	constexpr uint8_t popcnt(int64_t x) noexcept
+		{ return std::popcount((uint64_t)x); }
+	constexpr uint8_t popcnt(uint32_t x) noexcept
+		{ return std::popcount(x); }
+	constexpr uint8_t popcnt(int32_t x) noexcept
+		{ return std::popcount((uint32_t)x); }
+	constexpr uint8_t popcnt(uint16_t x) noexcept
+		{ return std::popcount(x); }
+	constexpr uint8_t popcnt(int16_t x) noexcept
+		{ return std::popcount((uint16_t)x); }
+	constexpr uint8_t popcnt(uint8_t x) noexcept
+		{ return std::popcount(x); }
+	constexpr uint8_t popcnt(int8_t x) noexcept
+		{ return std::popcount((uint8_t)x); }
+
+	template<class T>
+	inline uint8_t popcnt(T const& v) { return v.__rl_popcnt(); }
+
+	constexpr uint64_t bswap(uint64_t x) noexcept { return std::byteswap(x); }
+	constexpr int64_t bswap(int64_t x) noexcept { return std::byteswap(x); }
+	constexpr uint32_t bswap(uint32_t x) noexcept { return std::byteswap(x); }
+	constexpr int32_t bswap(int32_t x) noexcept { return std::byteswap(x); }
+	constexpr uint16_t bswap(uint16_t x) noexcept { return std::byteswap(x); }
+	constexpr int16_t bswap(int16_t x) noexcept { return std::byteswap(x); }
+	constexpr uint8_t bswap(uint8_t x) noexcept { return std::byteswap(x); }
+	constexpr int8_t bswap(int8_t x) noexcept { return std::byteswap(x); }
+
+	template<class T>
+	inline auto bswap(T const& x) { return x.__rl_bswap(); }
 }
 #define __rl_assert_stringify_code(code...) #code
 #define __rl_assert(expr, code, file, line, col) do { \

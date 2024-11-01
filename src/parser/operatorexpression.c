@@ -51,6 +51,8 @@ static struct {
 const k_unary[] = {
 	{ kRlcTokMinus, kNeg },
 	{ kRlcTokPlus, kPos },
+	{ kRlcTokBswap, kBswap },
+	{ kRlcTokPopcnt, kPopcnt },
 	{ kRlcTokTilde, kBitNot },
 	{ kRlcTokExclamationMark, kLogNot },
 	{ kRlcTokAnd, kAddress },
@@ -722,6 +724,7 @@ void rlc_parsed_operator_expression_print(
 		{kShiftLeft, 1, "<<",1}, {kShiftRight, 1, ">>",1},
 		{kRotateLeft, -1, NULL,0}, {kRotateRight, -1, NULL,0},
 		{kNeg, 0, "-",1}, {kPos, 0, "+",1},
+		{kBswap, -1, NULL, 0}, {kPopcnt, -1, NULL, 0},
 		{kSubscript, -1, NULL,0}, {kCall, -1, NULL,0}, {kVisit, -1, NULL, 0}, {kVisitReflect, -1, NULL, 0}, {kVisitUnbox, -1, NULL, 0}, {kConditional, -1, NULL,1},
 		{kMemberReference, -1, ".",0}, {kMemberPointer, -1, "->",0},
 		{kBindReference, 1, ".*",1}, {kBindPointer, 1, "->*",1},
@@ -831,6 +834,14 @@ void rlc_parsed_operator_expression_print(
 						? ">(*("
 						: ">(",
 						out);
+				} break;
+			case kBswap:
+				{
+					fputs("::__rl::bswap(", out);
+				} break;
+			case kPopcnt:
+				{
+					fputs("::__rl::popcnt(", out);
 				} break;
 			case kCount:
 				{
@@ -972,6 +983,8 @@ void rlc_parsed_operator_expression_print(
 			case kDtorPtr:
 			case kTuple:
 			case kMove:
+			case kBswap:
+			case kPopcnt:
 			case kCount:
 			case kStructure:
 			case kCompare:

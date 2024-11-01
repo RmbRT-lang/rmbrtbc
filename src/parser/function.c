@@ -395,6 +395,8 @@ static void rlc_parsed_function_print_head_2(
 			case kValueOf: fputs("__rl_value_of", out); break;
 			case kStructure: fputs("__rl_structure", out); break;
 			case kCompare: fputs("__rl_cmp", out); break;
+			case kPopcnt: fputs("__rl_popcnt", out); break;
+			case kBswap: fputs("__rl_bswap", out); break;
 			default: isSpecialOp = 0;
 			}
 			if(isSpecialOp) break;
