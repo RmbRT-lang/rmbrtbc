@@ -148,9 +148,9 @@ int main(
 	}
 
 	int lib = !strcmp(argv[1], "--lib");
-	int tempExe = !strcmp(argv[1], "--testrun");
+	int tempExe = !strcmp(argv[1], "--testrun") || !strcmp(argv[1], "--run");
 	int run = tempExe;
-	int isTest = tempExe || !strcmp(argv[1], "--test");
+	int isTest = !strcmp(argv[1], "--testrun") || !strcmp(argv[1], "--test");
 	int anyArg = lib | tempExe | isTest;
 
 	struct RlcScopedFileRegistry scoped_registry;
