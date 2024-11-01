@@ -1132,6 +1132,14 @@ namespace __rl
 	}
 
 	template<class Fn, class Obj, class ...Args>
+	inline void visit_unbox(Fn &&fn, Obj &&obj, Args &&... args) requires requires {
+		obj.__rl_unbox(std::forward<Fn>(fn), std::forward<Args>(args)...);
+	}
+	{
+		obj.__rl_unbox(std::forward<Fn>(fn), std::forward<Args>(args)...);
+	}
+
+	template<class Fn, class Obj, class ...Args>
 	inline Fn &&visit_reflect(Fn &&fn, Obj &&obj, Args &&... args)
 	{
 		throw __rl::mk_tuple("VISIT* invalid", ::__rl::type_name(obj));

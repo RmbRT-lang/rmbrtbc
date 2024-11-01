@@ -304,7 +304,7 @@ static _Nodiscard struct RlcParsedExpression * parse_postfix(
 		}
 
 		int isVisit = 0;
-		int isReflectVisit = 0;
+		int visitType = 0; // 0: normal, 1: reflect, 2: unbox enum
 
 		// Subscript operator?
 		if(rlc_parser_consume(
@@ -356,10 +356,11 @@ static _Nodiscard struct RlcParsedExpression * parse_postfix(
 				parser,
 				NULL,
 				kRlcTokVisit))
-			&& ((isReflectVisit = rlc_parser_consume(
+			&& ((visitType = (rlc_parser_consume(
 					parser,
 					NULL,
-					kRlcTokAsterisk)),
+					kRlcTokAsterisk) ? 1
+				: rlc_parser_consume(parser, NULL, kRlcTokDoubleGreater) ? 2 : 0)),
 				rlc_parser_expect(
 					parser, NULL, 1, kRlcTokParentheseOpen),
 				1))
@@ -370,7 +371,9 @@ static _Nodiscard struct RlcParsedExpression * parse_postfix(
 		{
 			struct RlcParsedOperatorExpression * temp =
 				make_unary_expression(
-					isVisit ? isReflectVisit ? kVisitReflect : kVisit : kCall,
+					!isVisit ? kCall :
+					visitType == 0 ? kVisit :
+					visitType == 1 ? kVisitReflect : kVisitUnbox,
 					out,
 					out->fStart,
 					out->fStart);
@@ -719,7 +722,7 @@ void rlc_parsed_operator_expression_print(
 		{kShiftLeft, 1, "<<",1}, {kShiftRight, 1, ">>",1},
 		{kRotateLeft, -1, NULL,0}, {kRotateRight, -1, NULL,0},
 		{kNeg, 0, "-",1}, {kPos, 0, "+",1},
-		{kSubscript, -1, NULL,0}, {kCall, -1, NULL,0}, {kVisit, -1, NULL, 0}, {kVisitReflect, -1, NULL, 0}, {kConditional, -1, NULL,1},
+		{kSubscript, -1, NULL,0}, {kCall, -1, NULL,0}, {kVisit, -1, NULL, 0}, {kVisitReflect, -1, NULL, 0}, {kVisitUnbox, -1, NULL, 0}, {kConditional, -1, NULL,1},
 		{kMemberReference, -1, ".",0}, {kMemberPointer, -1, "->",0},
 		{kBindReference, 1, ".*",1}, {kBindPointer, 1, "->*",1},
 		{kDereference, 0, "*",1}, {kAddress, 0, "&",1}, {kMove, -1, NULL,0},
@@ -857,6 +860,10 @@ void rlc_parsed_operator_expression_print(
 				{
 					fputs("::__rl::visit_reflect(", out);
 				}  break;
+			case kVisitUnbox:
+				{
+					fputs("::__rl::visit_unbox(", out);
+				} break;
 			case kCompare:
 				{
 					fputs("::__rl::cmp(", out);
@@ -918,8 +925,11 @@ void rlc_parsed_operator_expression_print(
 			case kFork:
 			case kVisit:
 			case kVisitReflect:
+			case kVisitUnbox:
 				{
-					fputc(this->fOperator == kVisit || this->fOperator == kVisitReflect ? ',' : '(', out);
+					fputc(this->fOperator == kVisit
+						|| this->fOperator == kVisitReflect
+						|| this->fOperator == kVisitUnbox ? ',' : '(', out);
 					for(RlcSrcIndex i = 1; i < this->fExpressionCount; i++)
 					{
 						if(i>1)

@@ -424,6 +424,34 @@ static void rlc_parsed_enum_print_to_file(
 			fputs("};\n", out);
 		}
 	}
+
+
+	// unbox
+	fputs("\t"
+		"template<class Fn, class ...Args>\n\t"
+		"void __rl_unbox(Fn &&fn, Args&&... args) const { switch(value) {\n", out);
+	for(RlcSrcIndex i = 0; i < this->fConstantCount; i++)
+	{
+		fputs("\tcase ", out);
+		rlc_src_string_print(
+			&RLC_BASE_CAST(&this->fConstants[i], RlcParsedScopeEntry)->fName,
+			file,
+			out);
+		fputs(": fn(::__rl::constant::_t_", out);
+		rlc_src_string_print_noreplace(
+			&RLC_BASE_CAST(&this->fConstants[i], RlcParsedScopeEntry)->fName,
+			file, out);
+		fputs("{}, ::std::forward<Args>(args)...); return;\n", out);
+	}
+	fputs("\tdefault: throw \"", out);
+	rlc_src_string_print(
+		&RLC_BASE_CAST(this, RlcParsedScopeEntry)->fName,
+		file,
+		out);
+	fputs("::__rl_unbox: unknown value\";\n\t}}", out);
+
+
+	// end enum class
 	fputs("};\n", out);
 }
 
